@@ -33,6 +33,9 @@ Estrutura relevante:
 
 ## Convenções de implementação
 
+- Nomeie arquivos e diretórios em inglês, usando letras minúsculas e palavras
+  separadas por hífen (kebab-case), salvo nomes especiais exigidos pelo framework.
+
 - Prefira Server Components. Adicione `"use client"` somente quando o componente
   depender de estado, efeitos, eventos do navegador ou APIs exclusivamente do cliente.
 
@@ -56,6 +59,8 @@ Estrutura relevante:
 
 - Mantenha a aplicação e os textos de interface em português do Brasil, salvo quando
   o requisito pedir outro idioma.
+
+- Não termine frases ou mensagens visíveis na interface com ponto final.
 
 - Preserve a acessibilidade e o comportamento responsivo ao criar interfaces.
 
