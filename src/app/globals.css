@@ -127,6 +127,6 @@
     cursor: pointer;
   }
   html {
-    @apply font-roboto-sans;
+    @apply font-sans;
   }
 }
