@@ -18,7 +18,10 @@ Stack principal:
 - Tailwind CSS 4;
 - shadcn/ui com primitives do Radix UI e ícones Lucide;
 - Biome para formatação e análise estática;
-- next-themes para os temas claro, escuro e do sistema.
+- next-themes para os temas claro, escuro e do sistema;
+- Firebase para os serviços de backend da aplicação;
+- Zod para definição de schemas e validação de dados;
+- React Hook Form para gerenciamento de formulários.
 
 Estrutura relevante:
 
@@ -37,6 +40,17 @@ Estrutura relevante:
 
 - Use os componentes do shadcn/ui para elementos de interface e preserve o estilo
   visual configurado no projeto.
+
+- Utilize os serviços do Firebase para autenticação, persistência, armazenamento e
+  demais recursos de backend quando essas capacidades forem necessárias. Centralize
+  a configuração e o acesso aos serviços, reutilizando os módulos existentes.
+
+- Valide dados de entrada e dados vindos de fontes externas com schemas do Zod.
+  Reutilize os mesmos schemas entre cliente e servidor quando isso for apropriado.
+
+- Use React Hook Form para lidar com formulários que exijam estado, validação ou
+  tratamento de envio. Integre-o ao Zod para manter as regras de validação
+  centralizadas sempre que necessário.
 
 - Utilize os aliases de importação já criados e não fique criando novos nas configurações.
 
