@@ -5,13 +5,13 @@ import { getFirestore } from "firebase/firestore"
 import { getStorage } from "firebase/storage"
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBladHZGGYXh3K8rDrVVKZtVu9cyoBG0VY",
-  authDomain: "ultima-repeticao.firebaseapp.com",
-  projectId: "ultima-repeticao",
-  storageBucket: "ultima-repeticao.firebasestorage.app",
-  messagingSenderId: "38923107245",
-  appId: "1:38923107245:web:6f1608cd889c2503ef3f24",
-  measurementId: "G-CSD9W85F3V",
+  apiKey: "AIzaSyDOwPQBrSwJFhs9AMkDtNbLoWPeO2U_3AE",
+  authDomain: "ultima-repeticao-5da2b.firebaseapp.com",
+  projectId: "ultima-repeticao-5da2b",
+  storageBucket: "ultima-repeticao-5da2b.firebasestorage.app",
+  messagingSenderId: "174568685702",
+  appId: "1:174568685702:web:be1dfb3f250c5c16351107",
+  measurementId: "G-37E41PV8D0",
 }
 
 export const firebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)

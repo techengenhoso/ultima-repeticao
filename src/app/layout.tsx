@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Roboto } from "next/font/google"
+import { AuthGuard } from "@/components/auth-guard"
 import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
 import { cn } from "@/lib/utils"
@@ -32,7 +33,7 @@ export default function RootLayout({
           disableTransitionOnChange
           enableSystem
         >
-          {children}
+          <AuthGuard>{children}</AuthGuard>
         </ThemeProvider>
       </body>
     </html>
