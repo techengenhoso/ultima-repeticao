@@ -1,6 +1,7 @@
-import { ArrowLeftIcon, DumbbellIcon } from "lucide-react"
+import { ArrowLeftIcon } from "lucide-react"
 import Link from "next/link"
 
+import { Logo } from "@/components/logo"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 
@@ -17,16 +18,16 @@ export default function NotFound() {
       </div>
 
       <section className="relative w-full max-w-2xl border border-border bg-card p-6 shadow-2xl shadow-primary/5 sm:p-10">
-        <div className="flex size-11 items-center justify-center bg-primary text-primary-foreground">
-          <DumbbellIcon aria-hidden="true" className="size-5" />
-        </div>
+        <Logo />
 
         <p className="mt-10 text-xs font-semibold tracking-[0.2em] text-primary uppercase">
           Erro 404
         </p>
+
         <h1 className="mt-2 max-w-xl text-4xl font-bold tracking-tight sm:text-5xl">
           Esta página não foi encontrada
         </h1>
+
         <p className="mt-4 max-w-lg text-sm leading-relaxed text-muted-foreground sm:text-base">
           O endereço pode estar incorreto ou a página pode ter sido movida. Volte ao início
           para continuar acompanhando seus treinos

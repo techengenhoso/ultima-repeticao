@@ -6,10 +6,11 @@ import { usePathname, useRouter } from "next/navigation"
 import { type ReactNode, useEffect, useState } from "react"
 
 import { auth } from "@/lib/firebase"
+import { Bluer } from "./bluer"
 
 const publicRoutes = new Set(["/sign-up", "/sign-in", "/forgot-password"])
 
-const minimumLoadingTime = 3000
+const minimumLoadingTime = 30000
 
 export function AuthGuard({ children }: { children: ReactNode }) {
   const pathname = usePathname()
@@ -63,10 +64,8 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   if (isCheckingAuthentication || !hasMinimumLoadingTimeElapsed || !canRender) {
     return (
       <main className="relative flex min-h-svh items-center justify-center overflow-hidden bg-background px-6">
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,color-mix(in_oklch,var(--primary)_20%,transparent),transparent_42%)]"
-        />
+        <Bluer />
+
         <div
           aria-hidden="true"
           className="absolute -right-24 -bottom-24 size-72 border border-primary/10"
@@ -78,6 +77,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
         >
           <div className="relative mb-8 flex size-20 items-center justify-center">
             <div className="absolute inset-0 animate-ping bg-primary/10" />
+
             <div className="relative flex size-16 items-center justify-center bg-primary text-primary-foreground shadow-xl shadow-primary/20">
               <DumbbellIcon aria-hidden="true" className="size-7" />
             </div>
@@ -86,7 +86,9 @@ export function AuthGuard({ children }: { children: ReactNode }) {
           <p className="text-xs font-semibold tracking-[0.25em] text-primary uppercase">
             Última Repetição
           </p>
+
           <h1 className="mt-3 text-2xl font-bold tracking-tight">Preparando seu treino</h1>
+
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             Estamos organizando tudo para você continuar evoluindo
           </p>
@@ -98,6 +100,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
             <span className="h-5 w-1.5 animate-pulse bg-primary/70 [animation-delay:450ms]" />
             <span className="h-3 w-1.5 animate-pulse bg-primary/40 [animation-delay:600ms]" />
           </div>
+
           <span className="sr-only">Verificando autenticação</span>
         </output>
       </main>

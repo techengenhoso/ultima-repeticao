@@ -2,29 +2,54 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { FirebaseError } from "firebase/app"
-import { createUserWithEmailAndPassword } from "firebase/auth"
-import { EyeIcon, EyeOffIcon, LoaderCircleIcon } from "lucide-react"
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import {
+  EyeIcon,
+  EyeOffIcon,
+  LoaderCircleIcon,
+  LockIcon,
+  MailIcon,
+  UserIcon,
+} from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 import { auth } from "@/lib/firebase"
 
 const signupSchema = z
   .object({
+    fullName: z
+      .string()
+      .trim()
+      .min(3, "O nome completo deve ter pelo menos 3 caracteres")
+      .max(100, "O nome completo deve ter no máximo 100 caracteres"),
     email: z.email("Informe um e-mail válido"),
     password: z
       .string()
+      .trim()
       .min(8, "A senha deve ter pelo menos 8 caracteres")
       .max(50, "A senha deve ter no máximo 50 caracteres")
       .regex(/[a-z]/, "A senha deve conter pelo menos uma letra minúscula")
       .regex(/[A-Z]/, "A senha deve conter pelo menos uma letra maiúscula")
       .regex(/[0-9]/, "A senha deve conter pelo menos um número"),
-    passwordConfirmation: z.string().min(1, "Confirme sua senha"),
+    passwordConfirmation: z
+      .string()
+      .trim()
+      .min(8, "A senha deve ter pelo menos 8 caracteres")
+      .max(50, "A senha deve ter no máximo 50 caracteres")
+      .regex(/[a-z]/, "A senha deve conter pelo menos uma letra minúscula")
+      .regex(/[A-Z]/, "A senha deve conter pelo menos uma letra maiúscula")
+      .regex(/[0-9]/, "A senha deve conter pelo menos um número"),
   })
   .refine(data => data.password === data.passwordConfirmation, {
     message: "As senhas não coincidem",
@@ -45,6 +70,7 @@ export function SignUpForm() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [authenticationError, setAuthenticationError] = useState<string | null>(null)
+
   const {
     formState: { errors, isSubmitting },
     handleSubmit,
@@ -55,7 +81,14 @@ export function SignUpForm() {
     setAuthenticationError(null)
 
     try {
-      await createUserWithEmailAndPassword(auth, data.email, data.password)
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        data.email,
+        data.password
+      )
+
+      await updateProfile(userCredential.user, { displayName: data.fullName })
+
       router.replace("/")
       router.refresh()
     } catch (error) {
@@ -68,96 +101,126 @@ export function SignUpForm() {
   }
 
   return (
-    <form className="space-y-5" noValidate onSubmit={handleSubmit(onSubmit)}>
-      <div className="space-y-2">
-        <Label htmlFor="email">E-mail</Label>
-        <Input
-          {...register("email")}
-          aria-describedby={errors.email ? "email-error" : undefined}
-          aria-invalid={Boolean(errors.email)}
-          autoComplete="email"
-          id="email"
-          placeholder="voce@exemplo.com"
-          type="email"
-        />
-        {errors.email && (
-          <p className="text-xs text-destructive" id="email-error">
-            {errors.email.message}
-          </p>
-        )}
-      </div>
+    <form noValidate onSubmit={handleSubmit(onSubmit)}>
+      <FieldGroup className="gap-5">
+        <Field>
+          <FieldLabel htmlFor="full-name">Nome completo</FieldLabel>
 
-      <div className="space-y-2">
-        <Label htmlFor="password">Senha</Label>
-        <div className="relative">
-          <Input
-            {...register("password")}
-            aria-describedby={errors.password ? "password-error" : "password-hint"}
-            aria-invalid={Boolean(errors.password)}
-            autoComplete="new-password"
-            className="pr-11"
-            id="password"
-            placeholder="Crie uma senha"
-            type={showPassword ? "text" : "password"}
+          <InputGroup>
+            <InputGroupInput
+              {...register("fullName")}
+              aria-describedby={errors.fullName ? "full-name-error" : undefined}
+              autoComplete="name"
+              id="full-name"
+              placeholder="Digite seu nome completo"
+              type="text"
+            />
+
+            <InputGroupAddon>
+              <UserIcon aria-hidden="true" />
+            </InputGroupAddon>
+          </InputGroup>
+
+          <FieldError errors={[errors.fullName]} id="full-name-error" />
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="email">E-mail</FieldLabel>
+
+          <InputGroup>
+            <InputGroupInput
+              {...register("email")}
+              aria-describedby={errors.email ? "email-error" : undefined}
+              autoComplete="email"
+              id="email"
+              placeholder="voce@exemplo.com.br"
+              type="email"
+            />
+
+            <InputGroupAddon>
+              <MailIcon aria-hidden="true" />
+            </InputGroupAddon>
+          </InputGroup>
+
+          <FieldError errors={[errors.email]} id="email-error" />
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="password">Senha</FieldLabel>
+
+          <InputGroup>
+            <InputGroupInput
+              {...register("password")}
+              aria-describedby={errors.password ? "password-error" : "password-hint"}
+              autoComplete="new-password"
+              id="password"
+              placeholder="Crie uma senha"
+              type={showPassword ? "text" : "password"}
+            />
+
+            <InputGroupAddon>
+              <LockIcon aria-hidden="true" />
+            </InputGroupAddon>
+
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton
+                aria-label={showPassword ? "Ocultar senhas" : "Mostrar senhas"}
+                onClick={() => setShowPassword(current => !current)}
+                type="button"
+              >
+                {showPassword ? (
+                  <EyeOffIcon className="size-4" />
+                ) : (
+                  <EyeIcon className="size-4" />
+                )}
+              </InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
+
+          <FieldError errors={[errors.password]} id="password-error" />
+        </Field>
+
+        <Field>
+          <FieldLabel htmlFor="password-confirmation">Confirmar senha</FieldLabel>
+
+          <InputGroup>
+            <InputGroupInput
+              {...register("passwordConfirmation")}
+              aria-describedby={
+                errors.passwordConfirmation ? "password-confirmation-error" : undefined
+              }
+              autoComplete="new-password"
+              id="password-confirmation"
+              placeholder="Digite a senha novamente"
+              type={showPassword ? "text" : "password"}
+            />
+
+            <InputGroupAddon>
+              <LockIcon aria-hidden="true" />
+            </InputGroupAddon>
+          </InputGroup>
+
+          <FieldError
+            errors={[errors.passwordConfirmation]}
+            id="password-confirmation-error"
           />
-          <button
-            aria-label={showPassword ? "Ocultar senhas" : "Mostrar senhas"}
-            className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-            onClick={() => setShowPassword(current => !current)}
-            type="button"
+        </Field>
+
+        {authenticationError && (
+          <div
+            aria-live="polite"
+            className="border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
+            role="alert"
           >
-            {showPassword ? (
-              <EyeOffIcon className="size-4" />
-            ) : (
-              <EyeIcon className="size-4" />
-            )}
-          </button>
-        </div>
-        {errors.password ? (
-          <p className="text-xs text-destructive" id="password-error">
-            {errors.password.message}
-          </p>
-        ) : (
-          <p className="text-xs text-muted-foreground" id="password-hint">
-            Use de 8 a 50 caracteres, com letra maiúscula, minúscula e número
-          </p>
+            {authenticationError}
+          </div>
         )}
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="password-confirmation">Confirmar senha</Label>
-        <Input
-          {...register("passwordConfirmation")}
-          aria-describedby={
-            errors.passwordConfirmation ? "password-confirmation-error" : undefined
-          }
-          aria-invalid={Boolean(errors.passwordConfirmation)}
-          autoComplete="new-password"
-          id="password-confirmation"
-          placeholder="Digite a senha novamente"
-          type={showPassword ? "text" : "password"}
-        />
-        {errors.passwordConfirmation && (
-          <p className="text-xs text-destructive" id="password-confirmation-error">
-            {errors.passwordConfirmation.message}
-          </p>
-        )}
-      </div>
-
-      {authenticationError && (
-        <div
-          aria-live="polite"
-          className="border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
-          role="alert"
-        >
-          {authenticationError}
-        </div>
-      )}
-
-      <Button className="w-full" disabled={isSubmitting} size="lg" type="submit">
-        {isSubmitting && <LoaderCircleIcon className="animate-spin" />}
-        {isSubmitting ? "Criando conta" : "Criar conta"}
-      </Button>
+        <Button className="mt-5 w-full" disabled={isSubmitting} size="lg" type="submit">
+          {isSubmitting && <LoaderCircleIcon className="animate-spin" />}
+          {isSubmitting ? "Criando conta" : "Criar conta"}
+        </Button>
+      </FieldGroup>
     </form>
   )
 }
