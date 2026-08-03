@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils"
 
 const navigationItems = [
   { href: "/", icon: HomeIcon, label: "Início" },
-  { href: "/workouts", icon: ClipboardListIcon, label: "Meus treinos" },
+  { href: "/workouts", icon: ClipboardListIcon, label: "Treinos" },
   { href: "/exercises", icon: DumbbellIcon, label: "Exercícios" },
   { href: "/history", icon: HistoryIcon, label: "Histórico" },
   { href: "/progress", icon: ActivityIcon, label: "Evolução" },

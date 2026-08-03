@@ -1,4 +1,4 @@
-export function Bluer() {
+export function Blur() {
   return (
     <div
       aria-hidden="true"

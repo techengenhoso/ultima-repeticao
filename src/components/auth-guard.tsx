@@ -6,11 +6,9 @@ import { usePathname, useRouter } from "next/navigation"
 import { type ReactNode, useEffect, useState } from "react"
 
 import { auth } from "@/lib/firebase"
-import { Bluer } from "./bluer"
+import { Blur } from "./blur"
 
 const publicRoutes = new Set(["/sign-up", "/sign-in", "/forgot-password"])
-
-const minimumLoadingTime = 30000
 
 export function AuthGuard({ children }: { children: ReactNode }) {
   const pathname = usePathname()
@@ -18,15 +16,6 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
   const [isCheckingAuthentication, setIsCheckingAuthentication] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [hasMinimumLoadingTimeElapsed, setHasMinimumLoadingTimeElapsed] = useState(false)
-
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      setHasMinimumLoadingTimeElapsed(true)
-    }, minimumLoadingTime)
-
-    return () => window.clearTimeout(timeout)
-  }, [])
 
   useEffect(() => {
     return onAuthStateChanged(auth, user => {
@@ -36,7 +25,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    if (isCheckingAuthentication || !hasMinimumLoadingTimeElapsed) {
+    if (isCheckingAuthentication) {
       return
     }
 
@@ -50,21 +39,15 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     if (isAuthenticated && isPublicRoute) {
       router.replace("/")
     }
-  }, [
-    hasMinimumLoadingTimeElapsed,
-    isAuthenticated,
-    isCheckingAuthentication,
-    pathname,
-    router,
-  ])
+  }, [isAuthenticated, isCheckingAuthentication, pathname, router])
 
   const isPublicRoute = publicRoutes.has(pathname)
   const canRender = isAuthenticated ? !isPublicRoute : isPublicRoute
 
-  if (isCheckingAuthentication || !hasMinimumLoadingTimeElapsed || !canRender) {
+  if (isCheckingAuthentication || !canRender) {
     return (
       <main className="relative flex min-h-svh items-center justify-center overflow-hidden bg-background px-6">
-        <Bluer />
+        <Blur />
 
         <div
           aria-hidden="true"
