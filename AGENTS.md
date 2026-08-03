@@ -44,6 +44,11 @@ Estrutura relevante:
 - Use os componentes do shadcn/ui para elementos de interface e preserve o estilo
   visual configurado no projeto.
 
+- Utilize exclusivamente as cores semânticas já definidas em `src/app/globals.css`,
+  como `primary`, `background`, `foreground`, `muted`, `accent`, `sidebar` e `chart`.
+  Não use cores avulsas da paleta do Tailwind, valores literais de cor ou variantes
+  `dark:` nos componentes; os temas devem ser controlados pelas variáveis CSS globais.
+
 - Utilize os serviços do Firebase para autenticação, persistência, armazenamento e
   demais recursos de backend quando essas capacidades forem necessárias. Centralize
   a configuração e o acesso aos serviços, reutilizando os módulos existentes.
