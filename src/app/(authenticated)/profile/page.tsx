@@ -1,13 +1,18 @@
-import { UserIcon } from "lucide-react"
-
-import { PlaceholderPage } from "@/components/placeholder-page"
+import { Focus } from "@/components/focus"
+import { PageHeader } from "@/components/page-header"
+import { PersonalInformation } from "@/components/personal-information"
 
 export default function ProfilePage() {
   return (
-    <PlaceholderPage
-      description="Gerencie seus dados e preferências pessoais"
-      icon={UserIcon}
-      title="Perfil"
-    />
+    <div className="space-y-8">
+      <PageHeader
+        description="Gerencie seus dados pessoais e foco de treino"
+        title="Perfil"
+      />
+
+      <PersonalInformation />
+
+      <Focus />
+    </div>
   )
 }

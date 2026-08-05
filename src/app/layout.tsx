@@ -2,8 +2,9 @@ import type { Metadata } from "next"
 import { Roboto } from "next/font/google"
 import { AuthGuard } from "@/components/auth-guard"
 import { ThemeProvider } from "@/components/theme-provider"
-import "./globals.css"
+import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
+import "./globals.css"
 
 const robotoSans = Roboto({
   variable: "--font-roboto-sans",
@@ -34,6 +35,7 @@ export default function RootLayout({
           enableSystem
         >
           <AuthGuard>{children}</AuthGuard>
+          <Toaster position="top-right" />
         </ThemeProvider>
       </body>
     </html>

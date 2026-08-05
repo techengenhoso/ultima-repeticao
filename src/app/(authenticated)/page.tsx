@@ -1,30 +1,21 @@
 "use client"
 
-import { onAuthStateChanged } from "firebase/auth"
 import {
   ActivityIcon,
   ArrowRightIcon,
   BicepsFlexedIcon,
   CalendarCheckIcon,
+  Clock3Icon,
   FlameIcon,
 } from "lucide-react"
-import { useEffect, useState } from "react"
 
 import { PageHeader } from "@/components/page-header"
 import { SummaryCard } from "@/components/summary-card"
 import { Button } from "@/components/ui/button"
-import { auth } from "@/lib/firebase"
+import { useUserProfile } from "@/providers/user-profile"
 
 export default function DashboardPage() {
-  const [userName, setUserName] = useState(() => auth.currentUser?.displayName)
-
-  useEffect(
-    () =>
-      onAuthStateChanged(auth, user => {
-        setUserName(user?.displayName ?? null)
-      }),
-    []
-  )
+  const { userName } = useUserProfile()
 
   return (
     <div className="space-y-8">
@@ -81,9 +72,9 @@ export default function DashboardPage() {
           />
 
           <SummaryCard
-            description="Registre treinos para acompanhar seu progresso"
-            icon={ActivityIcon}
-            label="Evolução recente"
+            description="Nenhum treino registrado"
+            icon={Clock3Icon}
+            label="Horas de treino"
             value="0"
           />
 

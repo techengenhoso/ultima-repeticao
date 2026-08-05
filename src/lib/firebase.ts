@@ -2,7 +2,6 @@ import { type Analytics, getAnalytics, isSupported } from "firebase/analytics"
 import { getApp, getApps, initializeApp } from "firebase/app"
 import { getAuth } from "firebase/auth"
 import { getFirestore } from "firebase/firestore"
-import { getStorage } from "firebase/storage"
 
 const firebaseConfig = {
   apiKey: "AIzaSyDOwPQBrSwJFhs9AMkDtNbLoWPeO2U_3AE",
@@ -18,7 +17,6 @@ export const firebaseApp = getApps().length > 0 ? getApp() : initializeApp(fireb
 
 export const auth = getAuth(firebaseApp)
 export const db = getFirestore(firebaseApp)
-export const storage = getStorage(firebaseApp)
 
 let analyticsPromise: Promise<Analytics | null> | undefined
 

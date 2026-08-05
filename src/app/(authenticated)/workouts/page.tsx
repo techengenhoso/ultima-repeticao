@@ -7,7 +7,7 @@ export default function WorkoutsPage() {
     <PlaceholderPage
       description="Organize e consulte suas fichas de treino"
       icon={ClipboardListIcon}
-      title="Meus treinos"
+      title="Treinos"
     />
   )
 }

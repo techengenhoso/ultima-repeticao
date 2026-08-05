@@ -1,24 +1,23 @@
 "use client"
 
-import { onAuthStateChanged, signOut, type User } from "firebase/auth"
+import { signOut } from "firebase/auth"
 import { DumbbellIcon, InfoIcon, LogOutIcon } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { type ReactNode, useEffect, useState } from "react"
+import { type ReactNode, useState } from "react"
 
 import { MainNavigation } from "@/components/main-navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { auth } from "@/lib/firebase"
+import { useUserProfile } from "@/providers/user-profile"
 import { Logo } from "./logo"
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter()
 
-  const [user, setUser] = useState<User | null>(() => auth.currentUser)
+  const { user, userName } = useUserProfile()
   const [isSigningOut, setIsSigningOut] = useState(false)
-
-  useEffect(() => onAuthStateChanged(auth, setUser), [])
 
   async function handleSignOut() {
     setIsSigningOut(true)
@@ -55,7 +54,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <div className="border-t border-sidebar-border p-4">
           <div className="mb-3 min-w-0 px-2">
-            <p className="truncate text-sm font-semibold">{user?.displayName}</p>
+            <p className="truncate text-sm font-semibold">{userName}</p>
             <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
           </div>
 

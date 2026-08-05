@@ -51,7 +51,7 @@ function InputGroupAddon({
   )
 }
 
-function InputGroupButton({ className, ...props }: React.ComponentProps<"button">) {
+function InputGroupButton({ className, ...props }: React.ComponentProps<typeof Button>) {
   return (
     <Button
       className={cn("size-9", className)}
