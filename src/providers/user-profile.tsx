@@ -18,7 +18,7 @@ import {
   saveUserProfile as persistUserProfile,
   type UserProfile,
   type UserProfileInput,
-} from "@/lib/user-profile"
+} from "@/services/user-profile"
 
 interface UserProfileContextValue {
   user: User | null
@@ -65,7 +65,8 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   const saveProfile = useCallback(
     async (input: UserProfileInput) => {
       if (!user) throw new Error("Usuário não autenticado")
-      const savedProfile = await persistUserProfile(user.uid, input)
+      if (!user.email) throw new Error("E-mail do usuário não encontrado")
+      const savedProfile = await persistUserProfile(user.uid, user.email, input)
       setProfile(savedProfile)
     },
     [user]

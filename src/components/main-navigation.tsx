@@ -43,7 +43,7 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
                 className={cn(
                   "flex text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                   mobile
-                    ? "min-h-16 flex-col items-center justify-center gap-1 px-0.5 text-[0.625rem] font-medium"
+                    ? "min-h-[70] flex-col items-center justify-center gap-1 px-0.5 text-[0.625rem] font-medium"
                     : "h-11 items-center gap-3 px-3 text-sm font-medium",
                   isActive &&
                     (mobile

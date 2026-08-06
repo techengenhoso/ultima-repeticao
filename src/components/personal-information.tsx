@@ -21,7 +21,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { formatIsoDateToBrazilian, parseBrazilianDate } from "@/lib/date"
+import {
+  formatBrazilianDateInput,
+  formatIsoDateToBrazilian,
+  parseBrazilianDate,
+} from "@/lib/date"
 import { useUserProfile } from "@/providers/user-profile"
 import { InputField } from "./input-field"
 
@@ -39,7 +43,7 @@ const personalSchema = z.object({
       value =>
         !value ||
         (parseBrazilianDate(value) ?? "") <= new Date().toISOString().slice(0, 10),
-      "A data não pode ser futura"
+      "Não pode ser futura"
     ),
   gender: z.string(),
 })
@@ -61,6 +65,8 @@ export function PersonalInformation() {
     defaultValues: { fullName: "", email: "", birthDate: "", gender: "" },
   })
 
+  const birthDateField = register("birthDate")
+
   useEffect(
     () =>
       reset({
@@ -75,13 +81,9 @@ export function PersonalInformation() {
   async function onSubmit(values: PersonalValues) {
     try {
       await saveProfile({
-        ...values,
         fullName: values.fullName.trim(),
-        email: user?.email ?? values.email,
         birthDate: values.birthDate ? parseBrazilianDate(values.birthDate) : null,
         gender: values.gender || null,
-        goal: profile?.goal ?? null,
-        experience: profile?.experience ?? null,
       })
       toast.success("Atualizados com sucesso")
     } catch {
@@ -116,6 +118,7 @@ export function PersonalInformation() {
 
           <InputField
             aria-readonly="true"
+            description="O endereço de e-mail não pode ser alterado"
             disabled
             error={errors.email}
             icon={<MailIcon aria-hidden="true" />}
@@ -127,15 +130,20 @@ export function PersonalInformation() {
           />
 
           <InputField
+            {...birthDateField}
             disabled={isLoading || isSubmitting}
             error={errors.birthDate}
             icon={<CalendarDaysIcon aria-hidden="true" />}
             id="birthDate"
             inputMode="numeric"
             label="Data de nascimento"
+            maxLength={10}
+            onChange={event => {
+              event.target.value = formatBrazilianDateInput(event.target.value)
+              return birthDateField.onChange(event)
+            }}
             placeholder="DD/MM/AAAA"
             type="text"
-            {...register("birthDate")}
           />
 
           <SelectField

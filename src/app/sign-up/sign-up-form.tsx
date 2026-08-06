@@ -25,31 +25,14 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { auth } from "@/lib/firebase"
+import { emailSchema, fullNameSchema, passwordSchema } from "@/lib/schemas-zod"
 
 const signupSchema = z
   .object({
-    fullName: z
-      .string()
-      .trim()
-      .min(3, "O nome completo deve ter pelo menos 3 caracteres")
-      .max(100, "O nome completo deve ter no máximo 100 caracteres"),
-    email: z.email("Informe um e-mail válido"),
-    password: z
-      .string()
-      .trim()
-      .min(8, "A senha deve ter pelo menos 8 caracteres")
-      .max(50, "A senha deve ter no máximo 50 caracteres")
-      .regex(/[a-z]/, "A senha deve conter pelo menos uma letra minúscula")
-      .regex(/[A-Z]/, "A senha deve conter pelo menos uma letra maiúscula")
-      .regex(/[0-9]/, "A senha deve conter pelo menos um número"),
-    passwordConfirmation: z
-      .string()
-      .trim()
-      .min(8, "A senha deve ter pelo menos 8 caracteres")
-      .max(50, "A senha deve ter no máximo 50 caracteres")
-      .regex(/[a-z]/, "A senha deve conter pelo menos uma letra minúscula")
-      .regex(/[A-Z]/, "A senha deve conter pelo menos uma letra maiúscula")
-      .regex(/[0-9]/, "A senha deve conter pelo menos um número"),
+    fullName: fullNameSchema,
+    email: emailSchema,
+    password: passwordSchema,
+    passwordConfirmation: passwordSchema,
   })
   .refine(data => data.password === data.passwordConfirmation, {
     message: "As senhas não coincidem",

@@ -13,9 +13,10 @@ import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { auth } from "@/lib/firebase"
+import { emailSchema } from "@/lib/schemas-zod"
 
 const forgotPasswordSchema = z.object({
-  email: z.email("Informe um e-mail válido"),
+  email: emailSchema,
 })
 
 type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>

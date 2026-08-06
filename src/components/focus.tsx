@@ -26,7 +26,7 @@ const focusSchema = z.object({
 type FocusValues = z.infer<typeof focusSchema>
 
 export function Focus() {
-  const { user, profile, isLoading, saveProfile } = useUserProfile()
+  const { profile, isLoading, saveProfile } = useUserProfile()
 
   const {
     handleSubmit,
@@ -51,10 +51,6 @@ export function Focus() {
   async function onSubmit(values: FocusValues) {
     try {
       await saveProfile({
-        fullName: profile?.fullName ?? user?.displayName ?? "",
-        email: user?.email ?? profile?.email ?? "",
-        birthDate: profile?.birthDate ?? null,
-        gender: profile?.gender ?? null,
         goal: values.goal || null,
         experience: values.experience || null,
       })

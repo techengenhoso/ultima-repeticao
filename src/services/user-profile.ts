@@ -14,9 +14,8 @@ export interface UserProfile {
   updatedAt: Timestamp
 }
 
-export type UserProfileInput = Pick<
-  UserProfile,
-  "fullName" | "email" | "birthDate" | "gender" | "goal" | "experience"
+export type UserProfileInput = Partial<
+  Pick<UserProfile, "fullName" | "birthDate" | "gender" | "goal" | "experience">
 >
 
 export async function getUserProfile(uid: string) {
@@ -24,15 +23,27 @@ export async function getUserProfile(uid: string) {
   return snapshot.exists() ? (snapshot.data() as UserProfile) : null
 }
 
-export async function saveUserProfile(uid: string, input: UserProfileInput) {
+export async function saveUserProfile(
+  uid: string,
+  email: string,
+  input: UserProfileInput
+) {
   const reference = doc(db, "users", uid)
   const snapshot = await getDoc(reference)
 
   await setDoc(
     reference,
     {
+      ...(!snapshot.exists() && {
+        fullName: "",
+        birthDate: null,
+        gender: null,
+        goal: null,
+        experience: null,
+        createdAt: serverTimestamp(),
+      }),
       ...input,
-      ...(!snapshot.exists() && { createdAt: serverTimestamp() }),
+      email,
       updatedAt: serverTimestamp(),
     },
     { merge: true }

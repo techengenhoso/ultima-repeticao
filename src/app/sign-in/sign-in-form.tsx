@@ -19,10 +19,11 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { auth } from "@/lib/firebase"
+import { emailSchema } from "@/lib/schemas-zod"
 
 const signInSchema = z.object({
-  email: z.email("Informe um e-mail válido"),
-  password: z.string().min(1, "Informe sua senha"),
+  email: emailSchema,
+  password: z.string().min(1, "Campo obrigatório"),
 })
 
 type SignInData = z.infer<typeof signInSchema>
