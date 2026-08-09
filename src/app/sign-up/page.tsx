@@ -2,8 +2,8 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Blur } from "@/components/blur"
 import { Logo } from "@/components/logo"
+import { SignUpForm } from "@/components/sign-up/sign-up-form"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { SignUpForm } from "./sign-up-form"
 
 export const metadata: Metadata = {
   title: "Criar Conta | Última Repetição",

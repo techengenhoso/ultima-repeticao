@@ -27,7 +27,7 @@ import {
   parseBrazilianDate,
 } from "@/lib/date"
 import { useUserProfile } from "@/providers/user-profile"
-import { TextField } from "./text-field"
+import { TextField } from "../text-field"
 
 const personalSchema = z.object({
   fullName: z

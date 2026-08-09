@@ -1,7 +1,7 @@
-import { ChangePassword } from "@/components/change-password"
-import { Focus } from "@/components/focus"
 import { PageHeader } from "@/components/page-header"
-import { PersonalInformation } from "@/components/personal-information"
+import { ChangePassword } from "@/components/profile/change-password"
+import { Focus } from "@/components/profile/focus"
+import { PersonalInformation } from "@/components/profile/personal-information"
 
 export default function ProfilePage() {
   return (

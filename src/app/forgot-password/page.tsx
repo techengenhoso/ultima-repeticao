@@ -2,9 +2,9 @@ import { ArrowLeftIcon } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Blur } from "@/components/blur"
+import { ForgotPasswordForm } from "@/components/forgot-password/forgot-password-form"
 import { Logo } from "@/components/logo"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { ForgotPasswordForm } from "./forgot-password-form"
 
 export const metadata: Metadata = {
   title: "Recuperar Senha | Última Repetição",

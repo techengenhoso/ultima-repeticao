@@ -15,7 +15,7 @@ type Props = ComponentProps<typeof InputGroupInput> & {
   error?: { message?: string }
 }
 
-export function InputFieldPassword({ id, label, icon, error, ...inputProps }: Props) {
+export function PasswordField({ id, label, icon, error, ...inputProps }: Props) {
   const [showPassword, setShowPassword] = useState(false)
 
   return (

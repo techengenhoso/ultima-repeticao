@@ -11,8 +11,7 @@ import { LoaderCircleIcon, LockKeyholeIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
-
-import { InputFieldPassword } from "@/components/input-field-password"
+import { PasswordField } from "@/components/password-field"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -104,7 +103,7 @@ export function ChangePassword() {
           id="change-password-form"
           onSubmit={handleSubmit(onSubmit)}
         >
-          <InputFieldPassword
+          <PasswordField
             autoComplete="current-password"
             disabled={isLoading || isSubmitting}
             error={errors.currentPassword}
@@ -115,7 +114,7 @@ export function ChangePassword() {
             {...register("currentPassword")}
           />
 
-          <InputFieldPassword
+          <PasswordField
             autoComplete="new-password"
             disabled={isLoading || isSubmitting}
             error={errors.newPassword}
@@ -126,7 +125,7 @@ export function ChangePassword() {
             {...register("newPassword")}
           />
 
-          <InputFieldPassword
+          <PasswordField
             autoComplete="new-password"
             disabled={isLoading || isSubmitting}
             error={errors.passwordConfirmation}
