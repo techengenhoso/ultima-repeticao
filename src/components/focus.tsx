@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { FlagIcon, LoaderCircleIcon, MedalIcon } from "lucide-react"
 import { useEffect } from "react"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 
@@ -29,11 +29,10 @@ export function Focus() {
   const { profile, isLoading, saveProfile } = useUserProfile()
 
   const {
+    control,
     handleSubmit,
     reset,
-    setValue,
-    watch,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = useForm<FocusValues>({
     resolver: zodResolver(focusSchema),
     defaultValues: { goal: "", experience: "" },
@@ -73,48 +72,50 @@ export function Focus() {
           id="focus-form"
           onSubmit={handleSubmit(onSubmit)}
         >
-          <SelectField
-            disabled={isLoading || isSubmitting}
-            error={errors.goal}
-            icon={<FlagIcon aria-hidden="true" />}
-            id="goal"
-            label="Objetivo"
-            onChange={value =>
-              setValue("goal", value, {
-                shouldDirty: true,
-                shouldValidate: true,
-              })
-            }
-            options={[
-              { label: "Hipertrofia", value: "hypertrophy" },
-              { label: "Emagrecimento", value: "weight-loss" },
-              { label: "Condicionamento físico", value: "conditioning" },
-              { label: "Força", value: "strength" },
-              { label: "Qualidade de vida", value: "quality-of-life" },
-            ]}
-            value={watch("goal")}
+          <Controller
+            control={control}
+            name="goal"
+            render={({ field, fieldState }) => (
+              <SelectField
+                disabled={isLoading || isSubmitting}
+                error={fieldState.error}
+                icon={<FlagIcon aria-hidden="true" />}
+                id="goal"
+                label="Objetivo"
+                onChange={field.onChange}
+                options={[
+                  { label: "Hipertrofia", value: "hypertrophy" },
+                  { label: "Emagrecimento", value: "weight-loss" },
+                  { label: "Condicionamento físico", value: "conditioning" },
+                  { label: "Força", value: "strength" },
+                  { label: "Qualidade de vida", value: "quality-of-life" },
+                ]}
+                value={field.value}
+              />
+            )}
           />
 
-          <SelectField
-            disabled={isLoading || isSubmitting}
-            error={errors.experience}
-            icon={<MedalIcon aria-hidden="true" />}
-            id="experience"
-            label="Experiência"
-            onChange={value =>
-              setValue("experience", value, {
-                shouldDirty: true,
-                shouldValidate: true,
-              })
-            }
-            options={[
-              { label: "Iniciante", value: "beginner" },
-              { label: "Básico", value: "basic" },
-              { label: "Intermediário", value: "intermediate" },
-              { label: "Avançado", value: "advanced" },
-              { label: "Especialista", value: "expert" },
-            ]}
-            value={watch("experience")}
+          <Controller
+            control={control}
+            name="experience"
+            render={({ field, fieldState }) => (
+              <SelectField
+                disabled={isLoading || isSubmitting}
+                error={fieldState.error}
+                icon={<MedalIcon aria-hidden="true" />}
+                id="experience"
+                label="Experiência"
+                onChange={field.onChange}
+                options={[
+                  { label: "Iniciante", value: "beginner" },
+                  { label: "Básico", value: "basic" },
+                  { label: "Intermediário", value: "intermediate" },
+                  { label: "Avançado", value: "advanced" },
+                  { label: "Especialista", value: "expert" },
+                ]}
+                value={field.value}
+              />
+            )}
           />
         </form>
 

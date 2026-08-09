@@ -1,6 +1,5 @@
 import type { ReactNode } from "react"
-
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
 import { InputGroup, InputGroupAddon } from "@/components/ui/input-group"
 import {
   Select,
@@ -13,12 +12,13 @@ import {
 
 interface Props {
   id: string
-  label: string
+  label?: string
   value: string
   icon: ReactNode
   options: Array<{ label: string; value: string }>
   disabled?: boolean
   error?: { message?: string }
+  description?: ReactNode
   onChange: (value: string) => void
 }
 
@@ -29,12 +29,13 @@ export function SelectField({
   icon,
   options,
   error,
+  description,
   onChange,
   ...props
 }: Props) {
   return (
     <Field>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      {label && <FieldLabel htmlFor={id}>{label}</FieldLabel>}
 
       <Select
         {...props}
@@ -65,6 +66,10 @@ export function SelectField({
           </SelectGroup>
         </SelectContent>
       </Select>
+
+      {description && (
+        <FieldDescription id={`${id}-description`}>{description}</FieldDescription>
+      )}
 
       <FieldError errors={[error]} />
     </Field>

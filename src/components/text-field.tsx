@@ -1,18 +1,17 @@
 import type { ComponentProps, ReactNode } from "react"
-
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 
 type Props = ComponentProps<typeof InputGroupInput> & {
   id: string
-  label: string
+  label?: string
   icon: ReactNode
   iconRight?: ReactNode
   error?: { message?: string }
   description?: ReactNode
 }
 
-export function InputField({
+export function TextField({
   id,
   label,
   icon,
@@ -23,7 +22,7 @@ export function InputField({
 }: Props) {
   return (
     <Field>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      {label && <FieldLabel htmlFor={id}>{label}</FieldLabel>}
 
       <InputGroup>
         <InputGroupAddon>{icon}</InputGroupAddon>

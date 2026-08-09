@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
 function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
@@ -22,6 +23,19 @@ function InputGroupInput({ className, ...props }: React.ComponentProps<"input">)
     <Input
       className={cn(
         "order-2 h-full flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0 dark:bg-transparent",
+        className
+      )}
+      data-slot="input-group-control"
+      {...props}
+    />
+  )
+}
+
+function InputGroupTextArea({ className, ...props }: React.ComponentProps<"textarea">) {
+  return (
+    <Textarea
+      className={cn(
+        "order-2 min-h-20 flex-1 resize-y border-0 bg-transparent px-3 py-3 shadow-none focus-visible:border-0 focus-visible:ring-0",
         className
       )}
       data-slot="input-group-control"
@@ -63,4 +77,10 @@ function InputGroupButton({ className, ...props }: React.ComponentProps<typeof B
   )
 }
 
-export { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput }
+export {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+  InputGroupTextArea as InputGroupTextarea,
+}

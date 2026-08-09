@@ -1,13 +1,15 @@
-import { DumbbellIcon } from "lucide-react"
-
-import { PlaceholderPage } from "@/components/placeholder-page"
+import { ExerciseLibrary } from "@/components/exercises/exercise-library"
+import { PageHeader } from "@/components/page-header"
 
 export default function ExercisesPage() {
   return (
-    <PlaceholderPage
-      description="Consulte os exercícios disponíveis para seus treinos"
-      icon={DumbbellIcon}
-      title="Exercícios"
-    />
+    <div className="space-y-8">
+      <PageHeader
+        description="Consulte exercícios padrão e gerencie sua biblioteca pessoal"
+        title="Exercícios"
+      />
+
+      <ExerciseLibrary />
+    </div>
   )
 }

@@ -3,6 +3,69 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{uid} {
       allow read, create, update, delete: if request.auth != null && request.auth.uid == uid;
+
+      function isOwner() {
+        return request.auth != null && request.auth.uid == uid;
+      }
+
+      function validExerciseContent(data) {
+        return data.name is string && data.name.size() >= 3 && data.name.size() <= 100
+          && data.muscleGroup in [
+            'adductors', 'forearms', 'biceps', 'core', 'full_body', 'back',
+            'glutes', 'lower_back', 'shoulders', 'calves', 'chest',
+            'hamstrings', 'quadriceps', 'triceps'
+          ]
+          && data.primaryMuscles is list
+          && data.primaryMuscles.size() >= 1 && data.primaryMuscles.size() <= 20
+          && data.secondaryMuscles is list && data.secondaryMuscles.size() <= 20
+          && data.level in ['beginner', 'intermediate', 'advanced']
+          && data.movementPattern is string
+          && data.movementPattern.size() >= 1 && data.movementPattern.size() <= 150
+          && data.startingPosition is string
+          && data.startingPosition.size() >= 1 && data.startingPosition.size() <= 1000
+          && data.movementExecution is string
+          && data.movementExecution.size() >= 1 && data.movementExecution.size() <= 1000
+          && data.importantCautions is string
+          && data.importantCautions.size() >= 1 && data.importantCautions.size() <= 1000
+          && data.createdAt is timestamp && data.updatedAt is timestamp;
+      }
+
+      match /exercises/{exerciseId} {
+        function validExercise(data) {
+          return data.keys().hasOnly([
+              'name', 'normalizedName', 'muscleGroup', 'primaryMuscles',
+              'secondaryMuscles', 'level',
+              'movementPattern', 'startingPosition', 'movementExecution',
+              'importantCautions', 'createdAt', 'updatedAt'
+            ])
+            && data.normalizedName is string && data.normalizedName.size() >= 3
+            && validExerciseContent(data);
+        }
+
+        allow read, delete: if isOwner();
+        allow create: if isOwner() && validExercise(request.resource.data);
+        allow update: if isOwner()
+          && validExercise(request.resource.data)
+          && request.resource.data.createdAt == resource.data.createdAt;
+      }
+
+      match /exerciseOverrides/{exerciseId} {
+        function validOverride(data) {
+          return data.keys().hasOnly([
+              'name', 'muscleGroup', 'primaryMuscles', 'secondaryMuscles',
+              'level', 'movementPattern',
+              'startingPosition', 'movementExecution', 'importantCautions',
+              'createdAt', 'updatedAt'
+            ])
+            && validExerciseContent(data);
+        }
+
+        allow read: if isOwner();
+        allow create: if isOwner() && validOverride(request.resource.data);
+        allow update: if isOwner()
+          && validOverride(request.resource.data)
+          && request.resource.data.createdAt == resource.data.createdAt;
+      }
     }
   }
 }

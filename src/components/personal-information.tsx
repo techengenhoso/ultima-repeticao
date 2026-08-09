@@ -9,7 +9,7 @@ import {
   UsersIcon,
 } from "lucide-react"
 import { useEffect } from "react"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 import { SelectField } from "@/components/select-field"
@@ -27,7 +27,7 @@ import {
   parseBrazilianDate,
 } from "@/lib/date"
 import { useUserProfile } from "@/providers/user-profile"
-import { InputField } from "./input-field"
+import { TextField } from "./text-field"
 
 const personalSchema = z.object({
   fullName: z
@@ -54,11 +54,10 @@ export function PersonalInformation() {
   const { user, profile, isLoading, saveProfile } = useUserProfile()
 
   const {
+    control,
     register,
     handleSubmit,
     reset,
-    setValue,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<PersonalValues>({
     resolver: zodResolver(personalSchema),
@@ -104,7 +103,7 @@ export function PersonalInformation() {
           id="personal-data-form"
           onSubmit={handleSubmit(onSubmit)}
         >
-          <InputField
+          <TextField
             autoComplete="name"
             disabled={isLoading || isSubmitting}
             error={errors.fullName}
@@ -116,7 +115,7 @@ export function PersonalInformation() {
             {...register("fullName")}
           />
 
-          <InputField
+          <TextField
             aria-readonly="true"
             description="O endereço de e-mail não pode ser alterado"
             disabled
@@ -129,7 +128,7 @@ export function PersonalInformation() {
             {...register("email")}
           />
 
-          <InputField
+          <TextField
             {...birthDateField}
             disabled={isLoading || isSubmitting}
             error={errors.birthDate}
@@ -137,7 +136,6 @@ export function PersonalInformation() {
             id="birthDate"
             inputMode="numeric"
             label="Data de nascimento"
-            maxLength={10}
             onChange={event => {
               event.target.value = formatBrazilianDateInput(event.target.value)
               return birthDateField.onChange(event)
@@ -146,24 +144,25 @@ export function PersonalInformation() {
             type="text"
           />
 
-          <SelectField
-            disabled={isLoading || isSubmitting}
-            error={errors.gender}
-            icon={<UsersIcon aria-hidden="true" />}
-            id="gender"
-            label="Gênero"
-            onChange={value =>
-              setValue("gender", value, {
-                shouldDirty: true,
-                shouldValidate: true,
-              })
-            }
-            options={[
-              { label: "Feminino", value: "female" },
-              { label: "Masculino", value: "male" },
-              { label: "Outro", value: "other" },
-            ]}
-            value={watch("gender")}
+          <Controller
+            control={control}
+            name="gender"
+            render={({ field, fieldState }) => (
+              <SelectField
+                disabled={isLoading || isSubmitting}
+                error={fieldState.error}
+                icon={<UsersIcon aria-hidden="true" />}
+                id="gender"
+                label="Gênero"
+                onChange={field.onChange}
+                options={[
+                  { label: "Feminino", value: "female" },
+                  { label: "Masculino", value: "male" },
+                  { label: "Outro", value: "other" },
+                ]}
+                value={field.value}
+              />
+            )}
           />
         </form>
 
