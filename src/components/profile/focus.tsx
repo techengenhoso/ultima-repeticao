@@ -15,14 +15,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  experienceOptionsSelectField,
+  goalOptionsSelectField,
+} from "@/lib/options-select-field"
+import { experienceSchema, goalSchema } from "@/lib/schemas-zod"
 import { useUserProfile } from "@/providers/user-profile"
 
 const focusSchema = z.object({
-  goal: z.string(),
-  experience: z.string(),
+  goal: goalSchema,
+  experience: experienceSchema,
 })
 
-type FocusValues = z.infer<typeof focusSchema>
+type FocusSchema = z.infer<typeof focusSchema>
 
 export function Focus() {
   const { profile, isLoading, saveProfile } = useUserProfile()
@@ -31,12 +36,10 @@ export function Focus() {
     control,
     handleSubmit,
     reset,
-    formState: { isSubmitting },
-  } = useForm<FocusValues>({
-    resolver: zodResolver(focusSchema),
-    defaultValues: { goal: "", experience: "" },
-  })
+    formState: { isLoading: isLoadingForm, isSubmitting },
+  } = useForm<FocusSchema>({ resolver: zodResolver(focusSchema) })
 
+  // revisar essa definição dos valores
   useEffect(
     () =>
       reset({
@@ -46,7 +49,8 @@ export function Focus() {
     [profile, reset]
   )
 
-  async function onSubmit(values: FocusValues) {
+  // revisar o funcionamento desta função
+  async function onSubmit(values: FocusSchema) {
     try {
       await saveProfile({
         goal: values.goal || null,
@@ -68,7 +72,7 @@ export function Focus() {
       <CardContent>
         <form
           className="grid gap-5 sm:grid-cols-2"
-          id="focus-form"
+          id="focusForm"
           onSubmit={handleSubmit(onSubmit)}
         >
           <Controller
@@ -76,19 +80,13 @@ export function Focus() {
             name="goal"
             render={({ field, fieldState }) => (
               <SelectField
-                disabled={isLoading || isSubmitting}
+                disabled={isLoading || isLoadingForm || isSubmitting}
                 error={fieldState.error}
                 icon={<FlagIcon aria-hidden="true" />}
                 id="goal"
                 label="Objetivo"
                 onChange={field.onChange}
-                options={[
-                  { label: "Hipertrofia", value: "hypertrophy" },
-                  { label: "Emagrecimento", value: "weight-loss" },
-                  { label: "Condicionamento físico", value: "conditioning" },
-                  { label: "Força", value: "strength" },
-                  { label: "Qualidade de vida", value: "quality-of-life" },
-                ]}
+                options={goalOptionsSelectField}
                 value={field.value}
               />
             )}
@@ -99,19 +97,13 @@ export function Focus() {
             name="experience"
             render={({ field, fieldState }) => (
               <SelectField
-                disabled={isLoading || isSubmitting}
+                disabled={isLoading || isLoadingForm || isSubmitting}
                 error={fieldState.error}
                 icon={<MedalIcon aria-hidden="true" />}
                 id="experience"
                 label="Experiência"
                 onChange={field.onChange}
-                options={[
-                  { label: "Iniciante", value: "beginner" },
-                  { label: "Básico", value: "basic" },
-                  { label: "Intermediário", value: "intermediate" },
-                  { label: "Avançado", value: "advanced" },
-                  { label: "Especialista", value: "expert" },
-                ]}
+                options={experienceOptionsSelectField}
                 value={field.value}
               />
             )}
@@ -120,8 +112,9 @@ export function Focus() {
 
         <Button
           className="w-full mt-(--card-spacing)"
-          disabled={isLoading || isSubmitting}
-          form="focus-form"
+          disabled={isLoading || isLoadingForm || isSubmitting}
+          form="focusForm"
+          size="lg"
           type="submit"
         >
           {isSubmitting && <LoaderCircleIcon className="animate-spin" />}

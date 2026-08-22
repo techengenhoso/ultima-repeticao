@@ -1,7 +1,6 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { FirebaseError } from "firebase/app"
 import {
   EmailAuthProvider,
   reauthenticateWithCredential,
@@ -20,49 +19,35 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { passwordSchema } from "@/lib/schemas-zod"
+import { getFirebaseErrorMessage } from "@/lib/firebase"
+import { passwordSchema, requiredSchema } from "@/lib/schemas-zod"
 import { useUserProfile } from "@/providers/user-profile"
 
 const changePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1, "Campo obrigatório"),
+    currentPassword: requiredSchema,
     newPassword: passwordSchema,
     passwordConfirmation: passwordSchema,
   })
-  .refine(values => values.newPassword === values.passwordConfirmation, {
+  .refine(data => data.newPassword === data.passwordConfirmation, {
     message: "As senhas não coincidem",
     path: ["passwordConfirmation"],
   })
 
-type ChangePasswordValues = z.infer<typeof changePasswordSchema>
-
-const changePasswordErrors: Record<string, string> = {
-  "auth/invalid-credential": "A senha atual está incorreta",
-  "auth/requires-recent-login": "Entre novamente na conta antes de alterar a senha",
-  "auth/too-many-requests": "Muitas tentativas, aguarde alguns minutos",
-  "auth/user-mismatch": "Não foi possível confirmar sua identidade",
-  "auth/weak-password": "Escolha uma senha mais forte",
-  "auth/wrong-password": "A senha atual está incorreta",
-}
+type ChangePasswordSchema = z.infer<typeof changePasswordSchema>
 
 export function ChangePassword() {
   const { user, isLoading } = useUserProfile()
 
   const {
-    formState: { errors, isSubmitting },
     handleSubmit,
     register,
     reset,
-  } = useForm<ChangePasswordValues>({
-    resolver: zodResolver(changePasswordSchema),
-    defaultValues: {
-      currentPassword: "",
-      newPassword: "",
-      passwordConfirmation: "",
-    },
-  })
+    formState: { errors, isLoading: isLoadingForm, isSubmitting },
+  } = useForm<ChangePasswordSchema>({ resolver: zodResolver(changePasswordSchema) })
 
-  async function onSubmit(values: ChangePasswordValues) {
+  // revisar menos a parte catch
+  async function onSubmit(values: ChangePasswordSchema) {
     if (!user?.email) {
       toast.error("Não foi possível identificar o endereço de e-mail")
       return
@@ -83,10 +68,12 @@ export function ChangePassword() {
 
       toast.success("Senha alterada com sucesso")
     } catch (error) {
-      const message =
-        error instanceof FirebaseError ? changePasswordErrors[error.code] : undefined
+      const message = getFirebaseErrorMessage({
+        error,
+        message: "Não foi possível alterar sua senha. Tente novamente.",
+      })
 
-      toast.error(message ?? "Não foi possível alterar")
+      toast.error(message)
     }
   }
 
@@ -100,12 +87,12 @@ export function ChangePassword() {
       <CardContent>
         <form
           className="grid gap-5 sm:grid-cols-2"
-          id="change-password-form"
+          id="changePasswordForm"
           onSubmit={handleSubmit(onSubmit)}
         >
           <PasswordField
             autoComplete="current-password"
-            disabled={isLoading || isSubmitting}
+            disabled={isLoading || isLoadingForm || isSubmitting}
             error={errors.currentPassword}
             icon={<LockKeyholeIcon aria-hidden="true" />}
             id="current-password"
@@ -116,7 +103,7 @@ export function ChangePassword() {
 
           <PasswordField
             autoComplete="new-password"
-            disabled={isLoading || isSubmitting}
+            disabled={isLoading || isLoadingForm || isSubmitting}
             error={errors.newPassword}
             icon={<LockKeyholeIcon aria-hidden="true" />}
             id="new-password"
@@ -127,7 +114,7 @@ export function ChangePassword() {
 
           <PasswordField
             autoComplete="new-password"
-            disabled={isLoading || isSubmitting}
+            disabled={isLoading || isLoadingForm || isSubmitting}
             error={errors.passwordConfirmation}
             icon={<LockKeyholeIcon aria-hidden="true" />}
             id="password-confirmation"
@@ -139,8 +126,8 @@ export function ChangePassword() {
 
         <Button
           className="w-full mt-(--card-spacing)"
-          disabled={isLoading || isSubmitting}
-          form="change-password-form"
+          disabled={isLoading || isLoadingForm || isSubmitting}
+          form="changePasswordForm"
           type="submit"
         >
           {isSubmitting && <LoaderCircleIcon className="animate-spin" />}

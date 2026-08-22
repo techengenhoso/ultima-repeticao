@@ -1,7 +1,6 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { FirebaseError } from "firebase/app"
 import { sendPasswordResetEmail } from "firebase/auth"
 import { LoaderCircleIcon, MailCheckIcon, MailIcon } from "lucide-react"
 import Link from "next/link"
@@ -9,58 +8,51 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
-import { auth } from "@/lib/firebase"
+import { FieldGroup } from "@/components/ui/field"
+import { auth, getFirebaseErrorMessage } from "@/lib/firebase"
 import { emailSchema } from "@/lib/schemas-zod"
+import { TextField } from "../text-field"
 
 const forgotPasswordSchema = z.object({
   email: emailSchema,
 })
 
-type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>
-
-const resetPasswordErrors: Record<string, string> = {
-  "auth/invalid-email": "Informe um e-mail válido",
-  "auth/too-many-requests": "Muitas tentativas, aguarde alguns minutos e tente novamente",
-  "auth/user-disabled": "Esta conta foi desativada",
-}
+type ForgotPasswordSchema = z.infer<typeof forgotPasswordSchema>
 
 export function ForgotPasswordForm() {
   const [emailSent, setEmailSent] = useState(false)
-  const [authenticationError, setAuthenticationError] = useState<string | null>(null)
+
+  const [forgotPasswordError, setForgotPasswordError] = useState<string | null>(null)
 
   const {
-    formState: { errors, isSubmitting },
     getValues,
     handleSubmit,
     register,
-  } = useForm<ForgotPasswordData>({ resolver: zodResolver(forgotPasswordSchema) })
+    formState: { errors, isLoading, isSubmitting },
+  } = useForm<ForgotPasswordSchema>({ resolver: zodResolver(forgotPasswordSchema) })
 
-  async function onSubmit(data: ForgotPasswordData) {
-    setAuthenticationError(null)
+  // revisar a parte do try
+  async function onSubmit(data: ForgotPasswordSchema) {
+    setForgotPasswordError(null)
 
     try {
       await sendPasswordResetEmail(auth, data.email)
       setEmailSent(true)
     } catch (error) {
-      const message =
-        error instanceof FirebaseError ? resetPasswordErrors[error.code] : undefined
+      const message = getFirebaseErrorMessage({
+        error,
+        message: "Não foi possível enviar o e-mail, tente novamente",
+      })
 
-      setAuthenticationError(
-        message ?? "Não foi possível enviar o e-mail, tente novamente"
-      )
+      setForgotPasswordError(message)
     }
   }
 
   if (emailSent) {
     return (
       <div className="space-y-6">
-        <output
-          aria-live="polite"
-          className="block border border-primary/30 bg-primary/10 p-4"
-        >
-          <MailCheckIcon aria-hidden="true" className="mb-3 size-5 text-primary" />
+        <output className="block border border-primary/30 bg-primary/10 p-4">
+          <MailCheckIcon className="mb-3 size-5 text-primary" />
 
           <p className="font-medium">Confira sua caixa de entrada</p>
 
@@ -78,45 +70,39 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <form noValidate onSubmit={handleSubmit(onSubmit)}>
-      <FieldGroup className="gap-5">
-        <Field>
-          <FieldLabel htmlFor="email">E-mail</FieldLabel>
+    <FieldGroup noValidate onSubmit={handleSubmit(onSubmit)}>
+      <TextField
+        autoComplete="email"
+        autoFocus
+        disabled={isLoading || isSubmitting}
+        error={errors.email}
+        icon={<MailIcon />}
+        id="email"
+        label="E-mail"
+        placeholder="voce@exemplo.com.br"
+        type="email"
+        {...register("email")}
+      />
 
-          <InputGroup>
-            <InputGroupInput
-              {...register("email")}
-              aria-describedby={errors.email ? "email-error" : undefined}
-              autoComplete="email"
-              autoFocus
-              id="email"
-              placeholder="voce@exemplo.com"
-              type="email"
-            />
+      {forgotPasswordError && (
+        <div
+          aria-live="polite"
+          className="border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
+          role="alert"
+        >
+          {forgotPasswordError}
+        </div>
+      )}
 
-            <InputGroupAddon>
-              <MailIcon aria-hidden="true" />
-            </InputGroupAddon>
-          </InputGroup>
-
-          <FieldError errors={[errors.email]} id="email-error" />
-        </Field>
-
-        {authenticationError && (
-          <div
-            aria-live="polite"
-            className="border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
-            role="alert"
-          >
-            {authenticationError}
-          </div>
-        )}
-
-        <Button className="w-full" disabled={isSubmitting} size="lg" type="submit">
-          {isSubmitting && <LoaderCircleIcon className="animate-spin" />}
-          {isSubmitting ? "Enviando" : "Enviar instruções"}
-        </Button>
-      </FieldGroup>
-    </form>
+      <Button
+        className="w-full mt-(--card-spacing)"
+        disabled={isLoading || isSubmitting}
+        size="lg"
+        type="submit"
+      >
+        {isSubmitting && <LoaderCircleIcon className="animate-spin" />}
+        {isSubmitting ? "Enviando" : "Enviar instruções"}
+      </Button>
+    </FieldGroup>
   )
 }

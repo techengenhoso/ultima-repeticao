@@ -15,12 +15,15 @@ type Props = ComponentProps<typeof InputGroupInput> & {
   error?: { message?: string }
 }
 
-export function PasswordField({ id, label, icon, error, ...inputProps }: Props) {
+export function PasswordField({ id, label, icon, error, children, ...inputProps }: Props) {
   const [showPassword, setShowPassword] = useState(false)
 
   return (
     <Field>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <div className="flex items-center justify-between gap-5">
+        <FieldLabel htmlFor={id}>{label}</FieldLabel>
+        {children}
+      </div>
 
       <InputGroup>
         <InputGroupInput

@@ -1,9 +1,14 @@
 import { ArrowLeftIcon } from "lucide-react"
+import type { Metadata } from "next"
 import Link from "next/link"
-
 import { Logo } from "@/components/logo"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
+
+export const metadata: Metadata = {
+  title: "Página Nâo Encontrada | Última Repetição",
+  description: "Não foi possível encontrar a página desejada, revise o endereço",
+}
 
 export default function NotFound() {
   return (

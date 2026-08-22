@@ -26,46 +26,37 @@ import {
   formatIsoDateToBrazilian,
   parseBrazilianDate,
 } from "@/lib/date"
+import { genderOptionsSelectField } from "@/lib/options-select-field"
+import { dateSchema, emailSchema, genderSchema, textSchema } from "@/lib/schemas-zod"
 import { useUserProfile } from "@/providers/user-profile"
 import { TextField } from "../text-field"
 
-const personalSchema = z.object({
-  fullName: z
-    .string()
-    .trim()
-    .min(3, "Deve ter pelo menos 3 caracteres")
-    .max(100, "Deve ter no máximo 100 caracteres"),
-  email: z.email("Valor inválido"),
-  birthDate: z
-    .string()
-    .refine(value => !value || parseBrazilianDate(value), "Use o formato DD/MM/AAAA")
-    .refine(
-      value =>
-        !value ||
-        (parseBrazilianDate(value) ?? "") <= new Date().toISOString().slice(0, 10),
-      "Não pode ser futura"
-    ),
-  gender: z.string(),
+const personalInformationSchema = z.object({
+  fullName: textSchema,
+  email: emailSchema,
+  birthDate: dateSchema,
+  gender: genderSchema,
 })
 
-type PersonalValues = z.infer<typeof personalSchema>
+type PersonalInformationSchema = z.infer<typeof personalInformationSchema>
 
 export function PersonalInformation() {
   const { user, profile, isLoading, saveProfile } = useUserProfile()
 
   const {
     control,
-    register,
     handleSubmit,
+    register,
     reset,
-    formState: { errors, isSubmitting },
-  } = useForm<PersonalValues>({
-    resolver: zodResolver(personalSchema),
-    defaultValues: { fullName: "", email: "", birthDate: "", gender: "" },
+    formState: { errors, isLoading: isLoadingForm, isSubmitting },
+  } = useForm<PersonalInformationSchema>({
+    resolver: zodResolver(personalInformationSchema),
   })
 
+  // revisar, existe somente aqui até o momento
   const birthDateField = register("birthDate")
 
+  // revisar essa definição dos valores
   useEffect(
     () =>
       reset({
@@ -77,7 +68,8 @@ export function PersonalInformation() {
     [profile, reset, user]
   )
 
-  async function onSubmit(values: PersonalValues) {
+  // revisar o funcionamento desta função
+  async function onSubmit(values: PersonalInformationSchema) {
     try {
       await saveProfile({
         fullName: values.fullName.trim(),
@@ -100,12 +92,12 @@ export function PersonalInformation() {
       <CardContent>
         <form
           className="grid gap-5 sm:grid-cols-2"
-          id="personal-data-form"
+          id="personalDataForm"
           onSubmit={handleSubmit(onSubmit)}
         >
           <TextField
             autoComplete="name"
-            disabled={isLoading || isSubmitting}
+            disabled={isLoading || isLoadingForm || isSubmitting}
             error={errors.fullName}
             icon={<UserIcon aria-hidden="true" />}
             id="fullName"
@@ -130,7 +122,7 @@ export function PersonalInformation() {
 
           <TextField
             {...birthDateField}
-            disabled={isLoading || isSubmitting}
+            disabled={isLoading || isLoadingForm || isSubmitting}
             error={errors.birthDate}
             icon={<CalendarDaysIcon aria-hidden="true" />}
             id="birthDate"
@@ -149,17 +141,13 @@ export function PersonalInformation() {
             name="gender"
             render={({ field, fieldState }) => (
               <SelectField
-                disabled={isLoading || isSubmitting}
+                disabled={isLoading || isLoadingForm || isSubmitting}
                 error={fieldState.error}
                 icon={<UsersIcon aria-hidden="true" />}
                 id="gender"
                 label="Gênero"
                 onChange={field.onChange}
-                options={[
-                  { label: "Feminino", value: "female" },
-                  { label: "Masculino", value: "male" },
-                  { label: "Outro", value: "other" },
-                ]}
+                options={genderOptionsSelectField}
                 value={field.value}
               />
             )}
@@ -168,8 +156,9 @@ export function PersonalInformation() {
 
         <Button
           className="w-full mt-(--card-spacing)"
-          disabled={isLoading || isSubmitting}
-          form="personal-data-form"
+          disabled={isLoading || isLoadingForm || isSubmitting}
+          form="personalDataForm"
+          size="lg"
           type="submit"
         >
           {isSubmitting && <LoaderCircleIcon className="animate-spin" />}

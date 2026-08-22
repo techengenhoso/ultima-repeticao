@@ -1,15 +1,14 @@
 import type { Timestamp } from "firebase/firestore"
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore"
-
 import { db } from "@/lib/firebase"
 
 export interface UserProfile {
   fullName: string
   email: string
   birthDate: string | null
-  gender: string | null
-  goal: string | null
-  experience: string | null
+  gender: "female" | "male" | "other" | null
+  goal: "hypertrophy" | "weightLoss" | "conditioning" | "strength" | "qualityOfLife" | null
+  experience: "beginner" | "basic" | "intermediate" | "advanced" | "expert" | null
   createdAt: Timestamp
   updatedAt: Timestamp
 }

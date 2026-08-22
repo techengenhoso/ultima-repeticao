@@ -1,35 +1,22 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { FirebaseError } from "firebase/app"
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
-import {
-  EyeIcon,
-  EyeOffIcon,
-  LoaderCircleIcon,
-  LockIcon,
-  MailIcon,
-  UserIcon,
-} from "lucide-react"
+import { LoaderCircleIcon, LockKeyholeIcon, MailIcon, UserIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-
 import { Button } from "@/components/ui/button"
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from "@/components/ui/input-group"
-import { auth } from "@/lib/firebase"
-import { emailSchema, fullNameSchema, passwordSchema } from "@/lib/schemas-zod"
+import { FieldGroup } from "@/components/ui/field"
+import { auth, getFirebaseErrorMessage } from "@/lib/firebase"
+import { emailSchema, passwordSchema, textSchema } from "@/lib/schemas-zod"
+import { PasswordField } from "../password-field"
+import { TextField } from "../text-field"
 
-const signupSchema = z
+const signUpSchema = z
   .object({
-    fullName: fullNameSchema,
+    fullName: textSchema,
     email: emailSchema,
     password: passwordSchema,
     passwordConfirmation: passwordSchema,
@@ -39,29 +26,22 @@ const signupSchema = z
     path: ["passwordConfirmation"],
   })
 
-type SignupData = z.infer<typeof signupSchema>
-
-const signupErrors: Record<string, string> = {
-  "auth/email-already-in-use": "Já existe uma conta com este e-mail",
-  "auth/invalid-email": "Informe um e-mail válido",
-  "auth/operation-not-allowed": "A criação de contas está indisponível no momento",
-  "auth/too-many-requests": "Muitas tentativas, aguarde alguns minutos e tente novamente",
-  "auth/weak-password": "Escolha uma senha mais forte",
-}
+type SignUpSchema = z.infer<typeof signUpSchema>
 
 export function SignUpForm() {
   const router = useRouter()
-  const [showPassword, setShowPassword] = useState(false)
-  const [authenticationError, setAuthenticationError] = useState<string | null>(null)
+
+  const [signUpError, setSignUpError] = useState<string | null>(null)
 
   const {
-    formState: { errors, isSubmitting },
     handleSubmit,
     register,
-  } = useForm<SignupData>({ resolver: zodResolver(signupSchema) })
+    formState: { errors, isLoading, isSubmitting },
+  } = useForm<SignUpSchema>({ resolver: zodResolver(signUpSchema) })
 
-  async function onSubmit(data: SignupData) {
-    setAuthenticationError(null)
+  // revisar a parte do try
+  async function onSubmit(data: SignUpSchema) {
+    setSignUpError(null)
 
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -75,135 +55,82 @@ export function SignUpForm() {
       router.replace("/")
       router.refresh()
     } catch (error) {
-      const message = error instanceof FirebaseError ? signupErrors[error.code] : undefined
+      const message = getFirebaseErrorMessage({
+        error,
+        message: "Não foi possível criar sua conta. Tente novamente.",
+      })
 
-      setAuthenticationError(
-        message ?? "Não foi possível criar sua conta, tente novamente"
-      )
+      setSignUpError(message)
     }
   }
 
   return (
-    <form noValidate onSubmit={handleSubmit(onSubmit)}>
-      <FieldGroup className="gap-5">
-        <Field>
-          <FieldLabel htmlFor="full-name">Nome completo</FieldLabel>
+    <FieldGroup noValidate onSubmit={handleSubmit(onSubmit)}>
+      <TextField
+        autoComplete="name"
+        disabled={isLoading || isSubmitting}
+        error={errors.fullName}
+        icon={<UserIcon />}
+        id="fullName"
+        label="Nome completo"
+        placeholder="Digite seu nome completo"
+        type="text"
+        {...register("fullName")}
+      />
 
-          <InputGroup>
-            <InputGroupInput
-              {...register("fullName")}
-              aria-describedby={errors.fullName ? "full-name-error" : undefined}
-              autoComplete="name"
-              id="full-name"
-              placeholder="Digite seu nome completo"
-              type="text"
-            />
+      <TextField
+        autoComplete="email"
+        disabled={isLoading || isSubmitting}
+        error={errors.email}
+        icon={<MailIcon />}
+        id="email"
+        label="E-mail"
+        placeholder="voce@exemplo.com.br"
+        type="email"
+        {...register("email")}
+      />
 
-            <InputGroupAddon>
-              <UserIcon aria-hidden="true" />
-            </InputGroupAddon>
-          </InputGroup>
+      <PasswordField
+        autoComplete="new-password"
+        disabled={isLoading || isSubmitting}
+        error={errors.password}
+        icon={<LockKeyholeIcon />}
+        id="password"
+        label="Senha"
+        placeholder="Crie uma senha"
+        {...register("password")}
+      />
 
-          <FieldError errors={[errors.fullName]} id="full-name-error" />
-        </Field>
+      <PasswordField
+        autoComplete="new-password"
+        disabled={isLoading || isSubmitting}
+        error={errors.passwordConfirmation}
+        icon={<LockKeyholeIcon />}
+        id="passwordConfirmation"
+        label="Confirmar senha"
+        placeholder="Confirmar sua senha"
+        {...register("passwordConfirmation")}
+      />
 
-        <Field>
-          <FieldLabel htmlFor="email">E-mail</FieldLabel>
+      {signUpError && (
+        <div
+          aria-live="polite"
+          className="border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
+          role="alert"
+        >
+          {signUpError}
+        </div>
+      )}
 
-          <InputGroup>
-            <InputGroupInput
-              {...register("email")}
-              aria-describedby={errors.email ? "email-error" : undefined}
-              autoComplete="email"
-              id="email"
-              placeholder="voce@exemplo.com.br"
-              type="email"
-            />
-
-            <InputGroupAddon>
-              <MailIcon aria-hidden="true" />
-            </InputGroupAddon>
-          </InputGroup>
-
-          <FieldError errors={[errors.email]} id="email-error" />
-        </Field>
-
-        <Field>
-          <FieldLabel htmlFor="password">Senha</FieldLabel>
-
-          <InputGroup>
-            <InputGroupInput
-              {...register("password")}
-              aria-describedby={errors.password ? "password-error" : "password-hint"}
-              autoComplete="new-password"
-              id="password"
-              placeholder="Crie uma senha"
-              type={showPassword ? "text" : "password"}
-            />
-
-            <InputGroupAddon>
-              <LockIcon aria-hidden="true" />
-            </InputGroupAddon>
-
-            <InputGroupAddon align="inline-end">
-              <InputGroupButton
-                aria-label={showPassword ? "Ocultar senhas" : "Mostrar senhas"}
-                onClick={() => setShowPassword(current => !current)}
-                type="button"
-              >
-                {showPassword ? (
-                  <EyeOffIcon className="size-4" />
-                ) : (
-                  <EyeIcon className="size-4" />
-                )}
-              </InputGroupButton>
-            </InputGroupAddon>
-          </InputGroup>
-
-          <FieldError errors={[errors.password]} id="password-error" />
-        </Field>
-
-        <Field>
-          <FieldLabel htmlFor="password-confirmation">Confirmar senha</FieldLabel>
-
-          <InputGroup>
-            <InputGroupInput
-              {...register("passwordConfirmation")}
-              aria-describedby={
-                errors.passwordConfirmation ? "password-confirmation-error" : undefined
-              }
-              autoComplete="new-password"
-              id="password-confirmation"
-              placeholder="Digite a senha novamente"
-              type={showPassword ? "text" : "password"}
-            />
-
-            <InputGroupAddon>
-              <LockIcon aria-hidden="true" />
-            </InputGroupAddon>
-          </InputGroup>
-
-          <FieldError
-            errors={[errors.passwordConfirmation]}
-            id="password-confirmation-error"
-          />
-        </Field>
-
-        {authenticationError && (
-          <div
-            aria-live="polite"
-            className="border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
-            role="alert"
-          >
-            {authenticationError}
-          </div>
-        )}
-
-        <Button className="mt-5 w-full" disabled={isSubmitting} size="lg" type="submit">
-          {isSubmitting && <LoaderCircleIcon className="animate-spin" />}
-          {isSubmitting ? "Criando conta" : "Criar conta"}
-        </Button>
-      </FieldGroup>
-    </form>
+      <Button
+        className="w-full mt-(--card-spacing)"
+        disabled={isLoading || isSubmitting}
+        size="lg"
+        type="submit"
+      >
+        {isSubmitting && <LoaderCircleIcon className="animate-spin" />}
+        {isSubmitting ? "Criando conta" : "Criar conta"}
+      </Button>
+    </FieldGroup>
   )
 }

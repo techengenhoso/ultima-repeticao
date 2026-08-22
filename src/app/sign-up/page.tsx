@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: "Crie sua conta para acompanhar seus treinos e sua evolução",
 }
 
-export default function SignupPage() {
+export default function SignUpPage() {
   return (
     <main className="relative flex min-h-svh items-center justify-center overflow-hidden bg-background px-4 py-16">
       <Blur />

@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
           className="mb-6 inline-flex items-center gap-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase transition-colors hover:text-foreground"
           href="/sign-in"
         >
-          <ArrowLeftIcon aria-hidden="true" className="size-3.5" />
+          <ArrowLeftIcon className="size-3.5" />
           Voltar
         </Link>
 
