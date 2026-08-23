@@ -11,16 +11,16 @@ import {
 import { PageHeader } from "@/components/page-header"
 import { SummaryCard } from "@/components/summary-card"
 import { Button } from "@/components/ui/button"
-import { useUserProfile } from "@/providers/user-profile"
+import { useProfile } from "@/contexts/profile-context"
 
 export default function DashboardPage() {
-  const { userName } = useUserProfile()
+  const { user } = useProfile()
 
   return (
     <div className="space-y-8">
       <PageHeader
         description="Acompanhe sua rotina e mantenha o foco no próximo treino"
-        title={`Olá, ${userName}`}
+        title={`Olá, ${user?.displayName?.trim() || "Usuário"}`}
       />
 
       <section className="border bg-card p-5 shadow-sm sm:p-7">

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
+import { useProfile } from "@/contexts/profile-context"
 import { mergeExercises } from "@/lib/exercises/catalog"
 import { systemExercises } from "@/lib/exercises/system-exercises"
 import type {
@@ -10,7 +11,6 @@ import type {
   ExerciseInput,
   SystemExerciseOverride,
 } from "@/lib/exercises/types"
-import { useUserProfile } from "@/providers/user-profile"
 import {
   createCustomExercise,
   DuplicateExerciseNameError,
@@ -22,7 +22,7 @@ import {
 } from "@/services/exercises"
 
 export function useExerciseLibrary() {
-  const { user, isLoading: isAuthLoading } = useUserProfile()
+  const { user, isLoadingProfile } = useProfile()
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([])
   const [systemOverrides, setSystemOverrides] = useState<SystemExerciseOverride[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -47,14 +47,14 @@ export function useExerciseLibrary() {
   }, [user])
 
   useEffect(() => {
-    if (isAuthLoading) return
+    if (isLoadingProfile) return
     if (user) void loadExercises()
     else {
       setCustomExercises([])
       setSystemOverrides([])
       setIsLoading(false)
     }
-  }, [isAuthLoading, loadExercises, user])
+  }, [isLoadingProfile, loadExercises, user])
 
   const exercises = useMemo(
     () => mergeExercises(systemExercises, customExercises, systemOverrides),

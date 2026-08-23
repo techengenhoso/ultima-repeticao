@@ -15,12 +15,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { useProfile } from "@/contexts/profile-context"
 import {
   experienceOptionsSelectField,
   goalOptionsSelectField,
 } from "@/lib/options-select-field"
 import { experienceSchema, goalSchema } from "@/lib/schemas-zod"
-import { useUserProfile } from "@/providers/user-profile"
 
 const focusSchema = z.object({
   goal: goalSchema,
@@ -30,14 +30,20 @@ const focusSchema = z.object({
 type FocusSchema = z.infer<typeof focusSchema>
 
 export function Focus() {
-  const { profile, isLoading, saveProfile } = useUserProfile()
+  const { profile, isLoadingProfile, saveProfile } = useProfile()
 
   const {
     control,
     handleSubmit,
     reset,
-    formState: { isLoading: isLoadingForm, isSubmitting },
-  } = useForm<FocusSchema>({ resolver: zodResolver(focusSchema) })
+    formState: { isLoading, isSubmitting },
+  } = useForm<FocusSchema>({
+    resolver: zodResolver(focusSchema),
+    defaultValues: {
+      goal: profile?.goal ?? "",
+      experience: profile?.experience ?? "",
+    },
+  })
 
   // revisar essa definição dos valores
   useEffect(
@@ -80,7 +86,7 @@ export function Focus() {
             name="goal"
             render={({ field, fieldState }) => (
               <SelectField
-                disabled={isLoading || isLoadingForm || isSubmitting}
+                disabled={isLoadingProfile || isLoading || isSubmitting}
                 error={fieldState.error}
                 icon={<FlagIcon aria-hidden="true" />}
                 id="goal"
@@ -97,7 +103,7 @@ export function Focus() {
             name="experience"
             render={({ field, fieldState }) => (
               <SelectField
-                disabled={isLoading || isLoadingForm || isSubmitting}
+                disabled={isLoadingProfile || isLoading || isSubmitting}
                 error={fieldState.error}
                 icon={<MedalIcon aria-hidden="true" />}
                 id="experience"
@@ -112,7 +118,7 @@ export function Focus() {
 
         <Button
           className="w-full mt-(--card-spacing)"
-          disabled={isLoading || isLoadingForm || isSubmitting}
+          disabled={isLoadingProfile || isLoading || isSubmitting}
           form="focusForm"
           size="lg"
           type="submit"

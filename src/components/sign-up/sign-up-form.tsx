@@ -39,7 +39,6 @@ export function SignUpForm() {
     formState: { errors, isLoading, isSubmitting },
   } = useForm<SignUpSchema>({ resolver: zodResolver(signUpSchema) })
 
-  // revisar a parte do try
   async function onSubmit(data: SignUpSchema) {
     setSignUpError(null)
 

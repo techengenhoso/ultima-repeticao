@@ -19,9 +19,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { useProfile } from "@/contexts/profile-context"
 import { getFirebaseErrorMessage } from "@/lib/firebase"
 import { passwordSchema, requiredSchema } from "@/lib/schemas-zod"
-import { useUserProfile } from "@/providers/user-profile"
 
 const changePasswordSchema = z
   .object({
@@ -37,13 +37,13 @@ const changePasswordSchema = z
 type ChangePasswordSchema = z.infer<typeof changePasswordSchema>
 
 export function ChangePassword() {
-  const { user, isLoading } = useUserProfile()
+  const { user, isLoadingProfile } = useProfile()
 
   const {
     handleSubmit,
     register,
     reset,
-    formState: { errors, isLoading: isLoadingForm, isSubmitting },
+    formState: { errors, isLoading, isSubmitting },
   } = useForm<ChangePasswordSchema>({ resolver: zodResolver(changePasswordSchema) })
 
   // revisar menos a parte catch
@@ -92,7 +92,7 @@ export function ChangePassword() {
         >
           <PasswordField
             autoComplete="current-password"
-            disabled={isLoading || isLoadingForm || isSubmitting}
+            disabled={isLoadingProfile || isLoading || isSubmitting}
             error={errors.currentPassword}
             icon={<LockKeyholeIcon aria-hidden="true" />}
             id="current-password"
@@ -103,7 +103,7 @@ export function ChangePassword() {
 
           <PasswordField
             autoComplete="new-password"
-            disabled={isLoading || isLoadingForm || isSubmitting}
+            disabled={isLoadingProfile || isLoading || isSubmitting}
             error={errors.newPassword}
             icon={<LockKeyholeIcon aria-hidden="true" />}
             id="new-password"
@@ -114,7 +114,7 @@ export function ChangePassword() {
 
           <PasswordField
             autoComplete="new-password"
-            disabled={isLoading || isLoadingForm || isSubmitting}
+            disabled={isLoadingProfile || isLoading || isSubmitting}
             error={errors.passwordConfirmation}
             icon={<LockKeyholeIcon aria-hidden="true" />}
             id="password-confirmation"
@@ -126,7 +126,7 @@ export function ChangePassword() {
 
         <Button
           className="w-full mt-(--card-spacing)"
-          disabled={isLoading || isLoadingForm || isSubmitting}
+          disabled={isLoadingProfile || isLoading || isSubmitting}
           form="changePasswordForm"
           type="submit"
         >

@@ -4,7 +4,6 @@ import { onAuthStateChanged } from "firebase/auth"
 import { DumbbellIcon } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { type ReactNode, useEffect, useState } from "react"
-
 import { auth } from "@/lib/firebase"
 import { Blur } from "./blur"
 

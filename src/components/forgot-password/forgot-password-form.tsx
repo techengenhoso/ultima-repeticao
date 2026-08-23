@@ -31,7 +31,6 @@ export function ForgotPasswordForm() {
     formState: { errors, isLoading, isSubmitting },
   } = useForm<ForgotPasswordSchema>({ resolver: zodResolver(forgotPasswordSchema) })
 
-  // revisar a parte do try
   async function onSubmit(data: ForgotPasswordSchema) {
     setForgotPasswordError(null)
 

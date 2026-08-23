@@ -5,18 +5,17 @@ import { DumbbellIcon, InfoIcon, LogOutIcon } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { type ReactNode, useState } from "react"
-
 import { MainNavigation } from "@/components/main-navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
+import { useProfile } from "@/contexts/profile-context"
 import { auth } from "@/lib/firebase"
-import { useUserProfile } from "@/providers/user-profile"
 import { Logo } from "./logo"
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter()
+  const { user } = useProfile()
 
-  const { user, userName } = useUserProfile()
   const [isSigningOut, setIsSigningOut] = useState(false)
 
   async function handleSignOut() {
@@ -54,7 +53,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <div className="border-t border-sidebar-border p-4">
           <div className="mb-3 min-w-0 px-2">
-            <p className="truncate text-sm font-semibold">{userName}</p>
+            <p className="truncate text-sm font-semibold">
+              {user?.displayName?.trim() || "Usuário"}
+            </p>
+
             <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
           </div>
 

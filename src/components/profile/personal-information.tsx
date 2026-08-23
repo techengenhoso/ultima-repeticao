@@ -1,6 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import { updateProfile } from "firebase/auth"
 import {
   CalendarDaysIcon,
   LoaderCircleIcon,
@@ -21,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { useProfile } from "@/contexts/profile-context"
 import {
   formatBrazilianDateInput,
   formatIsoDateToBrazilian,
@@ -28,7 +30,6 @@ import {
 } from "@/lib/date"
 import { genderOptionsSelectField } from "@/lib/options-select-field"
 import { dateSchema, emailSchema, genderSchema, textSchema } from "@/lib/schemas-zod"
-import { useUserProfile } from "@/providers/user-profile"
 import { TextField } from "../text-field"
 
 const personalInformationSchema = z.object({
@@ -41,16 +42,22 @@ const personalInformationSchema = z.object({
 type PersonalInformationSchema = z.infer<typeof personalInformationSchema>
 
 export function PersonalInformation() {
-  const { user, profile, isLoading, saveProfile } = useUserProfile()
+  const { user, profile, isLoadingProfile, saveProfile } = useProfile()
 
   const {
     control,
     handleSubmit,
     register,
     reset,
-    formState: { errors, isLoading: isLoadingForm, isSubmitting },
+    formState: { errors, isLoading, isSubmitting },
   } = useForm<PersonalInformationSchema>({
     resolver: zodResolver(personalInformationSchema),
+    defaultValues: {
+      fullName: user?.displayName ?? "",
+      email: user?.email ?? "",
+      birthDate: formatIsoDateToBrazilian(profile?.birthDate),
+      gender: profile?.gender ?? "",
+    },
   })
 
   // revisar, existe somente aqui até o momento
@@ -60,8 +67,8 @@ export function PersonalInformation() {
   useEffect(
     () =>
       reset({
-        fullName: profile?.fullName ?? user?.displayName ?? "",
-        email: profile?.email ?? user?.email ?? "",
+        fullName: user?.displayName ?? "",
+        email: user?.email ?? "",
         birthDate: formatIsoDateToBrazilian(profile?.birthDate),
         gender: profile?.gender ?? "",
       }),
@@ -71,9 +78,11 @@ export function PersonalInformation() {
   // revisar o funcionamento desta função
   async function onSubmit(values: PersonalInformationSchema) {
     try {
+      if (!user) throw new Error("Usuário não autenticado")
+
+      await updateProfile(user, { displayName: values.fullName.trim() })
       await saveProfile({
-        fullName: values.fullName.trim(),
-        birthDate: values.birthDate ? parseBrazilianDate(values.birthDate) : null,
+        birthDate: values.birthDate ? (parseBrazilianDate(values.birthDate) ?? "") : "",
         gender: values.gender || null,
       })
       toast.success("Atualizados com sucesso")
@@ -97,7 +106,7 @@ export function PersonalInformation() {
         >
           <TextField
             autoComplete="name"
-            disabled={isLoading || isLoadingForm || isSubmitting}
+            disabled={isLoadingProfile || isLoading || isSubmitting}
             error={errors.fullName}
             icon={<UserIcon aria-hidden="true" />}
             id="fullName"
@@ -122,7 +131,7 @@ export function PersonalInformation() {
 
           <TextField
             {...birthDateField}
-            disabled={isLoading || isLoadingForm || isSubmitting}
+            disabled={isLoading || isLoading || isSubmitting}
             error={errors.birthDate}
             icon={<CalendarDaysIcon aria-hidden="true" />}
             id="birthDate"
@@ -141,7 +150,7 @@ export function PersonalInformation() {
             name="gender"
             render={({ field, fieldState }) => (
               <SelectField
-                disabled={isLoading || isLoadingForm || isSubmitting}
+                disabled={isLoading || isLoading || isSubmitting}
                 error={fieldState.error}
                 icon={<UsersIcon aria-hidden="true" />}
                 id="gender"
@@ -156,7 +165,7 @@ export function PersonalInformation() {
 
         <Button
           className="w-full mt-(--card-spacing)"
-          disabled={isLoading || isLoadingForm || isSubmitting}
+          disabled={isLoading || isLoading || isSubmitting}
           form="personalDataForm"
           size="lg"
           type="submit"
