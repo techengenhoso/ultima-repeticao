@@ -22,7 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { useProfile } from "@/contexts/profile-context"
+import { useUserProfile } from "@/contexts/user-profile-context"
 import {
   formatBrazilianDateInput,
   formatIsoDateToBrazilian,
@@ -42,7 +42,12 @@ const personalInformationSchema = z.object({
 type PersonalInformationSchema = z.infer<typeof personalInformationSchema>
 
 export function PersonalInformation() {
-  const { user, profile, isLoadingProfile, saveProfile } = useProfile()
+  const {
+    user,
+    profile,
+    isLoadingUserProfile: isLoadingProfile,
+    saveProfile,
+  } = useUserProfile()
 
   const {
     control,

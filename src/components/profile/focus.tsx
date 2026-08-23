@@ -15,7 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { useProfile } from "@/contexts/profile-context"
+import { useUserProfile } from "@/contexts/user-profile-context"
 import {
   experienceOptionsSelectField,
   goalOptionsSelectField,
@@ -30,7 +30,7 @@ const focusSchema = z.object({
 type FocusSchema = z.infer<typeof focusSchema>
 
 export function Focus() {
-  const { profile, isLoadingProfile, saveProfile } = useProfile()
+  const { profile, isLoadingUserProfile: isLoadingProfile, saveProfile } = useUserProfile()
 
   const {
     control,

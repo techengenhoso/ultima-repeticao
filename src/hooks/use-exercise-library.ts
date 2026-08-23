@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
-import { useProfile } from "@/contexts/profile-context"
+import { useUserProfile } from "@/contexts/user-profile-context"
 import { mergeExercises } from "@/lib/exercises/catalog"
 import { systemExercises } from "@/lib/exercises/system-exercises"
 import type {
@@ -22,7 +22,7 @@ import {
 } from "@/services/exercises"
 
 export function useExerciseLibrary() {
-  const { user, isLoadingProfile } = useProfile()
+  const { user, isLoadingUserProfile: isLoadingProfile } = useUserProfile()
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([])
   const [systemOverrides, setSystemOverrides] = useState<SystemExerciseOverride[]>([])
   const [isLoading, setIsLoading] = useState(true)

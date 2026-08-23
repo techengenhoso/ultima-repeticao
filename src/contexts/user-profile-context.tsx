@@ -18,33 +18,44 @@ import {
   type ProfileEditable,
 } from "@/repositories/profile-repository"
 
-interface ProfileContext {
+interface UserProfileContext {
   user: User | null
   profile: Profile | null
-  isLoadingProfile: boolean
-  refreshProfile: () => Promise<void>
+  isLoadingUserProfile: boolean
   saveProfile: (input: ProfileEditable) => Promise<void>
+  refreshProfile: () => Promise<void>
 }
-const ProfileContext = createContext({} as ProfileContext)
 
-export function ProfileProvider({ children }: { children: ReactNode }) {
+const UserProfileContext = createContext({} as UserProfileContext)
+
+export function UserProfileProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => auth.currentUser)
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true)
+  const [isLoadingUserProfile, setIsLoadingUserProfile] = useState(true)
 
   useEffect(
     () =>
       onAuthStateChanged(auth, async currentUser => {
-        setIsLoadingProfile(true)
+        setIsLoadingUserProfile(true)
+
         setUser(currentUser)
 
         try {
           setProfile(currentUser ? await get(currentUser.uid) : null)
         } finally {
-          setIsLoadingProfile(false)
+          setIsLoadingUserProfile(false)
         }
       }),
     []
+  )
+
+  const saveProfile = useCallback(
+    async (data: ProfileEditable) => {
+      if (!user) throw new Error("Usuário não autenticado")
+      const result = await create(user.uid, data)
+      setProfile(result)
+    },
+    [user]
   )
 
   const refreshProfile = useCallback(async () => {
@@ -58,31 +69,24 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     setProfile(await get(currentUser.uid))
   }, [])
 
-  const saveProfile = useCallback(
-    async (data: ProfileEditable) => {
-      if (!user) throw new Error("Usuário não autenticado")
-      const result = await create(user.uid, data)
-      setProfile(result)
-    },
-    [user]
-  )
-
   const value = useMemo(
     () => ({
       user,
       profile,
-      isLoadingProfile,
+      isLoadingUserProfile,
       saveProfile,
       refreshProfile,
     }),
-    [user, profile, isLoadingProfile, refreshProfile, saveProfile]
+    [user, profile, isLoadingUserProfile, saveProfile, refreshProfile]
   )
 
-  return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>
+  return (
+    <UserProfileContext.Provider value={value}>{children}</UserProfileContext.Provider>
+  )
 }
 
-export function useProfile() {
-  const context = useContext(ProfileContext)
-  if (!context) throw new Error("context não encontrado")
+export function useUserProfile() {
+  const context = useContext(UserProfileContext)
+  if (!context) throw new Error("Context userProfile não encontrado")
   return context
 }

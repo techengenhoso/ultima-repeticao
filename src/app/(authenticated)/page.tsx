@@ -11,10 +11,10 @@ import {
 import { PageHeader } from "@/components/page-header"
 import { SummaryCard } from "@/components/summary-card"
 import { Button } from "@/components/ui/button"
-import { useProfile } from "@/contexts/profile-context"
+import { useUserProfile } from "@/contexts/user-profile-context"
 
 export default function DashboardPage() {
-  const { user } = useProfile()
+  const { user } = useUserProfile()
 
   return (
     <div className="space-y-8">

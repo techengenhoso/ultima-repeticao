@@ -8,13 +8,13 @@ import { type ReactNode, useState } from "react"
 import { MainNavigation } from "@/components/main-navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
-import { useProfile } from "@/contexts/profile-context"
+import { useUserProfile } from "@/contexts/user-profile-context"
 import { auth } from "@/lib/firebase"
 import { Logo } from "./logo"
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter()
-  const { user } = useProfile()
+  const { user } = useUserProfile()
 
   const [isSigningOut, setIsSigningOut] = useState(false)
 

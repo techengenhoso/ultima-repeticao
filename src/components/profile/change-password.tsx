@@ -19,7 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { useProfile } from "@/contexts/profile-context"
+import { useUserProfile } from "@/contexts/user-profile-context"
 import { getFirebaseErrorMessage } from "@/lib/firebase"
 import { passwordSchema, requiredSchema } from "@/lib/schemas-zod"
 
@@ -37,7 +37,7 @@ const changePasswordSchema = z
 type ChangePasswordSchema = z.infer<typeof changePasswordSchema>
 
 export function ChangePassword() {
-  const { user, isLoadingProfile } = useProfile()
+  const { user, isLoadingUserProfile: isLoadingProfile } = useUserProfile()
 
   const {
     handleSubmit,
