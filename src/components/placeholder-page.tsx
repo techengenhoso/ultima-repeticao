@@ -1,5 +1,4 @@
 import type { LucideIcon } from "lucide-react"
-
 import { PageHeader } from "@/components/page-header"
 
 type PlaceholderPageProps = {

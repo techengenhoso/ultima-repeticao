@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
-import { useUserProfile } from "@/contexts/user-profile-context"
+import { useUser } from "@/contexts/user-context"
 import { mergeExercises } from "@/lib/exercises/catalog"
 import { systemExercises } from "@/lib/exercises/system-exercises"
 import type {
@@ -22,15 +22,13 @@ import {
 } from "@/services/exercises"
 
 export function useExerciseLibrary() {
-  const { user, isLoadingUserProfile: isLoadingProfile } = useUserProfile()
+  const { user } = useUser()
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([])
   const [systemOverrides, setSystemOverrides] = useState<SystemExerciseOverride[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const loadExercises = useCallback(async () => {
-    if (!user) return
-
     setIsLoading(true)
     try {
       const [custom, overrides] = await Promise.all([
@@ -47,14 +45,8 @@ export function useExerciseLibrary() {
   }, [user])
 
   useEffect(() => {
-    if (isLoadingProfile) return
-    if (user) void loadExercises()
-    else {
-      setCustomExercises([])
-      setSystemOverrides([])
-      setIsLoading(false)
-    }
-  }, [isLoadingProfile, loadExercises, user])
+    void loadExercises()
+  }, [loadExercises])
 
   const exercises = useMemo(
     () => mergeExercises(systemExercises, customExercises, systemOverrides),
@@ -65,8 +57,6 @@ export function useExerciseLibrary() {
     exercise: Exercise | null | undefined,
     values: ExerciseInput
   ) {
-    if (!user) return false
-
     try {
       if (exercise?.source === "system") {
         const saved = await saveSystemExerciseOverride(user.uid, exercise.id, values)
@@ -99,8 +89,6 @@ export function useExerciseLibrary() {
   }
 
   async function removeExercise(exercise: CustomExercise) {
-    if (!user) return false
-
     setIsDeleting(true)
     try {
       await deleteCustomExercise(user.uid, exercise.id)

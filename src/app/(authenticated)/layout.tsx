@@ -1,7 +1,8 @@
 import type { Metadata } from "next"
 import type { ReactNode } from "react"
 import { AppShell } from "@/components/app-shell"
-import { UserProfileProvider } from "@/contexts/user-profile-context"
+import { ProfileProvider } from "@/contexts/profile-context"
+import { UserProvider } from "@/contexts/user-context"
 
 export const metadata: Metadata = {
   title: "Início | Última Repetição",
@@ -10,8 +11,10 @@ export const metadata: Metadata = {
 
 export default function AuthenticatedLayout({ children }: { children: ReactNode }) {
   return (
-    <UserProfileProvider>
-      <AppShell>{children}</AppShell>
-    </UserProfileProvider>
+    <UserProvider>
+      <ProfileProvider>
+        <AppShell>{children}</AppShell>
+      </ProfileProvider>
+    </UserProvider>
   )
 }

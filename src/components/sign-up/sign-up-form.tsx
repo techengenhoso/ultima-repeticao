@@ -1,7 +1,6 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { LoaderCircleIcon, LockKeyholeIcon, MailIcon, UserIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -9,8 +8,9 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { FieldGroup } from "@/components/ui/field"
-import { auth, getFirebaseErrorMessage } from "@/lib/firebase"
+import { getFirebaseErrorMessage } from "@/lib/firebase"
 import { emailSchema, passwordSchema, textSchema } from "@/lib/schemas-zod"
+import { createUserRepository } from "@/repositories/user-repository"
 import { PasswordField } from "../password-field"
 import { TextField } from "../text-field"
 
@@ -43,13 +43,7 @@ export function SignUpForm() {
     setSignUpError(null)
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password
-      )
-
-      await updateProfile(userCredential.user, { displayName: data.fullName })
+      await createUserRepository(data.fullName, data.email, data.password)
 
       router.replace("/")
       router.refresh()

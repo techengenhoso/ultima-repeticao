@@ -1,7 +1,6 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { sendPasswordResetEmail } from "firebase/auth"
 import { LoaderCircleIcon, MailCheckIcon, MailIcon } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
@@ -9,8 +8,9 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { FieldGroup } from "@/components/ui/field"
-import { auth, getFirebaseErrorMessage } from "@/lib/firebase"
+import { getFirebaseErrorMessage } from "@/lib/firebase"
 import { emailSchema } from "@/lib/schemas-zod"
+import { forgotPasswordUserRepository } from "@/repositories/user-repository"
 import { TextField } from "../text-field"
 
 const forgotPasswordSchema = z.object({
@@ -35,7 +35,7 @@ export function ForgotPasswordForm() {
     setForgotPasswordError(null)
 
     try {
-      await sendPasswordResetEmail(auth, data.email)
+      await forgotPasswordUserRepository(data.email)
       setEmailSent(true)
     } catch (error) {
       const message = getFirebaseErrorMessage({

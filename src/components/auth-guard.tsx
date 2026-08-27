@@ -1,10 +1,9 @@
 "use client"
 
-import { onAuthStateChanged } from "firebase/auth"
 import { DumbbellIcon } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { type ReactNode, useEffect, useState } from "react"
-import { auth } from "@/lib/firebase"
+import { onAuthStateChangedUserRepository } from "@/repositories/user-repository"
 import { Blur } from "./blur"
 
 const publicRoutes = new Set(["/sign-up", "/sign-in", "/forgot-password"])
@@ -17,7 +16,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   useEffect(() => {
-    return onAuthStateChanged(auth, user => {
+    return onAuthStateChangedUserRepository(user => {
       setIsAuthenticated(Boolean(user))
       setIsCheckingAuthentication(false)
     })

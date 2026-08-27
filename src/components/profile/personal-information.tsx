@@ -1,7 +1,6 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { updateProfile } from "firebase/auth"
 import {
   CalendarDaysIcon,
   LoaderCircleIcon,
@@ -22,7 +21,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { useUserProfile } from "@/contexts/user-profile-context"
+import { useProfile } from "@/contexts/profile-context"
+import { useUser } from "@/contexts/user-context"
 import {
   formatBrazilianDateInput,
   formatIsoDateToBrazilian,
@@ -42,12 +42,8 @@ const personalInformationSchema = z.object({
 type PersonalInformationSchema = z.infer<typeof personalInformationSchema>
 
 export function PersonalInformation() {
-  const {
-    user,
-    profile,
-    isLoadingUserProfile: isLoadingProfile,
-    saveProfile,
-  } = useUserProfile()
+  const { user, saveUser } = useUser()
+  const { profile, saveProfile } = useProfile()
 
   const {
     control,
@@ -58,10 +54,10 @@ export function PersonalInformation() {
   } = useForm<PersonalInformationSchema>({
     resolver: zodResolver(personalInformationSchema),
     defaultValues: {
-      fullName: user?.displayName ?? "",
-      email: user?.email ?? "",
-      birthDate: formatIsoDateToBrazilian(profile?.birthDate),
-      gender: profile?.gender ?? "",
+      fullName: user.displayName ?? "",
+      email: user.email ?? "",
+      birthDate: formatIsoDateToBrazilian(profile.birthDate),
+      gender: profile.gender ?? "",
     },
   })
 
@@ -72,10 +68,10 @@ export function PersonalInformation() {
   useEffect(
     () =>
       reset({
-        fullName: user?.displayName ?? "",
-        email: user?.email ?? "",
-        birthDate: formatIsoDateToBrazilian(profile?.birthDate),
-        gender: profile?.gender ?? "",
+        fullName: user.displayName ?? "",
+        email: user.email ?? "",
+        birthDate: formatIsoDateToBrazilian(profile.birthDate),
+        gender: profile.gender ?? "",
       }),
     [profile, reset, user]
   )
@@ -83,9 +79,7 @@ export function PersonalInformation() {
   // revisar o funcionamento desta função
   async function onSubmit(values: PersonalInformationSchema) {
     try {
-      if (!user) throw new Error("Usuário não autenticado")
-
-      await updateProfile(user, { displayName: values.fullName.trim() })
+      await saveUser({ displayName: values.fullName.trim() })
       await saveProfile({
         birthDate: values.birthDate ? (parseBrazilianDate(values.birthDate) ?? "") : "",
         gender: values.gender || null,
@@ -111,7 +105,7 @@ export function PersonalInformation() {
         >
           <TextField
             autoComplete="name"
-            disabled={isLoadingProfile || isLoading || isSubmitting}
+            disabled={isLoading || isSubmitting}
             error={errors.fullName}
             icon={<UserIcon aria-hidden="true" />}
             id="fullName"
@@ -136,7 +130,7 @@ export function PersonalInformation() {
 
           <TextField
             {...birthDateField}
-            disabled={isLoading || isLoading || isSubmitting}
+            disabled={isLoading || isSubmitting}
             error={errors.birthDate}
             icon={<CalendarDaysIcon aria-hidden="true" />}
             id="birthDate"
@@ -155,7 +149,7 @@ export function PersonalInformation() {
             name="gender"
             render={({ field, fieldState }) => (
               <SelectField
-                disabled={isLoading || isLoading || isSubmitting}
+                disabled={isLoading || isSubmitting}
                 error={fieldState.error}
                 icon={<UsersIcon aria-hidden="true" />}
                 id="gender"
@@ -170,7 +164,7 @@ export function PersonalInformation() {
 
         <Button
           className="w-full mt-(--card-spacing)"
-          disabled={isLoading || isLoading || isSubmitting}
+          disabled={isLoading || isSubmitting}
           form="personalDataForm"
           size="lg"
           type="submit"

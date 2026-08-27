@@ -15,7 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { useUserProfile } from "@/contexts/user-profile-context"
+import { useProfile } from "@/contexts/profile-context"
 import {
   experienceOptionsSelectField,
   goalOptionsSelectField,
@@ -30,7 +30,7 @@ const focusSchema = z.object({
 type FocusSchema = z.infer<typeof focusSchema>
 
 export function Focus() {
-  const { profile, isLoadingUserProfile: isLoadingProfile, saveProfile } = useUserProfile()
+  const { profile, saveProfile } = useProfile()
 
   const {
     control,
@@ -40,8 +40,8 @@ export function Focus() {
   } = useForm<FocusSchema>({
     resolver: zodResolver(focusSchema),
     defaultValues: {
-      goal: profile?.goal ?? "",
-      experience: profile?.experience ?? "",
+      goal: profile.goal ?? "",
+      experience: profile.experience ?? "",
     },
   })
 
@@ -49,8 +49,8 @@ export function Focus() {
   useEffect(
     () =>
       reset({
-        goal: profile?.goal ?? "",
-        experience: profile?.experience ?? "",
+        goal: profile.goal ?? "",
+        experience: profile.experience ?? "",
       }),
     [profile, reset]
   )
@@ -86,7 +86,7 @@ export function Focus() {
             name="goal"
             render={({ field, fieldState }) => (
               <SelectField
-                disabled={isLoadingProfile || isLoading || isSubmitting}
+                disabled={isLoading || isSubmitting}
                 error={fieldState.error}
                 icon={<FlagIcon aria-hidden="true" />}
                 id="goal"
@@ -103,7 +103,7 @@ export function Focus() {
             name="experience"
             render={({ field, fieldState }) => (
               <SelectField
-                disabled={isLoadingProfile || isLoading || isSubmitting}
+                disabled={isLoading || isSubmitting}
                 error={fieldState.error}
                 icon={<MedalIcon aria-hidden="true" />}
                 id="experience"
@@ -118,7 +118,7 @@ export function Focus() {
 
         <Button
           className="w-full mt-(--card-spacing)"
-          disabled={isLoadingProfile || isLoading || isSubmitting}
+          disabled={isLoading || isSubmitting}
           form="focusForm"
           size="lg"
           type="submit"

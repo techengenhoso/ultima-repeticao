@@ -1,11 +1,6 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import {
-  EmailAuthProvider,
-  reauthenticateWithCredential,
-  updatePassword,
-} from "firebase/auth"
 import { LoaderCircleIcon, LockKeyholeIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -19,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { useUserProfile } from "@/contexts/user-profile-context"
+import { useUser } from "@/contexts/user-context"
 import { getFirebaseErrorMessage } from "@/lib/firebase"
 import { passwordSchema, requiredSchema } from "@/lib/schemas-zod"
 
@@ -37,7 +32,7 @@ const changePasswordSchema = z
 type ChangePasswordSchema = z.infer<typeof changePasswordSchema>
 
 export function ChangePassword() {
-  const { user, isLoadingUserProfile: isLoadingProfile } = useUserProfile()
+  const { user, changePasswordUser } = useUser()
 
   const {
     handleSubmit,
@@ -48,7 +43,7 @@ export function ChangePassword() {
 
   // revisar menos a parte catch
   async function onSubmit(values: ChangePasswordSchema) {
-    if (!user?.email) {
+    if (!user.email) {
       toast.error("Não foi possível identificar o endereço de e-mail")
       return
     }
@@ -59,10 +54,7 @@ export function ChangePassword() {
     }
 
     try {
-      const credential = EmailAuthProvider.credential(user.email, values.currentPassword)
-
-      await reauthenticateWithCredential(user, credential)
-      await updatePassword(user, values.newPassword)
+      await changePasswordUser(values.currentPassword, values.newPassword)
 
       reset()
 
@@ -92,7 +84,7 @@ export function ChangePassword() {
         >
           <PasswordField
             autoComplete="current-password"
-            disabled={isLoadingProfile || isLoading || isSubmitting}
+            disabled={isLoading || isSubmitting}
             error={errors.currentPassword}
             icon={<LockKeyholeIcon aria-hidden="true" />}
             id="current-password"
@@ -103,7 +95,7 @@ export function ChangePassword() {
 
           <PasswordField
             autoComplete="new-password"
-            disabled={isLoadingProfile || isLoading || isSubmitting}
+            disabled={isLoading || isSubmitting}
             error={errors.newPassword}
             icon={<LockKeyholeIcon aria-hidden="true" />}
             id="new-password"
@@ -114,7 +106,7 @@ export function ChangePassword() {
 
           <PasswordField
             autoComplete="new-password"
-            disabled={isLoadingProfile || isLoading || isSubmitting}
+            disabled={isLoading || isSubmitting}
             error={errors.passwordConfirmation}
             icon={<LockKeyholeIcon aria-hidden="true" />}
             id="password-confirmation"
@@ -126,7 +118,7 @@ export function ChangePassword() {
 
         <Button
           className="w-full mt-(--card-spacing)"
-          disabled={isLoadingProfile || isLoading || isSubmitting}
+          disabled={isLoading || isSubmitting}
           form="changePasswordForm"
           type="submit"
         >

@@ -1,6 +1,5 @@
 "use client"
 
-import { signOut } from "firebase/auth"
 import { DumbbellIcon, InfoIcon, LogOutIcon } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -8,13 +7,12 @@ import { type ReactNode, useState } from "react"
 import { MainNavigation } from "@/components/main-navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
-import { useUserProfile } from "@/contexts/user-profile-context"
-import { auth } from "@/lib/firebase"
+import { useUser } from "@/contexts/user-context"
 import { Logo } from "./logo"
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter()
-  const { user } = useUserProfile()
+  const { user, signOutUser } = useUser()
 
   const [isSigningOut, setIsSigningOut] = useState(false)
 
@@ -22,7 +20,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     setIsSigningOut(true)
 
     try {
-      await signOut(auth)
+      await signOutUser()
       router.replace("/sign-in")
     } finally {
       setIsSigningOut(false)
@@ -54,10 +52,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="border-t border-sidebar-border p-4">
           <div className="mb-3 min-w-0 px-2">
             <p className="truncate text-sm font-semibold">
-              {user?.displayName?.trim() || "Usuário"}
+              {user.displayName?.trim() || "Usuário"}
             </p>
 
-            <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
           </div>
 
           <div className="flex w-full min-w-0 gap-2">
