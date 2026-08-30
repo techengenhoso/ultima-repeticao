@@ -26,8 +26,7 @@ service cloud.firestore {
           && data.movementExecution is string
           && data.movementExecution.size() >= 1 && data.movementExecution.size() <= 1000
           && data.importantCautions is string
-          && data.importantCautions.size() >= 1 && data.importantCautions.size() <= 1000
-          && data.createdAt is timestamp && data.updatedAt is timestamp;
+          && data.importantCautions.size() >= 1 && data.importantCautions.size() <= 1000;
       }
 
       match /exercises/{exerciseId} {
@@ -36,7 +35,7 @@ service cloud.firestore {
               'name', 'normalizedName', 'muscleGroup', 'primaryMuscles',
               'secondaryMuscles', 'difficulty',
               'movementPattern', 'startingPosition', 'movementExecution',
-              'importantCautions', 'createdAt', 'updatedAt'
+              'importantCautions'
             ])
             && data.normalizedName is string && data.normalizedName.size() >= 3
             && validExerciseContent(data);
@@ -44,9 +43,7 @@ service cloud.firestore {
 
         allow read, delete: if isOwner();
         allow create: if isOwner() && validExercise(request.resource.data);
-        allow update: if isOwner()
-          && validExercise(request.resource.data)
-          && request.resource.data.createdAt == resource.data.createdAt;
+        allow update: if isOwner() && validExercise(request.resource.data);
       }
 
       match /exerciseOverrides/{exerciseId} {
@@ -54,17 +51,14 @@ service cloud.firestore {
           return data.keys().hasOnly([
               'name', 'muscleGroup', 'primaryMuscles', 'secondaryMuscles',
               'difficulty', 'movementPattern',
-              'startingPosition', 'movementExecution', 'importantCautions',
-              'createdAt', 'updatedAt'
+              'startingPosition', 'movementExecution', 'importantCautions'
             ])
             && validExerciseContent(data);
         }
 
         allow read: if isOwner();
         allow create: if isOwner() && validOverride(request.resource.data);
-        allow update: if isOwner()
-          && validOverride(request.resource.data)
-          && request.resource.data.createdAt == resource.data.createdAt;
+        allow update: if isOwner() && validOverride(request.resource.data);
       }
     }
   }

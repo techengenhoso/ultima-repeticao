@@ -6,7 +6,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 
 export const metadata: Metadata = {
-  title: "Página Nâo Encontrada | Última Repetição",
+  title: "Página Não Encontrada | Última Repetição",
   description: "Não foi possível encontrar a página desejada, revise o endereço",
 }
 
