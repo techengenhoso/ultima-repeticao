@@ -7,17 +7,13 @@ import {
   getDocs,
   limit,
   query,
-  serverTimestamp,
   setDoc,
   where,
 } from "firebase/firestore"
 import { normalizeExerciseName } from "@/lib/exercises/normalize"
-import type {
-  CustomExercise,
-  ExerciseInput,
-  SystemExerciseOverride,
-} from "@/lib/exercises/types"
+import type { CustomExercise, ExerciseInput, Muscle } from "@/lib/exercises/types"
 import { db } from "@/lib/firebase"
+import { muscles } from "@/lib/options-select"
 
 export class DuplicateExerciseNameError extends Error {}
 
@@ -29,24 +25,42 @@ function exerciseOverridesCollection(uid: string) {
   return collection(db, "users", uid, "exerciseOverrides")
 }
 
-function stringList(value: unknown) {
-  if (Array.isArray(value)) return value.filter(item => typeof item === "string")
-  if (typeof value === "string") {
-    return value
-      .split(";")
-      .map(item => item.trim())
-      .filter(Boolean)
-  }
-  return []
+const muscleValueByStoredValue = new Map<string, Muscle>(
+  muscles.flatMap(muscle => [
+    [muscle.value.toLocaleLowerCase("pt-BR"), muscle.value],
+    [muscle.label.toLocaleLowerCase("pt-BR"), muscle.value],
+  ])
+)
+
+function muscleList(value: unknown) {
+  const items = Array.isArray(value)
+    ? value
+    : typeof value === "string"
+      ? value.split(";")
+      : []
+
+  return items.flatMap(item => {
+    if (typeof item !== "string") return []
+    const muscle = muscleValueByStoredValue.get(item.trim().toLocaleLowerCase("pt-BR"))
+    return muscle ? [muscle] : []
+  })
 }
 
 function exerciseFields(data: Record<string, unknown>): ExerciseInput {
+  const legacyDifficulties = {
+    beginner: "easy",
+    intermediate: "moderate",
+    advanced: "hard",
+  } as const
+  const difficulty =
+    data.difficulty ?? legacyDifficulties[data.level as keyof typeof legacyDifficulties]
+
   return {
     name: typeof data.name === "string" ? data.name : "Exercício sem nome",
     muscleGroup: data.muscleGroup as ExerciseInput["muscleGroup"],
-    primaryMuscles: stringList(data.primaryMuscles ?? data.primaryMuscle),
-    secondaryMuscles: stringList(data.secondaryMuscles),
-    level: data.level as ExerciseInput["level"],
+    primaryMuscles: muscleList(data.primaryMuscles ?? data.primaryMuscle),
+    secondaryMuscles: muscleList(data.secondaryMuscles),
+    difficulty: difficulty as ExerciseInput["difficulty"],
     movementPattern:
       typeof data.movementPattern === "string" ? data.movementPattern : "Não informado",
     startingPosition:
@@ -71,31 +85,10 @@ function parseExercise(id: string, data: Record<string, unknown>): CustomExercis
       typeof data.normalizedName === "string"
         ? data.normalizedName
         : normalizeExerciseName(String(data.name ?? "")),
-    createdAt: data.createdAt as CustomExercise["createdAt"],
-    updatedAt: data.updatedAt as CustomExercise["updatedAt"],
   }
 }
 
-export async function listCustomExercises(uid: string) {
-  const snapshot = await getDocs(exercisesCollection(uid))
-  return snapshot.docs
-    .map(item => parseExercise(item.id, item.data()))
-    .sort((left, right) => left.name.localeCompare(right.name, "pt-BR"))
-}
-
-export async function listSystemExerciseOverrides(uid: string) {
-  const snapshot = await getDocs(exerciseOverridesCollection(uid))
-  return snapshot.docs.map(item => ({
-    ...exerciseFields(item.data()),
-    id: item.id,
-    source: "system" as const,
-    isCustomized: true as const,
-    createdAt: item.data().createdAt as SystemExerciseOverride["createdAt"],
-    updatedAt: item.data().updatedAt as SystemExerciseOverride["updatedAt"],
-  }))
-}
-
-export async function hasDuplicateExerciseName(
+async function hasDuplicateExerciseName(
   uid: string,
   name: string,
   ignoredExerciseId?: string
@@ -120,7 +113,7 @@ function cleanInput(input: ExerciseInput) {
     muscleGroup: input.muscleGroup,
     primaryMuscles: cleanList(input.primaryMuscles),
     secondaryMuscles: cleanList(input.secondaryMuscles),
-    level: input.level,
+    difficulty: input.difficulty,
     movementPattern: input.movementPattern.trim(),
     startingPosition: input.startingPosition.trim(),
     movementExecution: input.movementExecution.trim(),
@@ -128,7 +121,24 @@ function cleanInput(input: ExerciseInput) {
   }
 }
 
-export async function createCustomExercise(uid: string, input: ExerciseInput) {
+export async function listCustomExercisesRepository(uid: string) {
+  const snapshot = await getDocs(exercisesCollection(uid))
+  return snapshot.docs
+    .map(item => parseExercise(item.id, item.data()))
+    .sort((left, right) => left.name.localeCompare(right.name, "pt-BR"))
+}
+
+export async function listDefaultExerciseOverridesRepository(uid: string) {
+  const snapshot = await getDocs(exerciseOverridesCollection(uid))
+  return snapshot.docs.map(item => ({
+    ...exerciseFields(item.data()),
+    id: item.id,
+    source: "default" as const,
+    isCustomized: true as const,
+  }))
+}
+
+export async function createCustomExerciseRepository(uid: string, input: ExerciseInput) {
   const clean = cleanInput(input)
   if (await hasDuplicateExerciseName(uid, clean.name)) {
     throw new DuplicateExerciseNameError()
@@ -136,14 +146,12 @@ export async function createCustomExercise(uid: string, input: ExerciseInput) {
   const reference = await addDoc(exercisesCollection(uid), {
     ...clean,
     normalizedName: normalizeExerciseName(clean.name),
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
   })
   const snapshot = await getDoc(reference)
   return parseExercise(snapshot.id, snapshot.data() ?? {})
 }
 
-export async function updateCustomExercise(
+export async function updateCustomExerciseRepository(
   uid: string,
   exerciseId: string,
   input: ExerciseInput
@@ -153,41 +161,31 @@ export async function updateCustomExercise(
     throw new DuplicateExerciseNameError()
   }
   const reference = doc(exercisesCollection(uid), exerciseId)
-  const current = await getDoc(reference)
   await setDoc(reference, {
     ...clean,
     normalizedName: normalizeExerciseName(clean.name),
-    createdAt: current.data()?.createdAt ?? serverTimestamp(),
-    updatedAt: serverTimestamp(),
   })
   const snapshot = await getDoc(reference)
   return parseExercise(snapshot.id, snapshot.data() ?? {})
 }
 
-export async function saveSystemExerciseOverride(
+export async function saveDefaultExerciseOverrideRepository(
   uid: string,
   exerciseId: string,
   input: ExerciseInput
 ) {
   const clean = cleanInput(input)
   const reference = doc(exerciseOverridesCollection(uid), exerciseId)
-  const snapshot = await getDoc(reference)
-  await setDoc(reference, {
-    ...clean,
-    createdAt: snapshot.data()?.createdAt ?? serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  })
+  await setDoc(reference, clean)
   const saved = await getDoc(reference)
   return {
     ...exerciseFields(saved.data() ?? {}),
     id: saved.id,
-    source: "system" as const,
+    source: "default" as const,
     isCustomized: true as const,
-    createdAt: saved.data()?.createdAt as SystemExerciseOverride["createdAt"],
-    updatedAt: saved.data()?.updatedAt as SystemExerciseOverride["updatedAt"],
   }
 }
 
-export async function deleteCustomExercise(uid: string, exerciseId: string) {
+export async function deleteCustomExerciseRepository(uid: string, exerciseId: string) {
   await deleteDoc(doc(exercisesCollection(uid), exerciseId))
 }

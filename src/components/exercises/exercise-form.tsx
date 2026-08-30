@@ -14,32 +14,48 @@ import {
 } from "lucide-react"
 import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
+import z from "zod"
 import { Button } from "@/components/ui/button"
 import { DialogFooter } from "@/components/ui/dialog"
-import { type ExerciseFormValues, exerciseSchema } from "@/lib/exercises/schema"
-import { muscleOptions } from "@/lib/exercises/system-exercises"
+import { type Exercise, type ExerciseInput } from "@/lib/exercises/types"
+import { difficulties, muscleGroups, muscles } from "@/lib/options-select"
 import {
-  type Exercise,
-  type ExerciseInput,
-  exerciseLevels,
-  muscleGroups,
-} from "@/lib/exercises/types"
+  difficultiesSchema,
+  muscleGroupSchema,
+  primaryMusclesSchema,
+  secondaryMusclesSchema,
+  textLongSchema,
+  textSchema,
+} from "@/lib/schemas-zod"
 import { LongTextField } from "../long-text-field"
 import { MultiSelectField } from "../multi-select-field"
 import { SelectField } from "../select-field"
 import { TextField } from "../text-field"
 
-const emptyValues: ExerciseFormValues = {
-  name: "",
-  muscleGroup: "",
-  primaryMuscles: [],
-  secondaryMuscles: [],
-  level: "",
-  movementPattern: "",
-  startingPosition: "",
-  movementExecution: "",
-  importantCautions: "",
-}
+const exerciseSchema = z
+  .object({
+    name: textSchema,
+    muscleGroup: muscleGroupSchema,
+    primaryMuscles: primaryMusclesSchema,
+    secondaryMuscles: secondaryMusclesSchema,
+    difficulty: difficultiesSchema,
+    movementPattern: textSchema,
+    startingPosition: textLongSchema,
+    movementExecution: textLongSchema,
+    importantCautions: textLongSchema,
+  })
+  .refine(
+    values =>
+      !values.secondaryMuscles.some(secondary =>
+        values.primaryMuscles.includes(secondary)
+      ),
+    {
+      message: "Um músculo principal não pode ser selecionado como secundário",
+      path: ["secondaryMuscles"],
+    }
+  )
+
+type ExerciseFormValues = z.infer<typeof exerciseSchema>
 
 interface Props {
   exercise?: Exercise | null
@@ -56,29 +72,45 @@ export function ExerciseForm({ exercise, onCancel, onSubmit }: Props) {
     formState: { errors, isSubmitting },
   } = useForm<ExerciseFormValues>({
     resolver: zodResolver(exerciseSchema),
-    defaultValues: emptyValues,
+    defaultValues: {
+      name: "",
+      muscleGroup: "",
+      primaryMuscles: [],
+      secondaryMuscles: [],
+      difficulty: "",
+      movementPattern: "",
+      startingPosition: "",
+      movementExecution: "",
+      importantCautions: "",
+    },
   })
 
   useEffect(() => {
-    reset(
-      exercise
-        ? {
-            name: exercise.name,
-            muscleGroup: exercise.muscleGroup,
-            primaryMuscles: exercise.primaryMuscles,
-            secondaryMuscles: exercise.secondaryMuscles,
-            level: exercise.level,
-            movementPattern: exercise.movementPattern,
-            startingPosition: exercise.startingPosition,
-            movementExecution: exercise.movementExecution,
-            importantCautions: exercise.importantCautions,
-          }
-        : emptyValues
-    )
+    reset({
+      name: exercise?.name ?? "",
+      muscleGroup: exercise?.muscleGroup ?? "",
+      primaryMuscles: exercise?.primaryMuscles ?? [],
+      secondaryMuscles: exercise?.secondaryMuscles ?? [],
+      difficulty: exercise?.difficulty ?? "",
+      movementPattern: exercise?.movementPattern ?? "",
+      startingPosition: exercise?.startingPosition ?? "",
+      movementExecution: exercise?.movementExecution ?? "",
+      importantCautions: exercise?.importantCautions ?? "",
+    })
   }, [exercise, reset])
 
+  async function handleValidSubmit(values: ExerciseFormValues) {
+    if (!values.muscleGroup || !values.difficulty) return
+
+    await onSubmit({
+      ...values,
+      muscleGroup: values.muscleGroup,
+      difficulty: values.difficulty,
+    })
+  }
+
   return (
-    <form className="flex flex-col min-h-0" onSubmit={handleSubmit(onSubmit)}>
+    <form className="flex flex-col min-h-0" onSubmit={handleSubmit(handleValidSubmit)}>
       <div className="no-scrollbar max-h-[65vh] space-y-5 overflow-y-auto pb-5">
         <TextField
           autoComplete="name"
@@ -98,7 +130,7 @@ export function ExerciseForm({ exercise, onCancel, onSubmit }: Props) {
             <SelectField
               error={fieldState.error}
               icon={<DumbbellIcon aria-hidden="true" />}
-              id="muscle-group"
+              id="muscleGroup"
               label="Grupo muscular"
               onChange={field.onChange}
               options={muscleGroups}
@@ -117,7 +149,7 @@ export function ExerciseForm({ exercise, onCancel, onSubmit }: Props) {
               id="primaryMuscles"
               label="Músculos principais"
               onChange={field.onChange}
-              options={muscleOptions}
+              options={muscles}
               value={field.value}
             />
           )}
@@ -133,7 +165,7 @@ export function ExerciseForm({ exercise, onCancel, onSubmit }: Props) {
               id="secondaryMuscles"
               label="Músculos secundários"
               onChange={field.onChange}
-              options={muscleOptions}
+              options={muscles}
               value={field.value}
             />
           )}
@@ -141,15 +173,15 @@ export function ExerciseForm({ exercise, onCancel, onSubmit }: Props) {
 
         <Controller
           control={control}
-          name="level"
+          name="difficulty"
           render={({ field, fieldState }) => (
             <SelectField
               error={fieldState.error}
               icon={<GaugeIcon aria-hidden="true" />}
-              id="level"
-              label="Nível"
+              id="difficulty"
+              label="Dificuldade"
               onChange={field.onChange}
-              options={[...exerciseLevels]}
+              options={[...difficulties]}
               value={field.value}
             />
           )}
@@ -167,7 +199,7 @@ export function ExerciseForm({ exercise, onCancel, onSubmit }: Props) {
         <LongTextField
           error={errors.startingPosition}
           icon={<MapPinIcon aria-hidden="true" />}
-          id="starting-position"
+          id="startingPosition"
           label="Posição inicial"
           {...register("startingPosition")}
         />
@@ -175,7 +207,7 @@ export function ExerciseForm({ exercise, onCancel, onSubmit }: Props) {
         <LongTextField
           error={errors.movementExecution}
           icon={<ListChecksIcon aria-hidden="true" />}
-          id="movement-execution"
+          id="movementExecution"
           label="Execução do movimento"
           {...register("movementExecution")}
         />
@@ -183,7 +215,7 @@ export function ExerciseForm({ exercise, onCancel, onSubmit }: Props) {
         <LongTextField
           error={errors.importantCautions}
           icon={<TriangleAlertIcon aria-hidden="true" />}
-          id="important-cautions"
+          id="importantCautions"
           label="Cuidados importantes"
           {...register("importantCautions")}
         />

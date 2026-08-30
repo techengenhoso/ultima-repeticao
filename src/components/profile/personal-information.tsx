@@ -28,7 +28,7 @@ import {
   formatIsoDateToBrazilian,
   parseBrazilianDate,
 } from "@/lib/date"
-import { genderOptionsSelectField } from "@/lib/options-select-field"
+import { genders } from "@/lib/options-select"
 import { dateSchema, emailSchema, genderSchema, textSchema } from "@/lib/schemas-zod"
 import { TextField } from "../text-field"
 
@@ -155,7 +155,7 @@ export function PersonalInformation() {
                 id="gender"
                 label="Gênero"
                 onChange={field.onChange}
-                options={genderOptionsSelectField}
+                options={genders}
                 value={field.value}
               />
             )}

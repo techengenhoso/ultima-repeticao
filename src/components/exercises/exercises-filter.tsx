@@ -1,32 +1,36 @@
 "use client"
 
-import { SearchIcon } from "lucide-react"
+import { BicepsFlexedIcon, GaugeIcon, SearchIcon } from "lucide-react"
 import { useState } from "react"
 import { SelectField } from "@/components/select-field"
 import { TextField } from "@/components/text-field"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { useExercise } from "@/contexts/exercise-context"
 import {
   emptyExerciseFilters,
   type ExerciseFilters as Filters,
 } from "@/lib/exercises/catalog"
 import {
+  type ExerciseDifficulty,
+  type ExerciseSource,
+  type Muscle,
   type MuscleGroup,
-  muscleGroups,
-  type SourceGroup,
-  sourceGroups,
 } from "@/lib/exercises/types"
+import { difficulties, muscleGroups, muscles, origins } from "@/lib/options-select"
 import { Badge } from "../ui/badge"
 
-interface Props {
-  resultCount: number
-  onFiltersChange: (filters: Filters) => void
-  onCreate: () => void
-}
+export function ExercisesFilter() {
+  const {
+    filteredExercises,
+    setFilters: onFiltersChange,
+    setFormExercise: onCreate,
+  } = useExercise()
 
-export function ExercisesFilter({ resultCount, onFiltersChange, onCreate }: Props) {
   const [filters, setFilters] = useState(emptyExerciseFilters)
-  const hasFilters = !!filters.search || !!filters.muscle || !!filters.source
+  const hasFilters = Object.values(filters).some(Boolean)
+
+  const resultCount = filteredExercises.length
 
   function updateFilters(values: Partial<Filters>) {
     const nextFilters = { ...filters, ...values }
@@ -41,10 +45,10 @@ export function ExercisesFilter({ resultCount, onFiltersChange, onCreate }: Prop
 
   return (
     <Card>
-      <CardContent className="grid gap-5 lg:grid-cols-3">
+      <CardContent className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         <TextField
           icon={<SearchIcon aria-hidden="true" />}
-          id="exercise-search"
+          id="name"
           label="Nome do exercício"
           onChange={event => updateFilters({ search: event.target.value })}
           placeholder="Buscar pelo nome"
@@ -54,7 +58,7 @@ export function ExercisesFilter({ resultCount, onFiltersChange, onCreate }: Prop
 
         <SelectField
           icon={<SearchIcon aria-hidden="true" />}
-          id="muscleGroups"
+          id="muscleGroup"
           label="Grupo muscular"
           onChange={value => updateFilters({ muscle: value as "" | MuscleGroup })}
           options={muscleGroups}
@@ -62,11 +66,40 @@ export function ExercisesFilter({ resultCount, onFiltersChange, onCreate }: Prop
         />
 
         <SelectField
+          icon={<BicepsFlexedIcon aria-hidden="true" />}
+          id="primaryMuscles"
+          label="Músculo principal"
+          onChange={value => updateFilters({ primaryMuscle: value as "" | Muscle })}
+          options={[...muscles]}
+          value={filters.primaryMuscle}
+        />
+
+        <SelectField
+          icon={<BicepsFlexedIcon aria-hidden="true" />}
+          id="secondaryMuscles"
+          label="Músculo secundário"
+          onChange={value => updateFilters({ secondaryMuscle: value as "" | Muscle })}
+          options={[...muscles]}
+          value={filters.secondaryMuscle}
+        />
+
+        <SelectField
+          icon={<GaugeIcon aria-hidden="true" />}
+          id="difficulty"
+          label="Dificuldade"
+          onChange={value =>
+            updateFilters({ difficulty: value as "" | ExerciseDifficulty })
+          }
+          options={difficulties}
+          value={filters.difficulty}
+        />
+
+        <SelectField
           icon={<SearchIcon aria-hidden="true" />}
           id="source"
           label="Origem"
-          onChange={value => updateFilters({ source: value as "" | SourceGroup })}
-          options={sourceGroups}
+          onChange={value => updateFilters({ source: value as "" | ExerciseSource })}
+          options={origins}
           value={filters.source}
         />
       </CardContent>
@@ -92,7 +125,12 @@ export function ExercisesFilter({ resultCount, onFiltersChange, onCreate }: Prop
             Limpar filtros
           </Button>
 
-          <Button onClick={onCreate} type="button">
+          <Button
+            onClick={() => {
+              onCreate(null)
+            }}
+            type="button"
+          >
             Novo exercício
           </Button>
         </div>

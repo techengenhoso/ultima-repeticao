@@ -18,16 +18,7 @@ import {
   type UserEditable,
 } from "@/repositories/user-repository"
 
-interface UserContext {
-  user: User
-  saveUser: (input: UserEditable) => Promise<void>
-  changePasswordUser: (currentPassword: string, newPassword: string) => Promise<void>
-  signOutUser: () => Promise<void>
-}
-
-const UserContext = createContext<UserContext | null>(null)
-
-export function UserProvider({ children }: { children: ReactNode }) {
+function useUserState() {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [, renderUpdatedUser] = useReducer(current => current + 1, 0)
@@ -60,12 +51,22 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   if (isLoading || !user) return null
 
-  const value: UserContext = {
+  return {
     user,
     saveUser,
     changePasswordUser,
     signOutUser: signOutUserRepository,
   }
+}
+
+type UserContext = NonNullable<ReturnType<typeof useUserState>>
+
+const UserContext = createContext<UserContext | null>(null)
+
+export function UserProvider({ children }: { children: ReactNode }) {
+  const value = useUserState()
+
+  if (!value) return null
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }

@@ -1,14 +1,20 @@
-import type { SystemExercise } from "@/lib/exercises/types"
+import type { DefaultExercise, Muscle } from "@/lib/exercises/types"
+import { muscles } from "@/lib/options-select"
 
-export const systemExercises: SystemExercise[] = [
+type DefaultExerciseSeed = Omit<DefaultExercise, "primaryMuscles" | "secondaryMuscles"> & {
+  primaryMuscles: string[]
+  secondaryMuscles: string[]
+}
+
+const defaultExerciseSeeds: DefaultExerciseSeed[] = [
   {
     id: "system-ab-wheel",
-    source: "system",
+    source: "default",
     name: "Ab Wheel",
     muscleGroup: "core",
     primaryMuscles: ["Reto Abdominal", "Transverso"],
     secondaryMuscles: ["Latíssimo", "Serrátil", "Ombros", "Glúteos"],
-    level: "advanced",
+    difficulty: "hard",
     movementPattern: "Anti-extensão dinâmica",
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
@@ -19,12 +25,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-abdominal-crunch",
-    source: "system",
+    source: "default",
     name: "Abdominal Crunch",
     muscleGroup: "core",
     primaryMuscles: ["Reto Abdominal"],
     secondaryMuscles: ["Oblíquos", "Transverso"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Flexão de tronco",
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
@@ -35,12 +41,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-abducao-de-quadril",
-    source: "system",
+    source: "default",
     name: "Abdução de Quadril",
     muscleGroup: "glutes",
     primaryMuscles: ["Glúteo Médio", "Glúteo Mínimo"],
     secondaryMuscles: ["Tensor da Fáscia Lata"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Abdução de quadril",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -51,12 +57,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-abducao-lateral-deitada",
-    source: "system",
+    source: "default",
     name: "Abdução Lateral Deitada",
     muscleGroup: "glutes",
     primaryMuscles: ["Glúteo Médio"],
     secondaryMuscles: ["Glúteo Mínimo", "Tensor da Fáscia Lata"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Abdução lateral",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -67,12 +73,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-adutora-de-quadril",
-    source: "system",
+    source: "default",
     name: "Adutora de Quadril",
     muscleGroup: "adductors",
     primaryMuscles: ["Adutores do Quadril"],
     secondaryMuscles: ["Grácil", "Pectíneo"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Adução de quadril",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -83,12 +89,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-afundo",
-    source: "system",
+    source: "default",
     name: "Afundo",
     muscleGroup: "quadriceps",
     primaryMuscles: ["Quadríceps", "Glúteo Máximo"],
     secondaryMuscles: ["Adutores", "Posteriores", "Panturrilhas", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Avanço",
     startingPosition:
       "Mantenha os pés firmes, joelhos alinhados à direção dos pés, coluna neutra e abdome ativo",
@@ -99,12 +105,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-afundo-lateral",
-    source: "system",
+    source: "default",
     name: "Afundo Lateral",
     muscleGroup: "adductors",
     primaryMuscles: ["Adutores", "Glúteo Máximo"],
     secondaryMuscles: ["Quadríceps", "Posteriores", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Avanço lateral",
     startingPosition:
       "Mantenha os pés firmes, joelhos alinhados à direção dos pés, coluna neutra e abdome ativo",
@@ -115,12 +121,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-afundo-reverso",
-    source: "system",
+    source: "default",
     name: "Afundo Reverso",
     muscleGroup: "glutes",
     primaryMuscles: ["Glúteo Máximo", "Quadríceps"],
     secondaryMuscles: ["Adutores", "Posteriores", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Avanço reverso",
     startingPosition:
       "Mantenha os pés firmes, joelhos alinhados à direção dos pés, coluna neutra e abdome ativo",
@@ -131,12 +137,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-agachamento-bulgaro",
-    source: "system",
+    source: "default",
     name: "Agachamento Búlgaro",
     muscleGroup: "quadriceps",
     primaryMuscles: ["Quadríceps", "Glúteo Máximo"],
     secondaryMuscles: ["Adutores", "Posteriores", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Agachar unilateral",
     startingPosition:
       "Mantenha os pés firmes, joelhos alinhados à direção dos pés, coluna neutra e abdome ativo",
@@ -147,12 +153,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-agachamento-cossaco",
-    source: "system",
+    source: "default",
     name: "Agachamento Cossaco",
     muscleGroup: "adductors",
     primaryMuscles: ["Adutores", "Quadríceps"],
     secondaryMuscles: ["Glúteos", "Posteriores", "Core"],
-    level: "advanced",
+    difficulty: "hard",
     movementPattern: "Agachar lateral",
     startingPosition:
       "Mantenha os pés firmes, joelhos alinhados à direção dos pés, coluna neutra e abdome ativo",
@@ -163,12 +169,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-agachamento-espanhol",
-    source: "system",
+    source: "default",
     name: "Agachamento Espanhol",
     muscleGroup: "quadriceps",
     primaryMuscles: ["Quadríceps"],
     secondaryMuscles: ["Glúteos", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Agachar com suporte",
     startingPosition:
       "Mantenha os pés firmes, joelhos alinhados à direção dos pés, coluna neutra e abdome ativo",
@@ -179,12 +185,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-agachamento-frontal",
-    source: "system",
+    source: "default",
     name: "Agachamento Frontal",
     muscleGroup: "quadriceps",
     primaryMuscles: ["Quadríceps"],
     secondaryMuscles: ["Glúteo Máximo", "Adutores", "Core", "Eretores"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Agachar com carga anterior",
     startingPosition:
       "Mantenha os pés firmes, joelhos alinhados à direção dos pés, coluna neutra e abdome ativo",
@@ -195,12 +201,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-agachamento-goblet",
-    source: "system",
+    source: "default",
     name: "Agachamento Goblet",
     muscleGroup: "quadriceps",
     primaryMuscles: ["Quadríceps", "Glúteo Máximo"],
     secondaryMuscles: ["Adutores", "Core", "Eretores"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Agachar com carga anterior",
     startingPosition:
       "Mantenha os pés firmes, joelhos alinhados à direção dos pés, coluna neutra e abdome ativo",
@@ -211,12 +217,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-agachamento-hack",
-    source: "system",
+    source: "default",
     name: "Agachamento Hack",
     muscleGroup: "quadriceps",
     primaryMuscles: ["Quadríceps"],
     secondaryMuscles: ["Glúteo Máximo", "Adutores", "Posteriores"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Agachar guiado",
     startingPosition:
       "Mantenha os pés firmes, joelhos alinhados à direção dos pés, coluna neutra e abdome ativo",
@@ -227,12 +233,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-agachamento-livre",
-    source: "system",
+    source: "default",
     name: "Agachamento Livre",
     muscleGroup: "quadriceps",
     primaryMuscles: ["Quadríceps", "Glúteo Máximo"],
     secondaryMuscles: ["Adutores", "Posteriores", "Eretores", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Agachar",
     startingPosition:
       "Mantenha os pés firmes, joelhos alinhados à direção dos pés, coluna neutra e abdome ativo",
@@ -243,12 +249,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-agachamento-sissy",
-    source: "system",
+    source: "default",
     name: "Agachamento Sissy",
     muscleGroup: "quadriceps",
     primaryMuscles: ["Quadríceps"],
     secondaryMuscles: ["Core", "Flexores do Quadril"],
-    level: "advanced",
+    difficulty: "hard",
     movementPattern: "Extensão de joelho em cadeia fechada",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -259,12 +265,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-agachamento-sumo",
-    source: "system",
+    source: "default",
     name: "Agachamento Sumô",
     muscleGroup: "glutes",
     primaryMuscles: ["Glúteo Máximo", "Adutores"],
     secondaryMuscles: ["Quadríceps", "Posteriores", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Agachar com base ampla",
     startingPosition:
       "Mantenha os pés firmes, joelhos alinhados à direção dos pés, coluna neutra e abdome ativo",
@@ -275,12 +281,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-barra-fixa-pronada",
-    source: "system",
+    source: "default",
     name: "Barra Fixa Pronada",
     muscleGroup: "back",
     primaryMuscles: ["Latíssimo do Dorso"],
     secondaryMuscles: ["Bíceps", "Braquial", "Romboides", "Trapézio"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Puxar vertical",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -291,12 +297,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-barra-fixa-supinada",
-    source: "system",
+    source: "default",
     name: "Barra Fixa Supinada",
     muscleGroup: "back",
     primaryMuscles: ["Latíssimo do Dorso"],
     secondaryMuscles: ["Bíceps", "Braquial", "Romboides"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Puxar vertical",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -307,12 +313,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-bear-crawl",
-    source: "system",
+    source: "default",
     name: "Bear Crawl",
-    muscleGroup: "full_body",
+    muscleGroup: "fullBody",
     primaryMuscles: ["Core", "Ombros"],
     secondaryMuscles: ["Quadríceps", "Glúteos", "Peitoral", "Tríceps"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Locomoção quadrúpede",
     startingPosition:
       "Prepare espaço livre, base firme, coluna neutra e abdome ativo; domine cada parte do movimento separadamente",
@@ -323,12 +329,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-bird-dog",
-    source: "system",
+    source: "default",
     name: "Bird Dog",
     muscleGroup: "core",
     primaryMuscles: ["Multífidos", "Eretores da Coluna"],
     secondaryMuscles: ["Glúteos", "Transverso", "Ombros"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Estabilidade cruzada",
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
@@ -339,12 +345,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-burpee",
-    source: "system",
+    source: "default",
     name: "Burpee",
-    muscleGroup: "full_body",
+    muscleGroup: "fullBody",
     primaryMuscles: ["Peitoral", "Quadríceps", "Glúteos"],
     secondaryMuscles: ["Tríceps", "Ombros", "Panturrilhas", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Agachar, apoiar e saltar",
     startingPosition:
       "Mantenha os pés firmes, joelhos alinhados à direção dos pés, coluna neutra e abdome ativo",
@@ -355,12 +361,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-cadeira-extensora",
-    source: "system",
+    source: "default",
     name: "Cadeira Extensora",
     muscleGroup: "quadriceps",
     primaryMuscles: ["Quadríceps"],
     secondaryMuscles: [],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Extensão de joelho",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -371,12 +377,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-cadeira-flexora",
-    source: "system",
+    source: "default",
     name: "Cadeira Flexora",
     muscleGroup: "hamstrings",
     primaryMuscles: ["Isquiotibiais"],
     secondaryMuscles: ["Gastrocnêmio"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Flexão de joelho",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -387,12 +393,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-caminhada-lateral-com-elastico",
-    source: "system",
+    source: "default",
     name: "Caminhada Lateral com Elástico",
     muscleGroup: "glutes",
     primaryMuscles: ["Glúteo Médio"],
     secondaryMuscles: ["Glúteo Máximo", "Quadríceps", "Core"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Deslocamento lateral",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -403,12 +409,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-clean",
-    source: "system",
+    source: "default",
     name: "Clean",
-    muscleGroup: "full_body",
+    muscleGroup: "fullBody",
     primaryMuscles: ["Glúteos", "Quadríceps", "Trapézio"],
     secondaryMuscles: ["Posteriores", "Panturrilhas", "Ombros", "Core"],
-    level: "advanced",
+    difficulty: "hard",
     movementPattern: "Puxada olímpica",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -419,12 +425,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-clean-and-press",
-    source: "system",
+    source: "default",
     name: "Clean And Press",
-    muscleGroup: "full_body",
+    muscleGroup: "fullBody",
     primaryMuscles: ["Quadríceps", "Glúteos", "Ombros"],
     secondaryMuscles: ["Trapézio", "Tríceps", "Posteriores", "Core"],
-    level: "advanced",
+    difficulty: "hard",
     movementPattern: "Puxada e empurrada",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -435,12 +441,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-coice-de-gluteo",
-    source: "system",
+    source: "default",
     name: "Coice de Glúteo",
     muscleGroup: "glutes",
     primaryMuscles: ["Glúteo Máximo"],
     secondaryMuscles: ["Isquiotibiais", "Core"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Extensão de quadril unilateral",
     startingPosition:
       "Posicione os pés estáveis, contraia o abdome, mantenha a coluna neutra e leve os quadris para trás",
@@ -451,12 +457,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-crossover-alto-para-baixo",
-    source: "system",
+    source: "default",
     name: "Crossover Alto para Baixo",
     muscleGroup: "chest",
     primaryMuscles: ["Peitoral Maior"],
     secondaryMuscles: ["Deltoide Anterior", "Serrátil Anterior"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Adução diagonal",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -467,12 +473,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-crossover-baixo-para-cima",
-    source: "system",
+    source: "default",
     name: "Crossover Baixo para Cima",
     muscleGroup: "chest",
     primaryMuscles: ["Peitoral Maior"],
     secondaryMuscles: ["Deltoide Anterior", "Serrátil Anterior"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Adução diagonal",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -483,12 +489,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-crucifixo-inclinado",
-    source: "system",
+    source: "default",
     name: "Crucifixo Inclinado",
     muscleGroup: "chest",
     primaryMuscles: ["Peitoral Maior"],
     secondaryMuscles: ["Deltoide Anterior", "Serrátil Anterior"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Adução inclinada",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -499,12 +505,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-crucifixo-inverso",
-    source: "system",
+    source: "default",
     name: "Crucifixo Inverso",
     muscleGroup: "shoulders",
     primaryMuscles: ["Deltoide Posterior"],
     secondaryMuscles: ["Romboides", "Trapézio Médio"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Abdução horizontal",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -515,12 +521,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-crucifixo-reto",
-    source: "system",
+    source: "default",
     name: "Crucifixo Reto",
     muscleGroup: "chest",
     primaryMuscles: ["Peitoral Maior"],
     secondaryMuscles: ["Deltoide Anterior", "Serrátil Anterior"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Adução horizontal",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -531,12 +537,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-crunch-reverso",
-    source: "system",
+    source: "default",
     name: "Crunch Reverso",
     muscleGroup: "core",
     primaryMuscles: ["Reto Abdominal"],
     secondaryMuscles: ["Oblíquos", "Flexores do Quadril"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Retroversão pélvica",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -547,12 +553,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-dead-bug",
-    source: "system",
+    source: "default",
     name: "Dead Bug",
     muscleGroup: "core",
     primaryMuscles: ["Transverso do Abdome"],
     secondaryMuscles: ["Reto Abdominal", "Oblíquos", "Flexores do Quadril"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Estabilidade lombo-pélvica",
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
@@ -563,12 +569,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-dead-hang",
-    source: "system",
+    source: "default",
     name: "Dead Hang",
     muscleGroup: "forearms",
     primaryMuscles: ["Flexores dos Dedos", "Antebraços"],
     secondaryMuscles: ["Latíssimo", "Trapézio", "Ombros"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Suspensão isométrica",
     startingPosition:
       "Apoie ou estabilize o antebraço conforme a variação e mantenha ombros relaxados",
@@ -579,12 +585,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-desenvolvimento-arnold",
-    source: "system",
+    source: "default",
     name: "Desenvolvimento Arnold",
     muscleGroup: "shoulders",
     primaryMuscles: ["Deltoide Anterior", "Deltoide Lateral"],
     secondaryMuscles: ["Tríceps", "Trapézio"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Empurrar vertical com rotação",
     startingPosition:
       "Crie uma base estável, mantenha punhos alinhados, escápulas controladas e abdome ativo",
@@ -595,12 +601,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-desenvolvimento-de-ombros",
-    source: "system",
+    source: "default",
     name: "Desenvolvimento de Ombros",
     muscleGroup: "shoulders",
     primaryMuscles: ["Deltoide Anterior", "Deltoide Lateral"],
     secondaryMuscles: ["Tríceps", "Trapézio Superior"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Empurrar vertical",
     startingPosition:
       "Crie uma base estável, mantenha punhos alinhados, escápulas controladas e abdome ativo",
@@ -611,12 +617,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-deslizamento-lateral",
-    source: "system",
+    source: "default",
     name: "Deslizamento Lateral",
     muscleGroup: "adductors",
     primaryMuscles: ["Adutores do Quadril"],
     secondaryMuscles: ["Glúteos", "Quadríceps", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Avanço lateral deslizante",
     startingPosition:
       "Mantenha os pés firmes, joelhos alinhados à direção dos pés, coluna neutra e abdome ativo",
@@ -627,12 +633,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-desvio-radial-do-punho",
-    source: "system",
+    source: "default",
     name: "Desvio Radial do Punho",
     muscleGroup: "forearms",
     primaryMuscles: ["Flexor Radial", "Extensor Radial do Carpo"],
     secondaryMuscles: ["Braquiorradial", "Músculos da Mão"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Desvio radial",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -643,12 +649,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-donkey-calf-raise",
-    source: "system",
+    source: "default",
     name: "Donkey Calf Raise",
     muscleGroup: "calves",
     primaryMuscles: ["Gastrocnêmio"],
     secondaryMuscles: ["Sóleo", "Músculos do Pé"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Flexão plantar com quadril flexionado",
     startingPosition:
       "Apoie o pé com estabilidade e mantenha tornozelo, joelho e quadril alinhados",
@@ -659,12 +665,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-elevacao-de-joelhos-na-barra",
-    source: "system",
+    source: "default",
     name: "Elevação de Joelhos na Barra",
     muscleGroup: "core",
     primaryMuscles: ["Reto Abdominal", "Flexores do Quadril"],
     secondaryMuscles: ["Oblíquos", "Antebraços", "Latíssimo"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Flexão de quadril suspensa",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -675,12 +681,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-elevacao-de-panturrilha-agachado",
-    source: "system",
+    source: "default",
     name: "Elevação de Panturrilha Agachado",
     muscleGroup: "calves",
     primaryMuscles: ["Sóleo"],
     secondaryMuscles: ["Gastrocnêmio", "Quadríceps"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Flexão plantar com joelhos flexionados",
     startingPosition:
       "Apoie o pé com estabilidade e mantenha tornozelo, joelho e quadril alinhados",
@@ -691,12 +697,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-elevacao-de-panturrilha-em-pe",
-    source: "system",
+    source: "default",
     name: "Elevação de Panturrilha em Pé",
     muscleGroup: "calves",
     primaryMuscles: ["Gastrocnêmio"],
     secondaryMuscles: ["Sóleo", "Músculos do Pé"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Flexão plantar em pé",
     startingPosition:
       "Apoie o pé com estabilidade e mantenha tornozelo, joelho e quadril alinhados",
@@ -707,12 +713,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-elevacao-de-panturrilha-sentado",
-    source: "system",
+    source: "default",
     name: "Elevação de Panturrilha Sentado",
     muscleGroup: "calves",
     primaryMuscles: ["Sóleo"],
     secondaryMuscles: ["Gastrocnêmio", "Músculos do Pé"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Flexão plantar sentado",
     startingPosition:
       "Apoie o pé com estabilidade e mantenha tornozelo, joelho e quadril alinhados",
@@ -723,12 +729,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-elevacao-de-pernas",
-    source: "system",
+    source: "default",
     name: "Elevação de Pernas",
     muscleGroup: "core",
     primaryMuscles: ["Reto Abdominal", "Flexores do Quadril"],
     secondaryMuscles: ["Oblíquos", "Transverso"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Flexão de quadril com controle pélvico",
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
@@ -739,12 +745,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-elevacao-em-y",
-    source: "system",
+    source: "default",
     name: "Elevação em Y",
     muscleGroup: "shoulders",
     primaryMuscles: ["Trapézio Inferior", "Deltoide Posterior"],
     secondaryMuscles: ["Supraespinal", "Serrátil Anterior"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Elevação escapular em Y",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -755,12 +761,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-elevacao-frontal",
-    source: "system",
+    source: "default",
     name: "Elevação Frontal",
     muscleGroup: "shoulders",
     primaryMuscles: ["Deltoide Anterior"],
     secondaryMuscles: ["Peitoral Superior", "Serrátil Anterior"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Flexão de ombro",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -771,12 +777,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-elevacao-lateral",
-    source: "system",
+    source: "default",
     name: "Elevação Lateral",
     muscleGroup: "shoulders",
     primaryMuscles: ["Deltoide Lateral"],
     secondaryMuscles: ["Trapézio Superior", "Supraespinal"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Abdução de ombro",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -787,12 +793,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-elevacao-lateral-inclinada",
-    source: "system",
+    source: "default",
     name: "Elevação Lateral Inclinada",
     muscleGroup: "shoulders",
     primaryMuscles: ["Deltoide Lateral"],
     secondaryMuscles: ["Supraespinal", "Trapézio"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Abdução de ombro",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -803,12 +809,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-elevacao-pelvica",
-    source: "system",
+    source: "default",
     name: "Elevação Pélvica",
     muscleGroup: "glutes",
     primaryMuscles: ["Glúteo Máximo"],
     secondaryMuscles: ["Isquiotibiais", "Adutores", "Core"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Extensão de quadril",
     startingPosition:
       "Posicione os pés estáveis, contraia o abdome, mantenha a coluna neutra e leve os quadris para trás",
@@ -819,12 +825,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-elevacao-pelvica-unilateral",
-    source: "system",
+    source: "default",
     name: "Elevação Pélvica Unilateral",
     muscleGroup: "glutes",
     primaryMuscles: ["Glúteo Máximo"],
     secondaryMuscles: ["Isquiotibiais", "Glúteo Médio", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Extensão unilateral de quadril",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -835,12 +841,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-encolhimento-de-ombros",
-    source: "system",
+    source: "default",
     name: "Encolhimento de Ombros",
     muscleGroup: "back",
     primaryMuscles: ["Trapézio Superior"],
     secondaryMuscles: ["Levantador da Escápula", "Antebraços"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Elevação escapular",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -851,12 +857,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-extensao-cruzada-de-triceps",
-    source: "system",
+    source: "default",
     name: "Extensão Cruzada de Tríceps",
     muscleGroup: "triceps",
     primaryMuscles: ["Tríceps Braquial"],
     secondaryMuscles: ["Ancôneo", "Deltoide Posterior"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Extensão diagonal de cotovelo",
     startingPosition:
       "Estabilize ombros e tronco, alinhe punhos e mantenha os cotovelos na posição adequada à variação",
@@ -867,12 +873,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-extensao-de-punho",
-    source: "system",
+    source: "default",
     name: "Extensão de Punho",
     muscleGroup: "forearms",
     primaryMuscles: ["Extensores do Punho"],
     secondaryMuscles: ["Extensores dos Dedos", "Braquiorradial"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Extensão de punho",
     startingPosition:
       "Apoie ou estabilize o antebraço conforme a variação e mantenha ombros relaxados",
@@ -883,12 +889,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-extensao-de-quadril-no-banco-romano",
-    source: "system",
+    source: "default",
     name: "Extensão de Quadril no Banco Romano",
     muscleGroup: "hamstrings",
     primaryMuscles: ["Glúteo Máximo", "Isquiotibiais"],
     secondaryMuscles: ["Eretores da Coluna"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Extensão de quadril",
     startingPosition:
       "Posicione os pés estáveis, contraia o abdome, mantenha a coluna neutra e leve os quadris para trás",
@@ -899,12 +905,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-extensao-lombar",
-    source: "system",
+    source: "default",
     name: "Extensão Lombar",
-    muscleGroup: "lower_back",
+    muscleGroup: "lowerBack",
     primaryMuscles: ["Eretores da Coluna"],
     secondaryMuscles: ["Glúteos", "Isquiotibiais"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Extensão de tronco",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -915,12 +921,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-extensao-unilateral-de-triceps",
-    source: "system",
+    source: "default",
     name: "Extensão Unilateral de Tríceps",
     muscleGroup: "triceps",
     primaryMuscles: ["Tríceps Braquial"],
     secondaryMuscles: ["Ancôneo"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Extensão unilateral de cotovelo",
     startingPosition:
       "Estabilize ombros e tronco, alinhe punhos e mantenha os cotovelos na posição adequada à variação",
@@ -931,12 +937,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-face-pull",
-    source: "system",
+    source: "default",
     name: "Face Pull",
     muscleGroup: "shoulders",
     primaryMuscles: ["Deltoide Posterior", "Rotadores Externos"],
     secondaryMuscles: ["Trapézio Médio e Inferior", "Romboides"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Puxar para o rosto",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -947,12 +953,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-farmers-walk",
-    source: "system",
+    source: "default",
     name: "Farmers Walk",
-    muscleGroup: "full_body",
+    muscleGroup: "fullBody",
     primaryMuscles: ["Antebraços", "Trapézio", "Core"],
     secondaryMuscles: ["Glúteos", "Quadríceps", "Panturrilhas"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Caminhada carregada",
     startingPosition:
       "Prepare espaço livre, base firme, coluna neutra e abdome ativo; domine cada parte do movimento separadamente",
@@ -963,12 +969,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-farmers-walk-na-ponta-dos-pes",
-    source: "system",
+    source: "default",
     name: "Farmers Walk na Ponta dos Pés",
     muscleGroup: "calves",
     primaryMuscles: ["Gastrocnêmio", "Sóleo"],
     secondaryMuscles: ["Antebraços", "Trapézio", "Core"],
-    level: "advanced",
+    difficulty: "hard",
     movementPattern: "Caminhada em flexão plantar",
     startingPosition:
       "Apoie o pé com estabilidade e mantenha tornozelo, joelho e quadril alinhados",
@@ -979,12 +985,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-flexao-arqueiro",
-    source: "system",
+    source: "default",
     name: "Flexão Arqueiro",
     muscleGroup: "chest",
     primaryMuscles: ["Peitoral Maior"],
     secondaryMuscles: ["Tríceps", "Deltoide Anterior", "Core"],
-    level: "advanced",
+    difficulty: "hard",
     movementPattern: "Empurrar unilateral",
     startingPosition:
       "Crie uma base estável, mantenha punhos alinhados, escápulas controladas e abdome ativo",
@@ -995,12 +1001,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-flexao-de-bracos",
-    source: "system",
+    source: "default",
     name: "Flexão de Braços",
     muscleGroup: "chest",
     primaryMuscles: ["Peitoral Maior"],
     secondaryMuscles: ["Tríceps", "Deltoide Anterior", "Core"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Empurrar horizontal",
     startingPosition:
       "Crie uma base estável, mantenha punhos alinhados, escápulas controladas e abdome ativo",
@@ -1011,12 +1017,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-flexao-de-punho",
-    source: "system",
+    source: "default",
     name: "Flexão de Punho",
     muscleGroup: "forearms",
     primaryMuscles: ["Flexores do Punho"],
     secondaryMuscles: ["Flexores dos Dedos", "Braquiorradial"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Flexão de punho",
     startingPosition:
       "Apoie ou estabilize o antebraço conforme a variação e mantenha ombros relaxados",
@@ -1027,12 +1033,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-flexao-diamante",
-    source: "system",
+    source: "default",
     name: "Flexão Diamante",
     muscleGroup: "chest",
     primaryMuscles: ["Tríceps Braquial"],
     secondaryMuscles: ["Peitoral Maior", "Deltoide Anterior", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Empurrar horizontal",
     startingPosition:
       "Crie uma base estável, mantenha punhos alinhados, escápulas controladas e abdome ativo",
@@ -1043,12 +1049,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-flexao-fechada",
-    source: "system",
+    source: "default",
     name: "Flexão Fechada",
     muscleGroup: "triceps",
     primaryMuscles: ["Tríceps Braquial"],
     secondaryMuscles: ["Peitoral", "Deltoide Anterior", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Empurrar horizontal fechado",
     startingPosition:
       "Crie uma base estável, mantenha punhos alinhados, escápulas controladas e abdome ativo",
@@ -1059,12 +1065,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-flexao-nordica",
-    source: "system",
+    source: "default",
     name: "Flexão Nórdica",
     muscleGroup: "hamstrings",
     primaryMuscles: ["Isquiotibiais"],
     secondaryMuscles: ["Glúteos", "Gastrocnêmio", "Core"],
-    level: "advanced",
+    difficulty: "hard",
     movementPattern: "Flexão excêntrica de joelho",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -1075,12 +1081,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-flexora-em-pe",
-    source: "system",
+    source: "default",
     name: "Flexora em Pé",
     muscleGroup: "hamstrings",
     primaryMuscles: ["Isquiotibiais"],
     secondaryMuscles: ["Gastrocnêmio", "Glúteos"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Flexão unilateral de joelho",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -1091,12 +1097,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-good-morning",
-    source: "system",
+    source: "default",
     name: "Good Morning",
     muscleGroup: "hamstrings",
     primaryMuscles: ["Isquiotibiais", "Glúteo Máximo"],
     secondaryMuscles: ["Eretores", "Adutores", "Core"],
-    level: "advanced",
+    difficulty: "hard",
     movementPattern: "Dobradiça de quadril",
     startingPosition:
       "Posicione os pés estáveis, contraia o abdome, mantenha a coluna neutra e leve os quadris para trás",
@@ -1107,12 +1113,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-good-morning-sentado",
-    source: "system",
+    source: "default",
     name: "Good Morning Sentado",
-    muscleGroup: "lower_back",
+    muscleGroup: "lowerBack",
     primaryMuscles: ["Eretores da Coluna"],
     secondaryMuscles: ["Glúteos", "Adutores", "Core"],
-    level: "advanced",
+    difficulty: "hard",
     movementPattern: "Dobradiça sentada",
     startingPosition:
       "Posicione os pés estáveis, contraia o abdome, mantenha a coluna neutra e leve os quadris para trás",
@@ -1123,12 +1129,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-hand-gripper",
-    source: "system",
+    source: "default",
     name: "Hand Gripper",
     muscleGroup: "forearms",
     primaryMuscles: ["Flexores dos Dedos"],
     secondaryMuscles: ["Músculos da Mão", "Antebraços"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Preensão",
     startingPosition:
       "Apoie ou estabilize o antebraço conforme a variação e mantenha ombros relaxados",
@@ -1139,12 +1145,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-hollow-body-hold",
-    source: "system",
+    source: "default",
     name: "Hollow Body Hold",
     muscleGroup: "core",
     primaryMuscles: ["Reto Abdominal", "Transverso"],
     secondaryMuscles: ["Flexores do Quadril", "Quadríceps"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Anti-extensão isométrica",
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
@@ -1155,12 +1161,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-jefferson-curl",
-    source: "system",
+    source: "default",
     name: "Jefferson Curl",
-    muscleGroup: "lower_back",
+    muscleGroup: "lowerBack",
     primaryMuscles: ["Eretores da Coluna"],
     secondaryMuscles: ["Isquiotibiais", "Glúteos"],
-    level: "advanced",
+    difficulty: "hard",
     movementPattern: "Flexão segmentar controlada",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -1171,12 +1177,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-jm-press",
-    source: "system",
+    source: "default",
     name: "Jm Press",
     muscleGroup: "triceps",
     primaryMuscles: ["Tríceps Braquial"],
     secondaryMuscles: ["Peitoral", "Deltoide Anterior"],
-    level: "advanced",
+    difficulty: "hard",
     movementPattern: "Empurrar e estender cotovelos",
     startingPosition:
       "Crie uma base estável, mantenha punhos alinhados, escápulas controladas e abdome ativo",
@@ -1187,12 +1193,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-leg-press",
-    source: "system",
+    source: "default",
     name: "Leg Press",
     muscleGroup: "quadriceps",
     primaryMuscles: ["Quadríceps", "Glúteo Máximo"],
     secondaryMuscles: ["Adutores", "Posteriores da Coxa"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Empurrar com pernas",
     startingPosition:
       "Crie uma base estável, mantenha punhos alinhados, escápulas controladas e abdome ativo",
@@ -1203,12 +1209,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-levantamento-terra-com-trap-bar",
-    source: "system",
+    source: "default",
     name: "Levantamento Terra com Trap Bar",
-    muscleGroup: "full_body",
+    muscleGroup: "fullBody",
     primaryMuscles: ["Quadríceps", "Glúteo Máximo"],
     secondaryMuscles: ["Isquiotibiais", "Eretores", "Trapézio", "Antebraços"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Dobradiça e puxada do solo",
     startingPosition:
       "Posicione os pés estáveis, contraia o abdome, mantenha a coluna neutra e leve os quadris para trás",
@@ -1219,12 +1225,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-levantamento-terra-convencional",
-    source: "system",
+    source: "default",
     name: "Levantamento Terra Convencional",
-    muscleGroup: "full_body",
+    muscleGroup: "fullBody",
     primaryMuscles: ["Glúteo Máximo", "Isquiotibiais", "Eretores"],
     secondaryMuscles: ["Quadríceps", "Trapézio", "Antebraços", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Dobradiça e puxada do solo",
     startingPosition:
       "Posicione os pés estáveis, contraia o abdome, mantenha a coluna neutra e leve os quadris para trás",
@@ -1235,12 +1241,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-levantamento-terra-pernas-rigidas",
-    source: "system",
+    source: "default",
     name: "Levantamento Terra Pernas Rígidas",
     muscleGroup: "hamstrings",
     primaryMuscles: ["Isquiotibiais"],
     secondaryMuscles: ["Glúteo Máximo", "Eretores", "Adutores"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Dobradiça de quadril",
     startingPosition:
       "Posicione os pés estáveis, contraia o abdome, mantenha a coluna neutra e leve os quadris para trás",
@@ -1251,12 +1257,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-levantamento-terra-romeno",
-    source: "system",
+    source: "default",
     name: "Levantamento Terra Romeno",
     muscleGroup: "hamstrings",
     primaryMuscles: ["Isquiotibiais", "Glúteo Máximo"],
     secondaryMuscles: ["Eretores", "Adutores", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Dobradiça de quadril",
     startingPosition:
       "Posicione os pés estáveis, contraia o abdome, mantenha a coluna neutra e leve os quadris para trás",
@@ -1267,12 +1273,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-levantamento-terra-sumo",
-    source: "system",
+    source: "default",
     name: "Levantamento Terra Sumô",
     muscleGroup: "glutes",
     primaryMuscles: ["Glúteo Máximo", "Adutores"],
     secondaryMuscles: ["Quadríceps", "Posteriores", "Eretores", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Dobradiça com base ampla",
     startingPosition:
       "Posicione os pés estáveis, contraia o abdome, mantenha a coluna neutra e leve os quadris para trás",
@@ -1283,12 +1289,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-mergulho-nas-paralelas-com-foco-no-peito",
-    source: "system",
+    source: "default",
     name: "Mergulho nas Paralelas com Foco no Peito",
     muscleGroup: "chest",
     primaryMuscles: ["Peitoral Maior"],
     secondaryMuscles: ["Tríceps", "Deltoide Anterior"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Empurrar vertical",
     startingPosition:
       "Crie uma base estável, mantenha punhos alinhados, escápulas controladas e abdome ativo",
@@ -1299,12 +1305,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-mergulho-no-banco",
-    source: "system",
+    source: "default",
     name: "Mergulho no Banco",
     muscleGroup: "triceps",
     primaryMuscles: ["Tríceps Braquial"],
     secondaryMuscles: ["Peitoral", "Deltoide Anterior"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Empurrar vertical",
     startingPosition:
       "Crie uma base estável, mantenha punhos alinhados, escápulas controladas e abdome ativo",
@@ -1315,12 +1321,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-mesa-flexora",
-    source: "system",
+    source: "default",
     name: "Mesa Flexora",
     muscleGroup: "hamstrings",
     primaryMuscles: ["Isquiotibiais"],
     secondaryMuscles: ["Gastrocnêmio"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Flexão de joelho",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -1331,12 +1337,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-mountain-climber",
-    source: "system",
+    source: "default",
     name: "Mountain Climber",
-    muscleGroup: "full_body",
+    muscleGroup: "fullBody",
     primaryMuscles: ["Core", "Flexores do Quadril"],
     secondaryMuscles: ["Ombros", "Peitoral", "Quadríceps"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Prancha dinâmica",
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
@@ -1347,12 +1353,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-pallof-press",
-    source: "system",
+    source: "default",
     name: "Pallof Press",
     muscleGroup: "core",
     primaryMuscles: ["Oblíquos", "Transverso"],
     secondaryMuscles: ["Glúteos", "Ombros"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Anti-rotação",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -1363,12 +1369,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-panturrilha-no-leg-press",
-    source: "system",
+    source: "default",
     name: "Panturrilha no Leg Press",
     muscleGroup: "calves",
     primaryMuscles: ["Gastrocnêmio", "Sóleo"],
     secondaryMuscles: ["Músculos do Pé"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Flexão plantar",
     startingPosition:
       "Apoie o pé com estabilidade e mantenha tornozelo, joelho e quadril alinhados",
@@ -1379,12 +1385,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-panturrilha-unilateral",
-    source: "system",
+    source: "default",
     name: "Panturrilha Unilateral",
     muscleGroup: "calves",
     primaryMuscles: ["Gastrocnêmio", "Sóleo"],
     secondaryMuscles: ["Músculos do Pé", "Estabilizadores do Tornozelo"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Flexão plantar unilateral",
     startingPosition:
       "Apoie o pé com estabilidade e mantenha tornozelo, joelho e quadril alinhados",
@@ -1395,12 +1401,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-passada-caminhando",
-    source: "system",
+    source: "default",
     name: "Passada Caminhando",
     muscleGroup: "quadriceps",
     primaryMuscles: ["Quadríceps", "Glúteo Máximo"],
     secondaryMuscles: ["Adutores", "Posteriores", "Panturrilhas", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Avanço dinâmico",
     startingPosition:
       "Mantenha os pés firmes, joelhos alinhados à direção dos pés, coluna neutra e abdome ativo",
@@ -1411,12 +1417,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-pinca-com-anilhas",
-    source: "system",
+    source: "default",
     name: "Pinça com Anilhas",
     muscleGroup: "forearms",
     primaryMuscles: ["Flexores dos Dedos", "Adutor do Polegar"],
     secondaryMuscles: ["Músculos da Mão", "Antebraços"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Preensão em pinça",
     startingPosition:
       "Apoie ou estabilize o antebraço conforme a variação e mantenha ombros relaxados",
@@ -1427,12 +1433,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-ponte-de-gluteos",
-    source: "system",
+    source: "default",
     name: "Ponte de Glúteos",
     muscleGroup: "glutes",
     primaryMuscles: ["Glúteo Máximo"],
     secondaryMuscles: ["Isquiotibiais", "Core"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Extensão de quadril",
     startingPosition:
       "Posicione os pés estáveis, contraia o abdome, mantenha a coluna neutra e leve os quadris para trás",
@@ -1443,12 +1449,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-prancha-copenhagen",
-    source: "system",
+    source: "default",
     name: "Prancha Copenhagen",
     muscleGroup: "adductors",
     primaryMuscles: ["Adutores do Quadril"],
     secondaryMuscles: ["Oblíquos", "Glúteos", "Ombros"],
-    level: "advanced",
+    difficulty: "hard",
     movementPattern: "Adução isométrica",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -1459,12 +1465,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-prancha-frontal",
-    source: "system",
+    source: "default",
     name: "Prancha Frontal",
     muscleGroup: "core",
     primaryMuscles: ["Transverso do Abdome", "Reto Abdominal"],
     secondaryMuscles: ["Oblíquos", "Glúteos", "Serrátil"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Anti-extensão",
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
@@ -1475,12 +1481,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-prancha-lateral",
-    source: "system",
+    source: "default",
     name: "Prancha Lateral",
     muscleGroup: "core",
     primaryMuscles: ["Oblíquos", "Quadrado Lombar"],
     secondaryMuscles: ["Glúteo Médio", "Transverso", "Ombros"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Anti-flexão lateral",
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
@@ -1491,12 +1497,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-pronacao-do-antebraco",
-    source: "system",
+    source: "default",
     name: "Pronação do Antebraço",
     muscleGroup: "forearms",
     primaryMuscles: ["Pronador Redondo", "Pronador Quadrado"],
     secondaryMuscles: ["Flexores do Punho"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Pronação",
     startingPosition:
       "Apoie ou estabilize o antebraço conforme a variação e mantenha ombros relaxados",
@@ -1507,12 +1513,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-pular-corda",
-    source: "system",
+    source: "default",
     name: "Pular Corda",
     muscleGroup: "calves",
     primaryMuscles: ["Gastrocnêmio", "Sóleo"],
     secondaryMuscles: ["Ombros", "Antebraços", "Core"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Saltos cíclicos",
     startingPosition:
       "Apoie o pé com estabilidade e mantenha tornozelo, joelho e quadril alinhados",
@@ -1523,12 +1529,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-pulldown-com-bracos-estendidos",
-    source: "system",
+    source: "default",
     name: "Pulldown com Braços Estendidos",
     muscleGroup: "back",
     primaryMuscles: ["Latíssimo do Dorso"],
     secondaryMuscles: ["Redondo Maior", "Tríceps (cabeça Longa)", "Core"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Extensão de ombro",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -1539,12 +1545,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-pullover",
-    source: "system",
+    source: "default",
     name: "Pullover",
     muscleGroup: "chest",
     primaryMuscles: ["Peitoral Maior", "Latíssimo do Dorso"],
     secondaryMuscles: ["Tríceps (cabeça Longa)", "Serrátil Anterior"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Extensão de ombro",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -1555,12 +1561,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-pull-through",
-    source: "system",
+    source: "default",
     name: "Pull-through",
     muscleGroup: "hamstrings",
     primaryMuscles: ["Glúteo Máximo", "Isquiotibiais"],
     secondaryMuscles: ["Adutores", "Core"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Dobradiça de quadril",
     startingPosition:
       "Posicione os pés estáveis, contraia o abdome, mantenha a coluna neutra e leve os quadris para trás",
@@ -1571,12 +1577,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-puxada-frontal",
-    source: "system",
+    source: "default",
     name: "Puxada Frontal",
     muscleGroup: "back",
     primaryMuscles: ["Latíssimo do Dorso"],
     secondaryMuscles: ["Bíceps", "Braquial", "Romboides", "Trapézio Inferior"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Puxar vertical",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -1587,12 +1593,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-puxada-neutra",
-    source: "system",
+    source: "default",
     name: "Puxada Neutra",
     muscleGroup: "back",
     primaryMuscles: ["Latíssimo do Dorso"],
     secondaryMuscles: ["Bíceps", "Braquial", "Romboides"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Puxar vertical",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -1603,12 +1609,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-puxada-unilateral",
-    source: "system",
+    source: "default",
     name: "Puxada Unilateral",
     muscleGroup: "back",
     primaryMuscles: ["Latíssimo do Dorso"],
     secondaryMuscles: ["Bíceps", "Romboides", "Oblíquos"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Puxar vertical unilateral",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -1619,12 +1625,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-remada-alta",
-    source: "system",
+    source: "default",
     name: "Remada Alta",
     muscleGroup: "shoulders",
     primaryMuscles: ["Deltoide Lateral"],
     secondaryMuscles: ["Trapézio Superior", "Bíceps"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Puxar vertical curto",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -1635,12 +1641,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-remada-baixa",
-    source: "system",
+    source: "default",
     name: "Remada Baixa",
     muscleGroup: "back",
     primaryMuscles: ["Latíssimo do Dorso", "Romboides"],
     secondaryMuscles: ["Trapézio", "Deltoide Posterior", "Bíceps"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Puxar horizontal",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -1651,12 +1657,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-remada-cavalinho",
-    source: "system",
+    source: "default",
     name: "Remada Cavalinho",
     muscleGroup: "back",
     primaryMuscles: ["Latíssimo do Dorso", "Romboides"],
     secondaryMuscles: ["Trapézio", "Deltoide Posterior", "Bíceps", "Eretores"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Puxar horizontal inclinado",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -1667,12 +1673,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-remada-curvada",
-    source: "system",
+    source: "default",
     name: "Remada Curvada",
     muscleGroup: "back",
     primaryMuscles: ["Latíssimo do Dorso", "Romboides"],
     secondaryMuscles: ["Trapézio", "Deltoide Posterior", "Bíceps", "Eretores da Coluna"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Puxar horizontal inclinado",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -1683,12 +1689,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-remada-invertida",
-    source: "system",
+    source: "default",
     name: "Remada Invertida",
     muscleGroup: "back",
     primaryMuscles: ["Romboides", "Latíssimo do Dorso"],
     secondaryMuscles: ["Bíceps", "Deltoide Posterior", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Puxar horizontal",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -1699,12 +1705,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-remada-unilateral",
-    source: "system",
+    source: "default",
     name: "Remada Unilateral",
     muscleGroup: "back",
     primaryMuscles: ["Latíssimo do Dorso"],
     secondaryMuscles: ["Romboides", "Trapézio", "Deltoide Posterior", "Bíceps"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Puxar horizontal unilateral",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -1715,12 +1721,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-reverse-hyper",
-    source: "system",
+    source: "default",
     name: "Reverse Hyper",
-    muscleGroup: "lower_back",
+    muscleGroup: "lowerBack",
     primaryMuscles: ["Glúteo Máximo", "Eretores"],
     secondaryMuscles: ["Isquiotibiais", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Extensão de quadril apoiada",
     startingPosition:
       "Posicione os pés estáveis, contraia o abdome, mantenha a coluna neutra e leve os quadris para trás",
@@ -1731,12 +1737,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-rosca-alternada",
-    source: "system",
+    source: "default",
     name: "Rosca Alternada",
     muscleGroup: "biceps",
     primaryMuscles: ["Bíceps Braquial"],
     secondaryMuscles: ["Braquial", "Braquiorradial"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Flexão alternada de cotovelo",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -1747,12 +1753,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-rosca-aranha",
-    source: "system",
+    source: "default",
     name: "Rosca Aranha",
     muscleGroup: "biceps",
     primaryMuscles: ["Bíceps Braquial"],
     secondaryMuscles: ["Braquial", "Braquiorradial"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Flexão de cotovelo em pronação do tronco",
     startingPosition:
       "Mantenha o tronco estável, ombros baixos e cotovelos próximos da posição definida para a variação",
@@ -1763,12 +1769,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-rosca-bayesian",
-    source: "system",
+    source: "default",
     name: "Rosca Bayesian",
     muscleGroup: "biceps",
     primaryMuscles: ["Bíceps Braquial"],
     secondaryMuscles: ["Braquial", "Deltoide Anterior"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Flexão de cotovelo com braço atrás",
     startingPosition:
       "Mantenha o tronco estável, ombros baixos e cotovelos próximos da posição definida para a variação",
@@ -1779,12 +1785,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-rosca-biceps",
-    source: "system",
+    source: "default",
     name: "Rosca Bíceps",
     muscleGroup: "biceps",
     primaryMuscles: ["Bíceps Braquial"],
     secondaryMuscles: ["Braquial", "Braquiorradial", "Antebraços"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Flexão de cotovelo",
     startingPosition:
       "Mantenha o tronco estável, ombros baixos e cotovelos próximos da posição definida para a variação",
@@ -1795,12 +1801,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-rosca-concentrada",
-    source: "system",
+    source: "default",
     name: "Rosca Concentrada",
     muscleGroup: "biceps",
     primaryMuscles: ["Bíceps Braquial"],
     secondaryMuscles: ["Braquial", "Antebraços"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Flexão unilateral apoiada",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -1811,12 +1817,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-rosca-de-dedos",
-    source: "system",
+    source: "default",
     name: "Rosca de Dedos",
     muscleGroup: "forearms",
     primaryMuscles: ["Flexores dos Dedos"],
     secondaryMuscles: ["Flexores do Punho"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Flexão dos dedos",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -1827,12 +1833,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-rosca-inclinada",
-    source: "system",
+    source: "default",
     name: "Rosca Inclinada",
     muscleGroup: "biceps",
     primaryMuscles: ["Bíceps Braquial"],
     secondaryMuscles: ["Braquial", "Braquiorradial"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Flexão de cotovelo alongada",
     startingPosition:
       "Mantenha o tronco estável, ombros baixos e cotovelos próximos da posição definida para a variação",
@@ -1843,12 +1849,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-rosca-inversa",
-    source: "system",
+    source: "default",
     name: "Rosca Inversa",
     muscleGroup: "biceps",
     primaryMuscles: ["Braquiorradial", "Extensores do Antebraço"],
     secondaryMuscles: ["Braquial", "Bíceps"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Flexão pronada de cotovelo",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -1859,12 +1865,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-rosca-martelo",
-    source: "system",
+    source: "default",
     name: "Rosca Martelo",
     muscleGroup: "biceps",
     primaryMuscles: ["Braquial", "Braquiorradial"],
     secondaryMuscles: ["Bíceps Braquial", "Antebraços"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Flexão neutra de cotovelo",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -1875,12 +1881,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-rosca-scott",
-    source: "system",
+    source: "default",
     name: "Rosca Scott",
     muscleGroup: "biceps",
     primaryMuscles: ["Bíceps Braquial"],
     secondaryMuscles: ["Braquial", "Braquiorradial"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Flexão de cotovelo apoiada",
     startingPosition:
       "Mantenha o tronco estável, ombros baixos e cotovelos próximos da posição definida para a variação",
@@ -1891,12 +1897,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-rosca-zottman",
-    source: "system",
+    source: "default",
     name: "Rosca Zottman",
     muscleGroup: "biceps",
     primaryMuscles: ["Bíceps", "Braquiorradial"],
     secondaryMuscles: ["Braquial", "Flexores e Extensores do Antebraço"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Flexão com rotação",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -1907,12 +1913,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-rotacao-externa-de-ombro",
-    source: "system",
+    source: "default",
     name: "Rotação Externa de Ombro",
     muscleGroup: "shoulders",
     primaryMuscles: ["Infraespinal", "Redondo Menor"],
     secondaryMuscles: ["Deltoide Posterior"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Rotação externa",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -1923,12 +1929,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-russian-twist",
-    source: "system",
+    source: "default",
     name: "Russian Twist",
     muscleGroup: "core",
     primaryMuscles: ["Oblíquos"],
     secondaryMuscles: ["Reto Abdominal", "Flexores do Quadril"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Rotação de tronco",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -1939,12 +1945,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-saltos-na-ponta-dos-pes",
-    source: "system",
+    source: "default",
     name: "Saltos na Ponta dos Pés",
     muscleGroup: "calves",
     primaryMuscles: ["Gastrocnêmio", "Sóleo"],
     secondaryMuscles: ["Quadríceps", "Músculos do Pé"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Flexão plantar explosiva",
     startingPosition:
       "Apoie o pé com estabilidade e mantenha tornozelo, joelho e quadril alinhados",
@@ -1955,12 +1961,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-snatch",
-    source: "system",
+    source: "default",
     name: "Snatch",
-    muscleGroup: "full_body",
+    muscleGroup: "fullBody",
     primaryMuscles: ["Glúteos", "Quadríceps", "Trapézio", "Ombros"],
     secondaryMuscles: ["Posteriores", "Tríceps", "Core"],
-    level: "advanced",
+    difficulty: "hard",
     movementPattern: "Puxada olímpica acima da cabeça",
     startingPosition:
       "Estabilize o tronco, mantenha peito aberto e ombros afastados das orelhas; ajuste a pegada e o apoio",
@@ -1971,12 +1977,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-step-up",
-    source: "system",
+    source: "default",
     name: "Step-up",
     muscleGroup: "quadriceps",
     primaryMuscles: ["Quadríceps", "Glúteo Máximo"],
     secondaryMuscles: ["Posteriores", "Panturrilhas", "Core"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Subida unilateral",
     startingPosition:
       "Mantenha os pés firmes, joelhos alinhados à direção dos pés, coluna neutra e abdome ativo",
@@ -1987,12 +1993,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-suitcase-carry",
-    source: "system",
+    source: "default",
     name: "Suitcase Carry",
     muscleGroup: "core",
     primaryMuscles: ["Oblíquos", "Quadrado Lombar"],
     secondaryMuscles: ["Antebraços", "Trapézio", "Glúteos"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Anti-flexão lateral em marcha",
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
@@ -2003,12 +2009,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-superman",
-    source: "system",
+    source: "default",
     name: "Superman",
-    muscleGroup: "lower_back",
+    muscleGroup: "lowerBack",
     primaryMuscles: ["Eretores da Coluna"],
     secondaryMuscles: ["Glúteos", "Posteriores", "Deltoide Posterior"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Extensão de tronco",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -2019,12 +2025,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-supinacao-do-antebraco",
-    source: "system",
+    source: "default",
     name: "Supinação do Antebraço",
     muscleGroup: "forearms",
     primaryMuscles: ["Supinador", "Bíceps Braquial"],
     secondaryMuscles: ["Braquiorradial"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Supinação",
     startingPosition:
       "Apoie ou estabilize o antebraço conforme a variação e mantenha ombros relaxados",
@@ -2035,12 +2041,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-supino-declinado",
-    source: "system",
+    source: "default",
     name: "Supino Declinado",
     muscleGroup: "chest",
     primaryMuscles: ["Peitoral Maior"],
     secondaryMuscles: ["Tríceps", "Deltoide Anterior"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Empurrar declinado",
     startingPosition:
       "Crie uma base estável, mantenha punhos alinhados, escápulas controladas e abdome ativo",
@@ -2051,12 +2057,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-supino-fechado",
-    source: "system",
+    source: "default",
     name: "Supino Fechado",
     muscleGroup: "triceps",
     primaryMuscles: ["Tríceps Braquial"],
     secondaryMuscles: ["Peitoral Maior", "Deltoide Anterior"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Empurrar horizontal fechado",
     startingPosition:
       "Crie uma base estável, mantenha punhos alinhados, escápulas controladas e abdome ativo",
@@ -2067,12 +2073,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-supino-inclinado",
-    source: "system",
+    source: "default",
     name: "Supino Inclinado",
     muscleGroup: "chest",
     primaryMuscles: ["Peitoral Maior"],
     secondaryMuscles: ["Tríceps", "Deltoide Anterior"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Empurrar inclinado",
     startingPosition:
       "Crie uma base estável, mantenha punhos alinhados, escápulas controladas e abdome ativo",
@@ -2083,12 +2089,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-supino-reto",
-    source: "system",
+    source: "default",
     name: "Supino Reto",
     muscleGroup: "chest",
     primaryMuscles: ["Peitoral Maior"],
     secondaryMuscles: ["Tríceps", "Deltoide Anterior"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Empurrar horizontal",
     startingPosition:
       "Crie uma base estável, mantenha punhos alinhados, escápulas controladas e abdome ativo",
@@ -2099,12 +2105,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-swing",
-    source: "system",
+    source: "default",
     name: "Swing",
     muscleGroup: "hamstrings",
     primaryMuscles: ["Glúteo Máximo", "Isquiotibiais"],
     secondaryMuscles: ["Eretores", "Core", "Deltoides"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Dobradiça explosiva",
     startingPosition:
       "Posicione os pés estáveis, contraia o abdome, mantenha a coluna neutra e leve os quadris para trás",
@@ -2115,12 +2121,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-thruster",
-    source: "system",
+    source: "default",
     name: "Thruster",
-    muscleGroup: "full_body",
+    muscleGroup: "fullBody",
     primaryMuscles: ["Quadríceps", "Glúteos", "Deltoides"],
     secondaryMuscles: ["Tríceps", "Core", "Panturrilhas"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Agachar e empurrar",
     startingPosition:
       "Mantenha os pés firmes, joelhos alinhados à direção dos pés, coluna neutra e abdome ativo",
@@ -2131,12 +2137,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-tibial-anterior",
-    source: "system",
+    source: "default",
     name: "Tibial Anterior",
     muscleGroup: "calves",
     primaryMuscles: ["Tibial Anterior"],
     secondaryMuscles: ["Extensores dos Dedos"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Dorsiflexão",
     startingPosition:
       "Apoie o pé com estabilidade e mantenha tornozelo, joelho e quadril alinhados",
@@ -2147,12 +2153,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-triceps-coice",
-    source: "system",
+    source: "default",
     name: "Tríceps Coice",
     muscleGroup: "triceps",
     primaryMuscles: ["Tríceps Braquial"],
     secondaryMuscles: ["Ancôneo", "Deltoide Posterior"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Extensão de cotovelo com braço atrás",
     startingPosition:
       "Estabilize ombros e tronco, alinhe punhos e mantenha os cotovelos na posição adequada à variação",
@@ -2163,12 +2169,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-triceps-frances",
-    source: "system",
+    source: "default",
     name: "Tríceps Francês",
     muscleGroup: "triceps",
     primaryMuscles: ["Tríceps Braquial"],
     secondaryMuscles: ["Ancôneo", "Core"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Extensão acima da cabeça",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -2179,12 +2185,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-triceps-na-polia",
-    source: "system",
+    source: "default",
     name: "Tríceps na Polia",
     muscleGroup: "triceps",
     primaryMuscles: ["Tríceps Braquial"],
     secondaryMuscles: ["Ancôneo", "Antebraços"],
-    level: "beginner",
+    difficulty: "easy",
     movementPattern: "Extensão de cotovelo",
     startingPosition:
       "Estabilize ombros e tronco, alinhe punhos e mantenha os cotovelos na posição adequada à variação",
@@ -2195,12 +2201,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-triceps-testa",
-    source: "system",
+    source: "default",
     name: "Tríceps Testa",
     muscleGroup: "triceps",
     primaryMuscles: ["Tríceps Braquial"],
     secondaryMuscles: ["Ancôneo"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Extensão de cotovelo deitado",
     startingPosition:
       "Estabilize ombros e tronco, alinhe punhos e mantenha os cotovelos na posição adequada à variação",
@@ -2211,12 +2217,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-woodchopper",
-    source: "system",
+    source: "default",
     name: "Woodchopper",
     muscleGroup: "core",
     primaryMuscles: ["Oblíquos"],
     secondaryMuscles: ["Reto Abdominal", "Serrátil", "Glúteos"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Rotação diagonal",
     startingPosition:
       "Adote postura estável, mantenha pescoço relaxado e escápulas controladas antes de mover o braço ou a perna",
@@ -2227,12 +2233,12 @@ export const systemExercises: SystemExercise[] = [
   },
   {
     id: "system-wrist-roller",
-    source: "system",
+    source: "default",
     name: "Wrist Roller",
     muscleGroup: "forearms",
     primaryMuscles: ["Flexores e Extensores do Punho"],
     secondaryMuscles: ["Flexores dos Dedos", "Ombros"],
-    level: "intermediate",
+    difficulty: "moderate",
     movementPattern: "Enrolar carga",
     startingPosition:
       "Ajuste o equipamento e estabilize pés, tronco e escápulas antes de iniciar",
@@ -2243,17 +2249,22 @@ export const systemExercises: SystemExercise[] = [
   },
 ]
 
-function normalizedMuscleName(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLocaleLowerCase("pt-BR")
+function normalizedMuscleLabel(value: string) {
+  return value.toLocaleLowerCase("pt-BR")
 }
 
-export const muscleOptions = [
-  ...new Map(
-    systemExercises
-      .flatMap(exercise => [...exercise.primaryMuscles, ...exercise.secondaryMuscles])
-      .map(muscle => [normalizedMuscleName(muscle), muscle])
-  ).values(),
-].sort((left, right) => left.localeCompare(right, "pt-BR"))
+const muscleValueByLabel = new Map<string, Muscle>(
+  muscles.map(muscle => [normalizedMuscleLabel(muscle.label), muscle.value])
+)
+
+function getMuscleValue(label: string) {
+  const value = muscleValueByLabel.get(normalizedMuscleLabel(label))
+  if (!value) throw new Error(`Músculo não encontrado no catálogo: ${label}`)
+  return value
+}
+
+export const defaultExercises: DefaultExercise[] = defaultExerciseSeeds.map(exercise => ({
+  ...exercise,
+  primaryMuscles: exercise.primaryMuscles.map(getMuscleValue),
+  secondaryMuscles: exercise.secondaryMuscles.map(getMuscleValue),
+}))

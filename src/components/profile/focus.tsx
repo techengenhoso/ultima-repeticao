@@ -16,10 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { useProfile } from "@/contexts/profile-context"
-import {
-  experienceOptionsSelectField,
-  goalOptionsSelectField,
-} from "@/lib/options-select-field"
+import { experiences, goals } from "@/lib/options-select"
 import { experienceSchema, goalSchema } from "@/lib/schemas-zod"
 
 const focusSchema = z.object({
@@ -92,7 +89,7 @@ export function Focus() {
                 id="goal"
                 label="Objetivo"
                 onChange={field.onChange}
-                options={goalOptionsSelectField}
+                options={goals}
                 value={field.value}
               />
             )}
@@ -109,7 +106,7 @@ export function Focus() {
                 id="experience"
                 label="Experiência"
                 onChange={field.onChange}
-                options={experienceOptionsSelectField}
+                options={experiences}
                 value={field.value}
               />
             )}

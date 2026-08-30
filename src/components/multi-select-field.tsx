@@ -17,12 +17,17 @@ import {
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
 import { InputGroupAddon } from "@/components/ui/input-group"
 
+interface Option {
+  label: string
+  value: string
+}
+
 interface Props {
   id: string
   label?: string
   value: string[]
   icon: ReactNode
-  options: readonly string[]
+  options: readonly Option[]
   disabled?: boolean
   error?: { message?: string }
   description?: ReactNode
@@ -42,6 +47,7 @@ export function MultiSelectField({
 }: Props) {
   const anchor = useComboboxAnchor()
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null)
+  const selectedOptions = options.filter(option => value.includes(option.value))
   const setAnchor = useCallback(
     (node: HTMLDivElement | null) => {
       anchor.current = node
@@ -58,15 +64,15 @@ export function MultiSelectField({
         disabled={disabled}
         items={options}
         multiple
-        onValueChange={onChange}
-        value={value}
+        onValueChange={selected => onChange(selected.map(option => option.value))}
+        value={selectedOptions}
       >
         <ComboboxInputGroup className="h-auto min-h-11" ref={setAnchor}>
           <InputGroupAddon>{icon}</InputGroupAddon>
 
           <ComboboxChips className="order-2 h-full min-w-0 flex-1 border-0 px-3 py-1.5 focus-within:border-0 has-data-[slot=combobox-chip]:px-3">
-            {value.map(item => (
-              <ComboboxChip key={item}>{item}</ComboboxChip>
+            {selectedOptions.map(option => (
+              <ComboboxChip key={option.value}>{option.label}</ComboboxChip>
             ))}
 
             <ComboboxChipsInput
@@ -87,8 +93,8 @@ export function MultiSelectField({
 
           <ComboboxList>
             {options.map(option => (
-              <ComboboxItem key={option} value={option}>
-                {option}
+              <ComboboxItem key={option.value} value={option}>
+                {option.label}
               </ComboboxItem>
             ))}
           </ComboboxList>

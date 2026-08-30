@@ -16,15 +16,7 @@ import {
   saveProfileRepository,
 } from "@/repositories/profile-repository"
 
-interface ProfileContext {
-  profile: Profile
-  saveProfile: (input: ProfileEditable) => Promise<void>
-  refreshProfile: () => Promise<void>
-}
-
-const ProfileContext = createContext<ProfileContext | null>(null)
-
-export function ProfileProvider({ children }: { children: ReactNode }) {
+function useProfileState() {
   const { user } = useUser()
 
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -64,7 +56,17 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   if (loadingError) throw loadingError
   if (!profile) return null
 
-  const value: ProfileContext = { profile, saveProfile, refreshProfile }
+  return { profile, saveProfile, refreshProfile }
+}
+
+type ProfileContext = NonNullable<ReturnType<typeof useProfileState>>
+
+const ProfileContext = createContext<ProfileContext | null>(null)
+
+export function ProfileProvider({ children }: { children: ReactNode }) {
+  const value = useProfileState()
+
+  if (!value) return null
 
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>
 }

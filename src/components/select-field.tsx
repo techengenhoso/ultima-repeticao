@@ -15,7 +15,7 @@ interface Props {
   label?: string
   value: string
   icon: ReactNode
-  options: Array<{ label: string; value: string }>
+  options: readonly { label: string; value: string }[]
   disabled?: boolean
   error?: { message?: string }
   description?: ReactNode

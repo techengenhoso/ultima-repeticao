@@ -5,8 +5,9 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import {
   type CustomExercise,
   type Exercise,
-  exerciseLevelLabel,
+  exerciseDifficultyLabel,
   muscleGroupLabel,
+  muscleLabel,
 } from "@/lib/exercises/types"
 
 interface Props {
@@ -26,7 +27,7 @@ export function ExerciseCard({ exercise, onDelete, onDetails, onEdit }: Props) {
           </CardTitle>
 
           <Badge variant="secondary">
-            {exercise.source === "system" ? "Padrão" : "Personalizado"}
+            {exercise.source === "default" ? "Padrão" : "Personalizado"}
           </Badge>
         </div>
       </CardHeader>
@@ -39,12 +40,12 @@ export function ExerciseCard({ exercise, onDelete, onDetails, onEdit }: Props) {
 
         <p>
           <span className="text-muted-foreground">Músculos principais: </span>
-          {exercise.primaryMuscles.join(", ")}
+          {exercise.primaryMuscles.map(muscle => muscleLabel[muscle] ?? muscle).join(", ")}
         </p>
 
         <p>
-          <span className="text-muted-foreground">Nível: </span>
-          {exerciseLevelLabel[exercise.level]}
+          <span className="text-muted-foreground">Dificuldade: </span>
+          {exerciseDifficultyLabel[exercise.difficulty]}
         </p>
       </CardContent>
 

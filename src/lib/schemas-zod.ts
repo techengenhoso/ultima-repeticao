@@ -1,5 +1,13 @@
 import { z } from "zod"
 import { parseBrazilianDate } from "./date"
+import {
+  difficultiesValues,
+  experiencesValues,
+  gendersValues,
+  goalsValues,
+  muscleGroupValues,
+  musclesValues,
+} from "./values-zod"
 
 export const requiredSchema = z.string().trim().min(1, "Campo obrigatório")
 
@@ -38,19 +46,32 @@ export const dateSchema = z
   }, "A data não pode ser futura")
 
 export const genderSchema = z
-  .enum(["male", "female", "other"], "Informe um gênero válido")
+  .enum(gendersValues, "Selecione um gênero válido")
   .or(z.literal(""))
 
 export const goalSchema = z
-  .enum(
-    ["hypertrophy", "weightLoss", "conditioning", "strength", "qualityOfLife"],
-    "Informe um objetivo válido"
-  )
+  .enum(goalsValues, "Selecione um objetivo válido")
   .or(z.literal(""))
 
 export const experienceSchema = z
-  .enum(
-    ["beginner", "basic", "intermediate", "advanced", "expert"],
-    "Informe uma experiencia válida"
-  )
+  .enum(experiencesValues, "Selecione uma experiencia válida")
   .or(z.literal(""))
+
+export const muscleGroupSchema = z
+  .enum(muscleGroupValues, "Selecione um grupo muscular válido")
+  .or(z.literal(""))
+  .refine(Boolean, "Campo obrigatório")
+
+export const primaryMusclesSchema = z
+  .array(z.enum(musclesValues, "Selecione um músculo válido"))
+  .min(1, "Selecione no mínimo 1 músculo")
+  .max(20, "Selecione no máximo 20 músculos")
+
+export const secondaryMusclesSchema = z
+  .array(z.enum(musclesValues, "Selecione um músculo válido"))
+  .max(20, "Selecione no máximo 20 músculos")
+
+export const difficultiesSchema = z
+  .enum(difficultiesValues, "Selecione uma dificuldade válida")
+  .or(z.literal(""))
+  .refine(Boolean, "Campo obrigatório")

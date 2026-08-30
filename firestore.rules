@@ -11,14 +11,14 @@ service cloud.firestore {
       function validExerciseContent(data) {
         return data.name is string && data.name.size() >= 3 && data.name.size() <= 100
           && data.muscleGroup in [
-            'adductors', 'forearms', 'biceps', 'core', 'full_body', 'back',
-            'glutes', 'lower_back', 'shoulders', 'calves', 'chest',
+            'adductors', 'forearms', 'biceps', 'core', 'fullBody', 'back',
+            'glutes', 'lowerBack', 'shoulders', 'calves', 'chest',
             'hamstrings', 'quadriceps', 'triceps'
           ]
           && data.primaryMuscles is list
           && data.primaryMuscles.size() >= 1 && data.primaryMuscles.size() <= 20
           && data.secondaryMuscles is list && data.secondaryMuscles.size() <= 20
-          && data.level in ['beginner', 'intermediate', 'advanced']
+          && data.difficulty in ['easy', 'moderate', 'hard']
           && data.movementPattern is string
           && data.movementPattern.size() >= 1 && data.movementPattern.size() <= 150
           && data.startingPosition is string
@@ -34,7 +34,7 @@ service cloud.firestore {
         function validExercise(data) {
           return data.keys().hasOnly([
               'name', 'normalizedName', 'muscleGroup', 'primaryMuscles',
-              'secondaryMuscles', 'level',
+              'secondaryMuscles', 'difficulty',
               'movementPattern', 'startingPosition', 'movementExecution',
               'importantCautions', 'createdAt', 'updatedAt'
             ])
@@ -53,7 +53,7 @@ service cloud.firestore {
         function validOverride(data) {
           return data.keys().hasOnly([
               'name', 'muscleGroup', 'primaryMuscles', 'secondaryMuscles',
-              'level', 'movementPattern',
+              'difficulty', 'movementPattern',
               'startingPosition', 'movementExecution', 'importantCautions',
               'createdAt', 'updatedAt'
             ])

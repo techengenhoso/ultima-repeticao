@@ -1,79 +1,49 @@
-import type { Timestamp } from "firebase/firestore"
-
-export const muscleGroups = [
-  { value: "adductors", label: "Adutores" },
-  { value: "forearms", label: "Antebraços" },
-  { value: "biceps", label: "Bíceps" },
-  { value: "core", label: "Core" },
-  { value: "full_body", label: "Corpo inteiro" },
-  { value: "back", label: "Costas" },
-  { value: "glutes", label: "Glúteos" },
-  { value: "lower_back", label: "Lombar" },
-  { value: "shoulders", label: "Ombros" },
-  { value: "calves", label: "Panturrilhas" },
-  { value: "chest", label: "Peito" },
-  { value: "hamstrings", label: "Posteriores de coxa" },
-  { value: "quadriceps", label: "Quadríceps" },
-  { value: "triceps", label: "Tríceps" },
-]
-
-export const sourceGroups = [
-  { value: "system", label: "Padrão" },
-  { value: "custom", label: "Meus exercícios" },
-]
-
-export const exerciseLevels = [
-  { value: "beginner", label: "Iniciante" },
-  { value: "intermediate", label: "Intermediário" },
-  { value: "advanced", label: "Avançado" },
-]
+import { difficulties, muscleGroups, muscles, origins } from "../options-select"
 
 export type MuscleGroup = (typeof muscleGroups)[number]["value"]
-export type SourceGroup = (typeof sourceGroups)[number]["value"]
-export type ExerciseLevel = (typeof exerciseLevels)[number]["value"]
+export type Muscle = (typeof muscles)[number]["value"]
+export type ExerciseSource = (typeof origins)[number]["value"]
+export type ExerciseDifficulty = (typeof difficulties)[number]["value"]
 
 interface ExerciseBase {
   id: string
   name: string
   muscleGroup: MuscleGroup
-  primaryMuscles: string[]
-  secondaryMuscles: string[]
-  level: ExerciseLevel
+  primaryMuscles: Muscle[]
+  secondaryMuscles: Muscle[]
+  difficulty: ExerciseDifficulty
   movementPattern: string
   startingPosition: string
   movementExecution: string
   importantCautions: string
 }
 
-export interface SystemExercise extends ExerciseBase {
-  source: "system"
+export interface DefaultExercise extends ExerciseBase {
+  source: "default"
   isCustomized?: boolean
 }
 
 export interface CustomExercise extends ExerciseBase {
   source: "custom"
   normalizedName: string
-  createdAt: Timestamp
-  updatedAt: Timestamp
 }
 
-export type Exercise = SystemExercise | CustomExercise
+export type Exercise = DefaultExercise | CustomExercise
 
-export type ExerciseInput = Omit<
-  CustomExercise,
-  "id" | "source" | "normalizedName" | "createdAt" | "updatedAt"
->
+export type ExerciseInput = Omit<CustomExercise, "id" | "source" | "normalizedName">
 
-export type SystemExerciseOverride = Omit<SystemExercise, "isCustomized"> & {
+export type DefaultExerciseOverride = Omit<DefaultExercise, "isCustomized"> & {
   isCustomized: true
-  createdAt: Timestamp
-  updatedAt: Timestamp
 }
 
 export const muscleGroupLabel = Object.fromEntries(
   muscleGroups.map(option => [option.value, option.label])
 ) as Record<MuscleGroup, string>
 
-export const exerciseLevelLabel = Object.fromEntries(
-  exerciseLevels.map(option => [option.value, option.label])
-) as Record<ExerciseLevel, string>
+export const muscleLabel = Object.fromEntries(
+  muscles.map(option => [option.value, option.label])
+) as Record<Muscle, string>
+
+export const exerciseDifficultyLabel = Object.fromEntries(
+  difficulties.map(option => [option.value, option.label])
+) as Record<ExerciseDifficulty, string>

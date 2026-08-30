@@ -1,3 +1,5 @@
+"use client"
+
 import { LoaderCircleIcon } from "lucide-react"
 import {
   AlertDialog,
@@ -9,19 +11,19 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import type { CustomExercise } from "@/lib/exercises/types"
+import { useExercise } from "@/contexts/exercise-context"
 
-interface Props {
-  exercise: CustomExercise | null
-  isDeleting: boolean
-  onClose: () => void
-  onConfirm: () => void
-}
+export function ExerciseDelete() {
+  const {
+    confirmDelete: onConfirm,
+    deleting: exercise,
+    isDeleting,
+    setDeleting: onClose,
+  } = useExercise()
 
-export function ExerciseDelete({ exercise, isDeleting, onClose, onConfirm }: Props) {
   return (
     <AlertDialog
-      onOpenChange={open => !open && !isDeleting && onClose()}
+      onOpenChange={open => !open && !isDeleting && onClose(null)}
       open={!!exercise}
     >
       <AlertDialogContent>
