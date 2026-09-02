@@ -60,6 +60,74 @@ service cloud.firestore {
         allow create: if isOwner() && validOverride(request.resource.data);
         allow update: if isOwner() && validOverride(request.resource.data);
       }
+
+      match /workoutPlans/{workoutPlanId} {
+        function validMuscleGroup(value) {
+          return value in [
+            'adductors', 'forearms', 'biceps', 'core', 'fullBody', 'back',
+            'glutes', 'lowerBack', 'shoulders', 'calves', 'chest',
+            'hamstrings', 'quadriceps', 'triceps'
+          ];
+        }
+
+        function validExercise(item) {
+          return item.keys().hasOnly([
+              'id', 'order', 'exerciseReference', 'exerciseSnapshot', 'sets',
+              'repetitions', 'initialLoad'
+            ])
+            && item.id is string && item.id.size() > 0
+            && item.order is int && item.order >= 0 && item.order < 30
+            && item.exerciseReference is map
+            && item.exerciseReference.keys().hasOnly(['source', 'exerciseId'])
+            && item.exerciseReference.source in ['default', 'custom']
+            && item.exerciseReference.exerciseId is string
+            && item.exerciseReference.exerciseId.size() > 0
+            && item.exerciseSnapshot is map
+            && item.exerciseSnapshot.keys().hasOnly(['name', 'muscleGroup'])
+            && item.exerciseSnapshot.name is string
+            && item.exerciseSnapshot.name.size() >= 1
+            && item.exerciseSnapshot.name.size() <= 100
+            && validMuscleGroup(item.exerciseSnapshot.muscleGroup)
+            && item.sets is int && item.sets >= 1 && item.sets <= 20
+            && item.repetitions is string
+            && item.repetitions.size() >= 1 && item.repetitions.size() <= 30
+            && item.initialLoad is number
+            && item.initialLoad >= 0 && item.initialLoad <= 1000;
+        }
+
+        function validDay(day) {
+          return day.keys().hasOnly(['id', 'name', 'order', 'muscleGroups', 'exercises'])
+            && day.id is string && day.id.size() > 0
+            && day.name is string && day.name.size() >= 2 && day.name.size() <= 50
+            && day.order is int && day.order >= 0 && day.order < 14
+            && day.muscleGroups is list
+            && day.muscleGroups.size() <= 14
+            && day.exercises is list
+            && day.exercises.size() >= 1 && day.exercises.size() <= 30;
+        }
+
+        function validPlan(data) {
+          return data.keys().hasOnly([
+              'name', 'description', 'isActive', 'days', 'createdAt', 'updatedAt'
+            ])
+            && data.name is string && data.name.size() >= 3 && data.name.size() <= 100
+            && (data.description == null
+              || (data.description is string && data.description.size() <= 500))
+            && data.isActive is bool
+            && data.days is list && data.days.size() >= 1 && data.days.size() <= 14
+            && data.createdAt is timestamp && data.updatedAt is timestamp;
+        }
+
+        allow read, delete: if isOwner();
+        allow create: if isOwner()
+          && validPlan(request.resource.data)
+          && request.resource.data.isActive == false
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+        allow update: if isOwner()
+          && validPlan(request.resource.data)
+          && request.resource.data.createdAt == resource.data.createdAt;
+      }
     }
   }
 }

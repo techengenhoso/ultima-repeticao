@@ -138,3 +138,8 @@ export const origins = [
   { label: "Padrão", value: "default" },
   { label: "Personalizado", value: "custom" },
 ] as const
+
+export const statuses = [
+  { label: "Ativa", value: "active" },
+  { label: "Inativa", value: "inactive" },
+] as const
