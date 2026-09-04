@@ -1,11 +1,10 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { AlignLeftIcon, DumbbellIcon, LoaderCircleIcon, PlusIcon } from "lucide-react"
+import { AlignLeftIcon, DumbbellIcon, LoaderCircleIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { FormProvider, useFieldArray, useForm } from "react-hook-form"
 import { TextField } from "@/components/text-field"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -76,10 +75,10 @@ export function WorkoutForm({
   } | null>(null)
 
   const [removingDayIndex, setRemovingDayIndex] = useState<number | null>(null)
+  const [isDiscarding, setIsDiscarding] = useState(false)
 
   const handleCancel = () => {
-    if (!formState.isDirty || window.confirm("Descartar as alterações não salvas?"))
-      onCancel()
+    setIsDiscarding(true)
   }
 
   async function handleValidSubmit(values: WorkoutFormValues) {
@@ -92,18 +91,10 @@ export function WorkoutForm({
   return (
     <FormProvider {...form}>
       <form
-        className="flex min-h-0 flex-1 flex-col"
+        className="flex min-h-0 min-w-0 flex-1 flex-col"
         onSubmit={handleSubmit(handleValidSubmit)}
       >
-        <div className="no-scrollbar max-h-[65vh] space-y-6 overflow-y-auto pb-5">
-          {Object.keys(formState.errors).length > 0 && (
-            <Alert variant="destructive">
-              <AlertTitle>Revise os campos destacados</AlertTitle>
-              <AlertDescription>
-                Existem informações obrigatórias ou inválidas na ficha
-              </AlertDescription>
-            </Alert>
-          )}
+        <div className="no-scrollbar max-h-[65vh] min-w-0 space-y-6 overflow-x-hidden overflow-y-auto pb-5">
           <div className="grid gap-5 md:grid-cols-2">
             <TextField
               error={formState.errors.name}
@@ -134,7 +125,6 @@ export function WorkoutForm({
                 size="sm"
                 type="button"
               >
-                <PlusIcon />
                 Adicionar dia
               </Button>
             </div>
@@ -217,6 +207,23 @@ export function WorkoutForm({
               variant="destructive"
             >
               Excluir
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog onOpenChange={setIsDiscarding} open={isDiscarding}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Descartar alterações</AlertDialogTitle>
+            <AlertDialogDescription>
+              Os dados preenchidos nesta ficha não serão salvos. Esta ação não poderá ser
+              desfeita
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continuar editando</AlertDialogCancel>
+            <Button onClick={onCancel} variant="destructive">
+              Descartar
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

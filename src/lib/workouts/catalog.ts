@@ -1,9 +1,8 @@
-import { statuses } from "@/lib/options-select"
-import type { Workout } from "@/lib/workouts/types"
+import type { Status, Workout } from "@/lib/workouts/types"
 
 export interface WorkoutFilters {
   search: string
-  status: "" | (typeof statuses)[number]["value"]
+  status: "" | Status
 }
 
 export const emptyWorkoutFilters: WorkoutFilters = {

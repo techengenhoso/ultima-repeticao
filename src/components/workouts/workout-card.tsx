@@ -34,28 +34,25 @@ export function WorkoutCard({
           <CardTitle className="min-w-0 wrap-break-word normal-case tracking-normal">
             {workout.name}
           </CardTitle>
-          {workout.isActive && (
-            <Badge>
-              <CheckCircle2Icon />
-              Ativa
-            </Badge>
-          )}
+          <Badge variant="secondary"> {workout.isActive ? "Ativa" : "Inativa"}</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         {workout.description && (
           <p className="line-clamp-2 text-muted-foreground">{workout.description}</p>
         )}
-        <p>
-          <span className="text-muted-foreground">Dias: </span>
-          {workout.days.length}
-        </p>
-        <p>
-          <span className="text-muted-foreground">Atualizada em: </span>
-          {new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(
-            workout.updatedAt.toDate()
-          )}
-        </p>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <p>
+            <span className="text-muted-foreground">Dias: </span>
+            {workout.days.length}
+          </p>
+          <p>
+            <span className="text-muted-foreground">Atualizado: </span>
+            {new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(
+              workout.updatedAt.toDate()
+            )}
+          </p>
+        </div>
       </CardContent>
 
       <CardFooter className="flex flex-wrap justify-end gap-2 border-t">

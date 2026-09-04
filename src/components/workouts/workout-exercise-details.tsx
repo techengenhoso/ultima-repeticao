@@ -44,10 +44,16 @@ export function WorkoutExerciseDetails({ exercise, exercisesByReference, index }
       </header>
       <div className="grid gap-4 p-4 sm:grid-cols-3">
         <WorkoutExerciseMetric label="Séries" value={exercise.sets.toString()} />
-        <WorkoutExerciseMetric label="Repetições" value={exercise.repetitions} />
+        <WorkoutExerciseMetric
+          label="Repetições"
+          value={exercise.repetitions.toString()}
+        />
         <WorkoutExerciseMetric
           label="Carga inicial"
-          value={`${exercise.initialLoad} kg`}
+          value={`${exercise.initialLoad.toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })} kg`}
         />
       </div>
     </article>

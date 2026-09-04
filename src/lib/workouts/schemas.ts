@@ -30,10 +30,14 @@ export const workoutExerciseSchema = z.object({
     .int("Informe um número inteiro")
     .min(1, "Informe no mínimo 1 série")
     .max(20, "Informe no máximo 20 séries"),
-  repetitions: compactText(1, 30),
+  repetitions: z
+    .number({ error: "Informe a quantidade de repetições" })
+    .int("Informe um número inteiro")
+    .min(1, "Informe no mínimo 1 repetição"),
   initialLoad: z
     .number({ error: "Informe a carga inicial" })
     .min(0, "A carga não pode ser negativa")
+    .multipleOf(0.01, "Use no máximo duas casas decimais")
     .max(1000, "Informe uma carga de até 1000 kg"),
 })
 

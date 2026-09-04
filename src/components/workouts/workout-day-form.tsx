@@ -7,7 +7,6 @@ import {
   ChevronDownIcon,
   CopyIcon,
   DumbbellIcon,
-  PlusIcon,
   Trash2Icon,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
@@ -107,9 +106,13 @@ export function WorkoutDayForm({
         shouldValidate: true,
       })
   }, [automaticMuscleGroups, getValues, index, setValue])
+
   return (
     <Collapsible onOpenChange={setIsOpen} open={isOpen}>
-      <Card className="gap-0 border-l-2 border-l-primary py-0" size="sm">
+      <Card
+        className="gap-0 border border-border border-l-2 border-l-primary py-0"
+        size="sm"
+      >
         <CardHeader className="border-b bg-muted/40 py-4 [.border-b]:pb-4">
           <div className="flex items-center justify-between gap-2">
             <CollapsibleTrigger asChild>
@@ -121,20 +124,24 @@ export function WorkoutDayForm({
                 <span className="flex size-9 shrink-0 items-center justify-center bg-primary text-sm font-bold text-primary-foreground">
                   {index + 1}
                 </span>
+
                 <span className="min-w-0 flex-1">
-                  <CardTitle className="text-base">Dia de treino</CardTitle>
+                  <CardTitle className="text-base">Treino</CardTitle>
+
                   <span className="block text-xs text-muted-foreground">
                     {selectedExercises.length === 0
                       ? "Nenhum exercício"
                       : `${selectedExercises.length} ${selectedExercises.length === 1 ? "exercício" : "exercícios"}`}
                   </span>
                 </span>
+
                 <ChevronDownIcon
                   aria-hidden="true"
                   className="size-4 shrink-0 text-muted-foreground transition-transform group-aria-expanded:rotate-180"
                 />
               </button>
             </CollapsibleTrigger>
+
             <div className="flex shrink-0 gap-1">
               <Button
                 aria-label="Mover dia para cima"
@@ -146,6 +153,7 @@ export function WorkoutDayForm({
               >
                 <ArrowUpIcon />
               </Button>
+
               <Button
                 aria-label="Mover dia para baixo"
                 disabled={index === total - 1}
@@ -156,6 +164,7 @@ export function WorkoutDayForm({
               >
                 <ArrowDownIcon />
               </Button>
+
               <Button
                 aria-label="Duplicar dia"
                 onClick={onDuplicate}
@@ -165,6 +174,7 @@ export function WorkoutDayForm({
               >
                 <CopyIcon />
               </Button>
+
               <Button
                 aria-label="Remover dia"
                 disabled={!canRemove}
@@ -178,15 +188,19 @@ export function WorkoutDayForm({
             </div>
           </div>
         </CardHeader>
+
         <CollapsibleContent>
           <CardContent className="space-y-6 py-5">
             <div>
-              <h4 className="font-semibold">Configuração do dia</h4>
+              <h4 className="font-semibold">Configuração do dia de treino</h4>
+
               <p className="text-xs text-muted-foreground">
-                Defina o nome e confira os músculos trabalhados
+                Defina o nome e confira os músculos trabalhados, os músculos são carregados
+                automaticamente depois de adicionar um exercício
               </p>
             </div>
-            <div className="grid gap-5 md:grid-cols-2">
+
+            <div className="space-y-5">
               <TextField
                 error={errors.days?.[index]?.name}
                 icon={<DumbbellIcon />}
@@ -195,6 +209,7 @@ export function WorkoutDayForm({
                 placeholder="Segunda-feira"
                 {...register(`days.${index}.name`)}
               />
+
               <MultiSelectField
                 disabled
                 icon={<DumbbellIcon aria-hidden="true" />}
@@ -202,9 +217,11 @@ export function WorkoutDayForm({
                 label="Grupos musculares"
                 onChange={() => undefined}
                 options={muscleGroups}
+                placeholder="Seleção automática"
                 value={automaticMuscleGroups}
               />
             </div>
+
             <div className="space-y-5">
               <MultiSelectField
                 disabled
@@ -213,8 +230,10 @@ export function WorkoutDayForm({
                 label="Músculos principais"
                 onChange={() => undefined}
                 options={muscles}
+                placeholder="Seleção automática"
                 value={primaryMuscles}
               />
+
               <MultiSelectField
                 disabled
                 icon={<BicepsFlexedIcon aria-hidden="true" />}
@@ -222,21 +241,25 @@ export function WorkoutDayForm({
                 label="Músculos secundários"
                 onChange={() => undefined}
                 options={muscles}
+                placeholder="Seleção automática"
                 value={secondaryMuscles}
               />
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-5">
+
+            <div className="-mx-(--card-spacing) flex flex-wrap items-center justify-between gap-3 border-t px-(--card-spacing) pt-5">
               <div>
                 <h4 className="font-semibold">Exercícios do treino</h4>
+
                 <p className="text-xs text-muted-foreground">
-                  Organize a sequência e ajuste séries e repetições
+                  Organize a sequência e ajuste séries e repetições de cada exercício
                 </p>
               </div>
+
               <Button onClick={onAddExercise} size="sm" type="button" variant="outline">
-                <PlusIcon />
                 Adicionar exercício
               </Button>
             </div>
+
             {exercises.fields.length === 0 ? (
               <div className="flex flex-col items-center gap-2 border border-dashed bg-muted/20 px-5 py-8 text-center">
                 <span className="flex size-10 items-center justify-center bg-muted">
@@ -245,8 +268,10 @@ export function WorkoutDayForm({
                     className="size-5 text-muted-foreground"
                   />
                 </span>
+
                 <div>
                   <p className="text-sm font-medium">Seu treino ainda está vazio</p>
+
                   <p className="text-xs text-muted-foreground">
                     Adicione o primeiro exercício para montar a sequência
                   </p>
@@ -269,7 +294,13 @@ export function WorkoutDayForm({
                 ))}
               </div>
             )}
-            <FieldError errors={[errors.days?.[index]?.exercises?.root]} />
+
+            <FieldError
+              errors={[
+                errors.days?.[index]?.exercises,
+                errors.days?.[index]?.exercises?.root,
+              ]}
+            />
           </CardContent>
         </CollapsibleContent>
       </Card>

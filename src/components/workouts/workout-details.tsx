@@ -1,6 +1,7 @@
 "use client"
 
 import { ChevronDownIcon } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Collapsible,
@@ -25,29 +26,37 @@ export function WorkoutDetails() {
 
   return (
     <Dialog onOpenChange={open => !open && onClose(null)} open={!!workout}>
-      <DialogContent className="no-scrollbar max-h-[calc(100svh-1rem)] overflow-y-auto sm:max-w-4xl">
+      <DialogContent className="flex max-h-[calc(100svh-1rem)] flex-col overflow-hidden sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle className="pr-10 normal-case tracking-normal">
-            {workout?.name}
-          </DialogTitle>
-          <DialogDescription>
-            {workout?.isActive ? "Ficha ativa" : "Ficha inativa"}
-            {workout
-              ? ` · ${workout.days.length} ${workout.days.length === 1 ? "dia" : "dias"}`
-              : ""}
-          </DialogDescription>
-        </DialogHeader>
-        {workout && (
-          <div className="space-y-6">
-            <div className="space-y-1 text-sm text-muted-foreground">
-              {workout.description && <p>{workout.description}</p>}
-              <p>
+          <div className="flex items-start justify-between gap-3 pr-14">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <DialogTitle className="normal-case tracking-normal">
+                {workout?.name}
+              </DialogTitle>
+              {workout && (
+                <span className="text-sm text-muted-foreground">
+                  {workout.days.length} {workout.days.length === 1 ? "dia" : "dias"}
+                </span>
+              )}
+            </div>
+            <Badge variant={workout?.isActive ? "default" : "secondary"}>
+              {workout?.isActive ? "Ativa" : "Inativa"}
+            </Badge>
+          </div>
+          <DialogDescription className="mt-4">
+            {workout?.description && `${workout.description} · `}
+            {workout && (
+              <>
                 Última atualização em{" "}
                 {new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" }).format(
                   workout.updatedAt.toDate()
                 )}
-              </p>
-            </div>
+              </>
+            )}
+          </DialogDescription>
+        </DialogHeader>
+        {workout && (
+          <div className="no-scrollbar min-h-0 space-y-6 overflow-y-auto">
             <div className="space-y-4">
               {[...workout.days]
                 .sort((a, b) => a.order - b.order)
@@ -71,14 +80,17 @@ export function WorkoutDetails() {
 
                   return (
                     <Collapsible defaultOpen key={day.id}>
-                      <Card className="gap-0 border-l-2 border-l-primary py-0" size="sm">
+                      <Card
+                        className="gap-0 border border-border border-l-2 border-l-primary py-0"
+                        size="sm"
+                      >
                         <CardHeader className="border-b bg-muted/40 py-4 [.border-b]:pb-4">
                           <CollapsibleTrigger className="group flex w-full items-center gap-3 text-left">
                             <span className="flex size-9 shrink-0 items-center justify-center bg-primary text-sm font-bold text-primary-foreground">
                               {dayIndex + 1}
                             </span>
                             <span className="min-w-0 flex-1">
-                              <CardTitle className="text-base">Dia de treino</CardTitle>
+                              <CardTitle className="text-base">{day.name}</CardTitle>
                               <span className="block text-xs text-muted-foreground">
                                 {day.exercises.length}{" "}
                                 {day.exercises.length === 1 ? "exercício" : "exercícios"}
@@ -95,22 +107,17 @@ export function WorkoutDetails() {
                             <div>
                               <h3 className="font-semibold">Configuração do dia</h3>
                               <p className="text-xs text-muted-foreground">
-                                Nome e músculos trabalhados neste treino
+                                Músculos trabalhados neste treino
                               </p>
                             </div>
-                            <div className="grid gap-5 md:grid-cols-2">
-                              <WorkoutDetailField label="Nome do dia">
-                                {day.name}
-                              </WorkoutDetailField>
-                              <WorkoutDetailField label="Grupos musculares">
-                                <WorkoutBadgeList
-                                  emptyLabel="Nenhum grupo muscular"
-                                  labels={day.muscleGroups.map(
-                                    group => muscleGroupLabel[group]
-                                  )}
-                                />
-                              </WorkoutDetailField>
-                            </div>
+                            <WorkoutDetailField label="Grupos musculares">
+                              <WorkoutBadgeList
+                                emptyLabel="Nenhum grupo muscular"
+                                labels={day.muscleGroups.map(
+                                  group => muscleGroupLabel[group]
+                                )}
+                              />
+                            </WorkoutDetailField>
                             <div className="space-y-5">
                               <WorkoutDetailField label="Músculos principais">
                                 <WorkoutBadgeList
@@ -120,6 +127,7 @@ export function WorkoutDetails() {
                                   )}
                                 />
                               </WorkoutDetailField>
+
                               <WorkoutDetailField label="Músculos secundários">
                                 <WorkoutBadgeList
                                   emptyLabel="Nenhum músculo secundário"
@@ -129,24 +137,39 @@ export function WorkoutDetails() {
                                 />
                               </WorkoutDetailField>
                             </div>
-                            <div className="border-t pt-5">
-                              <h3 className="font-semibold">Exercícios do treino</h3>
-                              <p className="text-xs text-muted-foreground">
-                                Sequência, séries, repetições e carga inicial
-                              </p>
-                            </div>
-                            <div className="space-y-3">
-                              {[...day.exercises]
-                                .sort((a, b) => a.order - b.order)
-                                .map((exercise, exerciseIndex) => (
-                                  <WorkoutExerciseDetails
-                                    exercise={exercise}
-                                    exercisesByReference={exercisesByReference}
-                                    index={exerciseIndex}
-                                    key={exercise.id}
+
+                            <Collapsible defaultOpen>
+                              <div className="-mx-(--card-spacing) border-t px-(--card-spacing) pt-5">
+                                <CollapsibleTrigger className="group flex w-full items-center gap-3 text-left">
+                                  <ChevronDownIcon
+                                    aria-hidden="true"
+                                    className="size-4 shrink-0 text-muted-foreground transition-transform group-aria-expanded:rotate-180"
                                   />
-                                ))}
-                            </div>
+                                  <span className="min-w-0">
+                                    <span className="block font-semibold">
+                                      Exercícios do treino
+                                    </span>
+                                    <span className="block text-xs text-muted-foreground">
+                                      Sequência, séries, repetições e carga inicial
+                                    </span>
+                                  </span>
+                                </CollapsibleTrigger>
+                              </div>
+                              <CollapsibleContent className="pt-5">
+                                <div className="space-y-3">
+                                  {[...day.exercises]
+                                    .sort((a, b) => a.order - b.order)
+                                    .map((exercise, exerciseIndex) => (
+                                      <WorkoutExerciseDetails
+                                        exercise={exercise}
+                                        exercisesByReference={exercisesByReference}
+                                        index={exerciseIndex}
+                                        key={exercise.id}
+                                      />
+                                    ))}
+                                </div>
+                              </CollapsibleContent>
+                            </Collapsible>
                           </CardContent>
                         </CollapsibleContent>
                       </Card>

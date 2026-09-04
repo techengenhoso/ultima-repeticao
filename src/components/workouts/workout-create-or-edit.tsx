@@ -24,7 +24,7 @@ export function WorkoutCreateOrEdit() {
       onOpenChange={open => !open && onClose(undefined)}
       open={workout !== undefined}
     >
-      <DialogContent className="no-scrollbar max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-4xl">
+      <DialogContent className="no-scrollbar max-h-[calc(100svh-1rem)] w-[calc(100%-1rem)] max-w-[calc(100%-1rem)] overflow-x-hidden overflow-y-auto p-4 sm:max-w-4xl sm:p-6">
         <DialogHeader>
           <DialogTitle>{workout?.id ? "Editar ficha" : "Nova ficha"}</DialogTitle>
           <DialogDescription>

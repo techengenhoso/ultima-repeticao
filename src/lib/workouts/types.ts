@@ -1,5 +1,8 @@
 import type { Timestamp } from "firebase/firestore"
 import type { MuscleGroup } from "@/lib/exercises/types"
+import { statuses } from "../options-select"
+
+export type Status = (typeof statuses)[number]["value"]
 
 export interface WorkoutExerciseReference {
   source: "default" | "custom"
@@ -17,7 +20,7 @@ export interface WorkoutExercise {
   exerciseReference: WorkoutExerciseReference
   exerciseSnapshot: WorkoutExerciseSnapshot
   sets: number
-  repetitions: string
+  repetitions: number
   initialLoad: number
 }
 

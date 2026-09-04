@@ -40,7 +40,6 @@ function cleanInput(input: WorkoutInput) {
       exercises: day.exercises.map((exercise, exerciseOrder) => ({
         ...exercise,
         order: exerciseOrder,
-        repetitions: exercise.repetitions.trim().replace(/\s+/g, " "),
       })),
     })),
   }

@@ -56,9 +56,9 @@ export function WorkoutExerciseSelector({
       order: target.exerciseIndex ?? current.length,
       exerciseReference: { source: exercise.source, exerciseId: exercise.id },
       exerciseSnapshot: { name: exercise.name, muscleGroup: exercise.muscleGroup },
-      sets: 3,
-      repetitions: "8-12",
-      initialLoad: 0,
+      sets: Number.NaN,
+      repetitions: Number.NaN,
+      initialLoad: Number.NaN,
     }
     const next = [...current]
     if (target.exerciseIndex === undefined) next.push(nextExercise)
@@ -90,6 +90,36 @@ export function WorkoutExerciseSelector({
             type="text"
             value={filters.search}
           />
+          <div className="hidden sm:block">
+            <SelectField
+              icon={<GaugeIcon aria-hidden="true" />}
+              id="exercise-difficulty"
+              label="Dificuldade"
+              onChange={value =>
+                setFilters(current => ({
+                  ...current,
+                  difficulty: value as ExerciseFilters["difficulty"],
+                }))
+              }
+              options={difficulties}
+              value={filters.difficulty}
+            />
+          </div>
+          <div className="hidden sm:block">
+            <SelectField
+              icon={<SearchIcon aria-hidden="true" />}
+              id="exercise-source"
+              label="Origem"
+              onChange={value =>
+                setFilters(current => ({
+                  ...current,
+                  source: value as ExerciseFilters["source"],
+                }))
+              }
+              options={origins}
+              value={filters.source}
+            />
+          </div>
           <SelectField
             icon={<SearchIcon aria-hidden="true" />}
             id="exercise-group"
@@ -103,58 +133,36 @@ export function WorkoutExerciseSelector({
             options={muscleGroups}
             value={filters.muscle}
           />
-          <SelectField
-            icon={<BicepsFlexedIcon aria-hidden="true" />}
-            id="exercise-primary-muscle"
-            label="Músculo principal"
-            onChange={value =>
-              setFilters(current => ({
-                ...current,
-                primaryMuscle: value as ExerciseFilters["primaryMuscle"],
-              }))
-            }
-            options={muscles}
-            value={filters.primaryMuscle}
-          />
-          <SelectField
-            icon={<BicepsFlexedIcon aria-hidden="true" />}
-            id="exercise-secondary-muscle"
-            label="Músculo secundário"
-            onChange={value =>
-              setFilters(current => ({
-                ...current,
-                secondaryMuscle: value as ExerciseFilters["secondaryMuscle"],
-              }))
-            }
-            options={muscles}
-            value={filters.secondaryMuscle}
-          />
-          <SelectField
-            icon={<GaugeIcon aria-hidden="true" />}
-            id="exercise-difficulty"
-            label="Dificuldade"
-            onChange={value =>
-              setFilters(current => ({
-                ...current,
-                difficulty: value as ExerciseFilters["difficulty"],
-              }))
-            }
-            options={difficulties}
-            value={filters.difficulty}
-          />
-          <SelectField
-            icon={<SearchIcon aria-hidden="true" />}
-            id="exercise-source"
-            label="Origem"
-            onChange={value =>
-              setFilters(current => ({
-                ...current,
-                source: value as ExerciseFilters["source"],
-              }))
-            }
-            options={origins}
-            value={filters.source}
-          />
+          <div className="hidden sm:block">
+            <SelectField
+              icon={<BicepsFlexedIcon aria-hidden="true" />}
+              id="exercise-primary-muscle"
+              label="Músculo principal"
+              onChange={value =>
+                setFilters(current => ({
+                  ...current,
+                  primaryMuscle: value as ExerciseFilters["primaryMuscle"],
+                }))
+              }
+              options={muscles}
+              value={filters.primaryMuscle}
+            />
+          </div>
+          <div className="hidden sm:block">
+            <SelectField
+              icon={<BicepsFlexedIcon aria-hidden="true" />}
+              id="exercise-secondary-muscle"
+              label="Músculo secundário"
+              onChange={value =>
+                setFilters(current => ({
+                  ...current,
+                  secondaryMuscle: value as ExerciseFilters["secondaryMuscle"],
+                }))
+              }
+              options={muscles}
+              value={filters.secondaryMuscle}
+            />
+          </div>
         </div>
         <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
           <div className="space-y-2">

@@ -28,6 +28,7 @@ interface Props {
   value: string[]
   icon: ReactNode
   options: readonly Option[]
+  placeholder?: string
   disabled?: boolean
   error?: { message?: string }
   description?: ReactNode
@@ -40,6 +41,7 @@ export function MultiSelectField({
   value,
   icon,
   options,
+  placeholder = "Selecione",
   disabled,
   error,
   description,
@@ -79,7 +81,7 @@ export function MultiSelectField({
               aria-invalid={!!error}
               disabled={disabled}
               id={id}
-              placeholder={value.length === 0 ? "Selecione" : undefined}
+              placeholder={value.length === 0 ? placeholder : undefined}
             />
           </ComboboxChips>
 
