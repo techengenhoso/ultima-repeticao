@@ -1,3 +1,4 @@
+import { FirebaseAuthError } from "firebase-admin/auth"
 import { NextResponse } from "next/server"
 import { getAdminAuth } from "@/lib/server/firebase-admin"
 import {
@@ -11,14 +12,30 @@ import { readLimitedJson } from "@/lib/workouts/ai/http"
 
 export const runtime = "nodejs"
 const headers = { "Cache-Control": "no-store" }
+
+function isInvalidSession(error: unknown) {
+  return (
+    error instanceof FirebaseAuthError &&
+    [
+      "auth/id-token-expired",
+      "auth/id-token-revoked",
+      "auth/invalid-id-token",
+      "auth/user-disabled",
+      "auth/user-not-found",
+    ].includes(error.code)
+  )
+}
+
 async function handle(request: Request) {
   try {
     const token = request.headers.get("authorization")
     if (!token?.startsWith("Bearer ") || token.length > 8192)
       throw new SessionError(401, "Entre na sua conta para acessar as sessões")
     const auth = getAdminAuth()
-    const user = await auth.verifyIdToken(token.slice(7), true).catch(() => {
-      throw new SessionError(401, "Sua sessão expirou, entre novamente")
+    const user = await auth.verifyIdToken(token.slice(7), true).catch(error => {
+      if (isInvalidSession(error))
+        throw new SessionError(401, "Sua sessão expirou, entre novamente")
+      throw error
     })
     if (request.method === "GET") {
       const params = new URL(request.url).searchParams
