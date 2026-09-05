@@ -20,8 +20,10 @@ export interface WorkoutExercise {
   exerciseReference: WorkoutExerciseReference
   exerciseSnapshot: WorkoutExerciseSnapshot
   sets: number
-  repetitions: number
+  repetitions: string
   initialLoad: number
+  restSeconds?: number
+  targetRir?: number
 }
 
 export interface WorkoutDay {

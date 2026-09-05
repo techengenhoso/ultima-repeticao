@@ -1,6 +1,6 @@
-import { Timestamp } from "firebase/firestore"
 import { z } from "zod"
 import { muscleGroupValues } from "@/lib/values-zod"
+import { repetitionsSchema } from "@/lib/workouts/repetitions"
 
 const compactText = (minimum: number, maximum: number) =>
   z
@@ -30,10 +30,18 @@ export const workoutExerciseSchema = z.object({
     .int("Informe um número inteiro")
     .min(1, "Informe no mínimo 1 série")
     .max(20, "Informe no máximo 20 séries"),
-  repetitions: z
-    .number({ error: "Informe a quantidade de repetições" })
+  repetitions: repetitionsSchema,
+  restSeconds: z
+    .number({ error: "Informe o descanso em segundos" })
+    .min(5, "Use pelo menos 5 segundos")
+    .max(60, "Use no máximo 60 segundos")
+    .optional(),
+  targetRir: z
+    .number({ error: "Informe o RIR desejado" })
     .int("Informe um número inteiro")
-    .min(1, "Informe no mínimo 1 repetição"),
+    .min(0, "Use RIR entre 0 e 5")
+    .max(5, "Use RIR entre 0 e 5")
+    .optional(),
   initialLoad: z
     .number({ error: "Informe a carga inicial" })
     .min(0, "A carga não pode ser negativa")
@@ -84,23 +92,6 @@ const workoutFields = z
   })
 
 export const workoutFormSchema = workoutFields
-
-const workoutDocumentDaySchema = workoutDaySchema.extend({
-  exercises: z.array(
-    workoutExerciseSchema.extend({
-      initialLoad: workoutExerciseSchema.shape.initialLoad.default(0),
-    })
-  ),
-})
-
-export const workoutDocumentSchema = z.object({
-  name: z.string().min(3).max(100),
-  description: z.string().max(500).nullable(),
-  isActive: z.boolean(),
-  days: z.array(workoutDocumentDaySchema).min(1).max(14),
-  createdAt: z.instanceof(Timestamp),
-  updatedAt: z.instanceof(Timestamp),
-})
 
 export function normalizeWorkoutOrders<T extends { order: number }>(items: T[]) {
   return items.map((item, order) => ({ ...item, order }))

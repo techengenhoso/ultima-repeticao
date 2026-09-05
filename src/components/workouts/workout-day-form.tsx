@@ -24,6 +24,7 @@ import { FieldError } from "@/components/ui/field"
 import { type Exercise } from "@/lib/exercises/types"
 import { muscleGroups, muscles } from "@/lib/options-select"
 import type { WorkoutFormValues } from "@/lib/workouts/types"
+import { useWorkoutReview, WorkoutReviewMessages } from "./ai/workout-review-context"
 import { WorkoutExerciseForm } from "./workout-exercise-form"
 
 export function WorkoutDayForm({
@@ -49,6 +50,7 @@ export function WorkoutDayForm({
   onReplaceExercise: (exerciseIndex: number) => void
   onUp: () => void
 }) {
+  const review = useWorkoutReview()
   const [isOpen, setIsOpen] = useState(true)
   const {
     control,
@@ -110,11 +112,11 @@ export function WorkoutDayForm({
   return (
     <Collapsible onOpenChange={setIsOpen} open={isOpen}>
       <Card
-        className="gap-0 border border-border border-l-2 border-l-primary py-0"
+        className="min-w-0 gap-0 border border-border border-l-2 border-l-primary py-0"
         size="sm"
       >
         <CardHeader className="border-b bg-muted/40 py-4 [.border-b]:pb-4">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <CollapsibleTrigger asChild>
               <button
                 aria-label={`${isOpen ? "Ocultar" : "Exibir"} dia ${index + 1}`}
@@ -165,32 +167,38 @@ export function WorkoutDayForm({
                 <ArrowDownIcon />
               </Button>
 
-              <Button
-                aria-label="Duplicar dia"
-                onClick={onDuplicate}
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-              >
-                <CopyIcon />
-              </Button>
+              {!review && (
+                <Button
+                  aria-label="Duplicar dia"
+                  onClick={onDuplicate}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
+                >
+                  <CopyIcon />
+                </Button>
+              )}
 
-              <Button
-                aria-label="Remover dia"
-                disabled={!canRemove}
-                onClick={onRemove}
-                size="icon-sm"
-                type="button"
-                variant="destructive"
-              >
-                <Trash2Icon />
-              </Button>
+              {!review && (
+                <Button
+                  aria-label="Remover dia"
+                  disabled={!canRemove}
+                  onClick={onRemove}
+                  size="icon-sm"
+                  type="button"
+                  variant="destructive"
+                >
+                  <Trash2Icon />
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
 
         <CollapsibleContent>
-          <CardContent className="space-y-6 py-5">
+          <CardContent className="min-w-0 space-y-6 py-5">
+            <WorkoutReviewMessages path={["days", index]} />
+            <WorkoutReviewMessages path={["days", index, "muscleGroups"]} />
             <div>
               <h4 className="font-semibold">Configuração do dia de treino</h4>
 
@@ -209,6 +217,7 @@ export function WorkoutDayForm({
                 placeholder="Segunda-feira"
                 {...register(`days.${index}.name`)}
               />
+              <WorkoutReviewMessages path={["days", index, "name"]} />
 
               <MultiSelectField
                 disabled
@@ -255,11 +264,21 @@ export function WorkoutDayForm({
                 </p>
               </div>
 
-              <Button onClick={onAddExercise} size="sm" type="button" variant="outline">
+              <Button
+                disabled={
+                  exercises.fields.length >=
+                  (review?.prescription.maxExercisesPerDay ?? 30)
+                }
+                onClick={onAddExercise}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
                 Adicionar exercício
               </Button>
             </div>
 
+            <WorkoutReviewMessages path={["days", index, "exercises"]} />
             {exercises.fields.length === 0 ? (
               <div className="flex flex-col items-center gap-2 border border-dashed bg-muted/20 px-5 py-8 text-center">
                 <span className="flex size-10 items-center justify-center bg-muted">

@@ -1,15 +1,16 @@
 import {
-  addDoc,
   collection,
   deleteDoc,
   doc,
   getDoc,
   getDocs,
+  runTransaction,
   serverTimestamp,
   writeBatch,
 } from "firebase/firestore"
-import { db } from "@/lib/firebase"
-import { workoutDocumentSchema } from "@/lib/workouts/schemas"
+import { auth, db } from "@/lib/firebase"
+import { workoutDocumentSchema } from "@/lib/workouts/document-schema"
+import { workoutFormSchema } from "@/lib/workouts/schemas"
 import type { Workout, WorkoutInput } from "@/lib/workouts/types"
 
 function workoutsCollection(uid: string) {
@@ -28,7 +29,8 @@ async function readWorkout(uid: string, id: string) {
   return workout
 }
 
-function cleanInput(input: WorkoutInput) {
+function cleanInput(raw: WorkoutInput) {
+  const input = workoutFormSchema.parse({ ...raw, description: raw.description ?? "" })
   return {
     ...input,
     name: input.name.trim().replace(/\s+/g, " "),
@@ -38,7 +40,9 @@ function cleanInput(input: WorkoutInput) {
       name: day.name.trim().replace(/\s+/g, " "),
       order,
       exercises: day.exercises.map((exercise, exerciseOrder) => ({
-        ...exercise,
+        ...Object.fromEntries(
+          Object.entries(exercise).filter(([, value]) => value !== undefined)
+        ),
         order: exerciseOrder,
       })),
     })),
@@ -59,12 +63,34 @@ export async function listWorkoutsRepository(uid: string) {
     )
 }
 
-export async function createWorkoutRepository(uid: string, input: WorkoutInput) {
-  const reference = await addDoc(workoutsCollection(uid), {
-    ...cleanInput(input),
-    isActive: false,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
+export async function createWorkoutRepository(
+  uid: string,
+  input: WorkoutInput,
+  creationId?: string
+) {
+  if (!auth.currentUser || auth.currentUser.uid !== uid)
+    throw new Error("Entre novamente para salvar")
+  const reference = creationId
+    ? doc(workoutsCollection(uid), creationId)
+    : doc(workoutsCollection(uid))
+  const data = cleanInput(input)
+  // O mesmo identificador permite repetir uma tentativa sem criar outra ficha
+  // se a escrita tiver sido concluída e apenas a leitura da resposta falhar.
+  await runTransaction(db, async transaction => {
+    const existing = await transaction.get(reference)
+    if (existing.exists()) {
+      const previous = parseWorkout(existing.id, existing.data())
+      if (!previous) throw new Error("Ficha inválida")
+      if (JSON.stringify(cleanInput(previous)) !== JSON.stringify(data))
+        transaction.update(reference, { ...data, updatedAt: serverTimestamp() })
+      return
+    }
+    transaction.set(reference, {
+      ...data,
+      isActive: false,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    })
   })
   return readWorkout(uid, reference.id)
 }

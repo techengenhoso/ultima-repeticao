@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 import { type Exercise, muscleGroupLabel } from "@/lib/exercises/types"
 import type { WorkoutFormValues } from "@/lib/workouts/types"
 
+import { useWorkoutReview, WorkoutReviewMessages } from "./ai/workout-review-context"
+
 interface Props {
   dayIndex: number
   exerciseIndex: number
@@ -36,6 +38,8 @@ export function WorkoutExerciseForm({
     formState: { errors },
   } = useFormContext<WorkoutFormValues>()
 
+  const review = useWorkoutReview()
+  const path = ["days", dayIndex, "exercises", exerciseIndex]
   const item = getValues(`days.${dayIndex}.exercises.${exerciseIndex}`)
 
   const current = exercisesByReference.get(
@@ -43,8 +47,8 @@ export function WorkoutExerciseForm({
   )
 
   return (
-    <article className="border bg-background">
-      <header className="flex items-center justify-between gap-3 border-b bg-muted/30 p-3">
+    <article className="min-w-0 border bg-background">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/30 p-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex size-8 shrink-0 items-center justify-center bg-primary text-xs font-bold text-primary-foreground">
             {exerciseIndex + 1}
@@ -113,7 +117,10 @@ export function WorkoutExerciseForm({
         </div>
       </header>
 
-      <div className="grid gap-4 p-4 sm:grid-cols-3">
+      <div className="px-4 pt-2">
+        <WorkoutReviewMessages path={path} />
+      </div>
+      <div className="grid min-w-0 gap-4 p-4 sm:grid-cols-3 *:min-w-0">
         <Field>
           <FieldLabel htmlFor={`sets-${dayIndex}-${exerciseIndex}`}>Séries</FieldLabel>
 
@@ -132,6 +139,7 @@ export function WorkoutExerciseForm({
           <FieldError
             errors={[errors.days?.[dayIndex]?.exercises?.[exerciseIndex]?.sets]}
           />
+          <WorkoutReviewMessages path={[...path, "sets"]} />
         </Field>
 
         <Field>
@@ -139,19 +147,15 @@ export function WorkoutExerciseForm({
 
           <Input
             id={`reps-${dayIndex}-${exerciseIndex}`}
-            inputMode="numeric"
-            min={1}
-            placeholder="12"
-            step={1}
-            type="number"
-            {...register(`days.${dayIndex}.exercises.${exerciseIndex}.repetitions`, {
-              valueAsNumber: true,
-            })}
+            placeholder="8-12"
+            type="text"
+            {...register(`days.${dayIndex}.exercises.${exerciseIndex}.repetitions`)}
           />
 
           <FieldError
             errors={[errors.days?.[dayIndex]?.exercises?.[exerciseIndex]?.repetitions]}
           />
+          <WorkoutReviewMessages path={[...path, "repetitions"]} />
         </Field>
 
         <Field>
@@ -175,6 +179,32 @@ export function WorkoutExerciseForm({
             errors={[errors.days?.[dayIndex]?.exercises?.[exerciseIndex]?.initialLoad]}
           />
         </Field>
+        {(
+          [
+            { name: "restSeconds", label: "Descanso" },
+            { name: "targetRir", label: "RIR desejado" },
+          ] as const
+        ).map(metric => (
+          <Field key={metric.name}>
+            <FieldLabel htmlFor={`${metric.name}-${dayIndex}-${exerciseIndex}`}>
+              {metric.label}
+            </FieldLabel>
+            <Input
+              id={`${metric.name}-${dayIndex}-${exerciseIndex}`}
+              inputMode="numeric"
+              placeholder={review ? "Obrigatório" : "Opcional"}
+              step={metric.name === "targetRir" ? 1 : "any"}
+              type="number"
+              {...register(`days.${dayIndex}.exercises.${exerciseIndex}.${metric.name}`, {
+                setValueAs: value => (value === "" ? undefined : Number(value)),
+              })}
+            />
+            <FieldError
+              errors={[errors.days?.[dayIndex]?.exercises?.[exerciseIndex]?.[metric.name]]}
+            />
+            <WorkoutReviewMessages path={[...path, metric.name]} />
+          </Field>
+        ))}
       </div>
     </article>
   )

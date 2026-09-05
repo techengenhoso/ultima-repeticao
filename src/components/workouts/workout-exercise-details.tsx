@@ -55,6 +55,18 @@ export function WorkoutExerciseDetails({ exercise, exercisesByReference, index }
             maximumFractionDigits: 2,
           })} kg`}
         />
+        <WorkoutExerciseMetric
+          label="Descanso"
+          value={
+            exercise.restSeconds === undefined
+              ? "Não informado"
+              : `${exercise.restSeconds} s`
+          }
+        />
+        <WorkoutExerciseMetric
+          label="RIR desejado"
+          value={exercise.targetRir?.toString() ?? "Não informado"}
+        />
       </div>
     </article>
   )

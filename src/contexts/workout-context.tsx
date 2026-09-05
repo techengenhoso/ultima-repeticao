@@ -91,6 +91,15 @@ function useWorkoutState() {
     }
   }
 
+  async function createGeneratedWorkout(values: WorkoutInput, creationId: string) {
+    const saved = await createWorkoutRepository(user.uid, values, creationId)
+    setWorkouts(current =>
+      sortWorkouts([...current.filter(item => item.id !== saved.id), saved])
+    )
+    toast.success("Ficha criada")
+    return saved
+  }
+
   async function activateWorkout(workout: Workout) {
     setIsActivating(true)
     try {
@@ -173,6 +182,7 @@ function useWorkoutState() {
   return {
     activateWorkout,
     confirmDelete,
+    createGeneratedWorkout,
     deactivateWorkout,
     deleting,
     details,

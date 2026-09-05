@@ -8,6 +8,11 @@ service cloud.firestore {
         return request.auth != null && request.auth.uid == uid;
       }
 
+      match /workoutSessions/{sessionId} {
+        allow read: if isOwner();
+        allow write: if false;
+      }
+
       function validExerciseContent(data) {
         return data.name is string && data.name.size() >= 3 && data.name.size() <= 100
           && data.muscleGroup in [
@@ -73,7 +78,7 @@ service cloud.firestore {
         function validExercise(item) {
           return item.keys().hasOnly([
               'id', 'order', 'exerciseReference', 'exerciseSnapshot', 'sets',
-              'repetitions', 'initialLoad'
+              'repetitions', 'initialLoad', 'restSeconds', 'targetRir'
             ])
             && item.id is string && item.id.size() > 0
             && item.order is int && item.order >= 0 && item.order < 30
@@ -89,10 +94,15 @@ service cloud.firestore {
             && item.exerciseSnapshot.name.size() <= 100
             && validMuscleGroup(item.exerciseSnapshot.muscleGroup)
             && item.sets is int && item.sets >= 1 && item.sets <= 20
-            && item.repetitions is string
-            && item.repetitions.size() >= 1 && item.repetitions.size() <= 30
-            && item.initialLoad is number
-            && item.initialLoad >= 0 && item.initialLoad <= 1000;
+            && ((item.repetitions is string
+                && item.repetitions.size() >= 1 && item.repetitions.size() <= 30)
+              || (item.repetitions is int && item.repetitions >= 1))
+            && (!('initialLoad' in item) || (item.initialLoad is number
+              && item.initialLoad >= 0 && item.initialLoad <= 1000))
+            && (!('restSeconds' in item) || (item.restSeconds is number
+              && item.restSeconds >= 30 && item.restSeconds <= 600))
+            && (!('targetRir' in item) || (item.targetRir is int
+              && item.targetRir >= 0 && item.targetRir <= 5));
         }
 
         function validDay(day) {

@@ -1,6 +1,7 @@
 "use client"
 
 import { ChevronDownIcon } from "lucide-react"
+import { StartSessionButton } from "@/components/sessions/start-session-button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -104,6 +105,7 @@ export function WorkoutDetails() {
                         </CardHeader>
                         <CollapsibleContent>
                           <CardContent className="space-y-6 py-5">
+                            <StartSessionButton dayId={day.id} planId={workout.id} />
                             <div>
                               <h3 className="font-semibold">Configuração do dia</h3>
                               <p className="text-xs text-muted-foreground">

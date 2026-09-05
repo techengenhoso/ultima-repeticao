@@ -1,6 +1,5 @@
-import { ActivityIcon } from "lucide-react"
 import type { Metadata } from "next"
-import { PlaceholderPage } from "@/components/placeholder-page"
+import { SessionHistory } from "@/components/sessions/session-history"
 
 export const metadata: Metadata = {
   title: "Evolução | Última Repetição",
@@ -8,11 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function ProgressPage() {
-  return (
-    <PlaceholderPage
-      description="Acompanhe seus resultados e sua constância"
-      icon={ActivityIcon}
-      title="Evolução"
-    />
-  )
+  return <SessionHistory title="Evolução" />
 }

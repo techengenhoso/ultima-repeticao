@@ -1,6 +1,5 @@
-import { HistoryIcon } from "lucide-react"
 import type { Metadata } from "next"
-import { PlaceholderPage } from "@/components/placeholder-page"
+import { SessionHistory } from "@/components/sessions/session-history"
 
 export const metadata: Metadata = {
   title: "Histórico | Última Repetição",
@@ -8,11 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function HistoryPage() {
-  return (
-    <PlaceholderPage
-      description="Reveja os treinos realizados ao longo do tempo"
-      icon={HistoryIcon}
-      title="Histórico"
-    />
-  )
+  return <SessionHistory />
 }

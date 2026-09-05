@@ -1,0 +1,14 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "workoutSessions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "exerciseKeys", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "startedAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

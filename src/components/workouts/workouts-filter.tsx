@@ -7,11 +7,14 @@ import { TextField } from "@/components/text-field"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { WorkoutAiAssistant } from "@/components/workouts/ai/workout-ai-assistant"
+import { useUser } from "@/contexts/user-context"
 import { useWorkout } from "@/contexts/workout-context"
 import { statuses } from "@/lib/options-select"
 import { emptyWorkoutFilters, type WorkoutFilters } from "@/lib/workouts/catalog"
 
 export function WorkoutsFilter() {
+  const { user } = useUser()
   const {
     filteredWorkouts,
     setFilters: onFiltersChange,
@@ -67,7 +70,7 @@ export function WorkoutsFilter() {
           {resultCount !== 1 && "s"}
         </Badge>
 
-        <div className="order-1 grid w-full grid-cols-2 gap-5 lg:order-2 lg:flex lg:w-auto">
+        <div className="order-1 grid w-full gap-3 sm:grid-cols-2 lg:order-2 lg:flex lg:w-auto">
           <Button
             disabled={!hasFilters}
             onClick={clearFilters}
@@ -76,6 +79,8 @@ export function WorkoutsFilter() {
           >
             Limpar filtros
           </Button>
+
+          <WorkoutAiAssistant key={user.uid} />
 
           <Button onClick={() => onCreate(null)} type="button">
             Nova ficha

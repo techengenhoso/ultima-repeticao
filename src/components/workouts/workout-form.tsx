@@ -110,7 +110,7 @@ export function WorkoutForm({
               id="description"
               label="Descrição"
               maxLength={500}
-              placeholder="Objetivo ou observações do planejamento"
+              placeholder="Observações da ficha"
               {...register("description")}
             />
           </div>
