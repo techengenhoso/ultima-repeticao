@@ -1,11 +1,11 @@
 import type { Metadata } from "next"
-import { SessionHistory } from "@/components/sessions/session-history"
+import { ProgressDashboard } from "@/components/progress/progress-dashboard"
 
 export const metadata: Metadata = {
   title: "Evolução | Última Repetição",
-  description: "Visualize seu progresso e acompanhe a evolução dos seus resultados",
+  description: "Acompanhe suas avaliações corporais e seu desempenho nos treinos",
 }
 
 export default function ProgressPage() {
-  return <SessionHistory title="Evolução" />
+  return <ProgressDashboard />
 }

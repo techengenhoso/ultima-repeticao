@@ -32,15 +32,15 @@ export const workoutExerciseSchema = z.object({
     .max(20, "Informe no máximo 20 séries"),
   repetitions: repetitionsSchema,
   restSeconds: z
-    .number({ error: "Informe o descanso em segundos" })
-    .min(5, "Use pelo menos 5 segundos")
-    .max(60, "Use no máximo 60 segundos")
+    .number({ error: "Campo obrigatório" })
+    .min(5, "Descanse pelo menos 5 segundos")
+    .max(1800, "Descanse no máximo 30 minutos")
     .optional(),
   targetRir: z
-    .number({ error: "Informe o RIR desejado" })
+    .number({ error: "Campo obrigatório" })
     .int("Informe um número inteiro")
-    .min(0, "Use RIR entre 0 e 5")
-    .max(5, "Use RIR entre 0 e 5")
+    .min(0, "Quantidade minima é 0")
+    .max(5, "Hora de aumentar a carga")
     .optional(),
   initialLoad: z
     .number({ error: "Informe a carga inicial" })

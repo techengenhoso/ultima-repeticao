@@ -6,10 +6,12 @@ import { useFormContext } from "react-hook-form"
 import { SelectField } from "@/components/select-field"
 import { TextField } from "@/components/text-field"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -39,10 +41,24 @@ function exerciseDefaults(exercise: Exercise, prescription?: WorkoutPrescription
   return {
     sets: rules.sets.min,
     repetitions: rules.repetitions[0],
-    initialLoad: 0,
+    initialLoad: Number.NaN,
     restSeconds: rules.restSeconds.min,
     targetRir: rules.targetRir.max,
   }
+}
+
+function exerciseBadgeLabel({
+  isAlreadyAdded,
+  isPending,
+  source,
+}: {
+  isAlreadyAdded: boolean
+  isPending: boolean
+  source: Exercise["source"]
+}) {
+  if (isAlreadyAdded) return "Adicionado"
+  if (isPending) return "Selecionado"
+  return source === "default" ? "Padrão" : "Personalizado"
 }
 
 export function WorkoutExerciseSelector({
@@ -57,7 +73,49 @@ export function WorkoutExerciseSelector({
   const review = useWorkoutReview()
   const { getValues, setValue } = useFormContext<WorkoutFormValues>()
   const [filters, setFilters] = useState<ExerciseFilters>(emptyExerciseFilters)
+  const [selectedReferences, setSelectedReferences] = useState<string[]>([])
   const results = useMemo(() => filterExercises(exercises, filters), [exercises, filters])
+  const currentExerciseCount = target
+    ? getValues(`days.${target.dayIndex}.exercises`).length
+    : 0
+  const remainingSelections = Math.max(
+    0,
+    (review?.prescription.maxExercisesPerDay ?? 30) - currentExerciseCount
+  )
+
+  function close() {
+    setFilters(emptyExerciseFilters)
+    setSelectedReferences([])
+    onClose()
+  }
+
+  const referenceOf = (exercise: Exercise) => `${exercise.source}:${exercise.id}`
+
+  function addSelectedExercises() {
+    if (!target || target.exerciseIndex !== undefined) return
+    const current = getValues(`days.${target.dayIndex}.exercises`)
+    const selected = exercises.filter(exercise =>
+      selectedReferences.includes(referenceOf(exercise))
+    )
+    if (selected.length === 0) return
+
+    setValue(
+      `days.${target.dayIndex}.exercises`,
+      [
+        ...current,
+        ...selected.map((exercise, index) => ({
+          id: crypto.randomUUID(),
+          order: current.length + index,
+          exerciseReference: { source: exercise.source, exerciseId: exercise.id },
+          exerciseSnapshot: { name: exercise.name, muscleGroup: exercise.muscleGroup },
+          ...exerciseDefaults(exercise, review?.prescription),
+        })),
+      ],
+      { shouldDirty: true, shouldValidate: true }
+    )
+    close()
+  }
+
   function select(exercise: Exercise) {
     if (!target) return
     const current = getValues(`days.${target.dayIndex}.exercises`)
@@ -85,16 +143,26 @@ export function WorkoutExerciseSelector({
       shouldValidate: true,
     })
     setFilters(emptyExerciseFilters)
-    onClose()
+    close()
+  }
+
+  function toggleExercise(exercise: Exercise) {
+    const reference = referenceOf(exercise)
+    setSelectedReferences(current =>
+      current.includes(reference)
+        ? current.filter(item => item !== reference)
+        : [...current, reference]
+    )
   }
 
   return (
-    <Dialog onOpenChange={open => !open && onClose()} open={target !== null}>
+    <Dialog onOpenChange={open => !open && close()} open={target !== null}>
       <DialogContent className="flex h-[calc(100svh-1rem)] max-h-192 flex-col overflow-hidden sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Selecionar exercício</DialogTitle>
           <DialogDescription>Escolha um exercício da sua biblioteca</DialogDescription>
         </DialogHeader>
+
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <TextField
             icon={<SearchIcon aria-hidden="true" />}
@@ -107,6 +175,7 @@ export function WorkoutExerciseSelector({
             type="text"
             value={filters.search}
           />
+
           <div className="hidden sm:block">
             <SelectField
               icon={<GaugeIcon aria-hidden="true" />}
@@ -122,6 +191,7 @@ export function WorkoutExerciseSelector({
               value={filters.difficulty}
             />
           </div>
+
           <div className="hidden sm:block">
             <SelectField
               icon={<SearchIcon aria-hidden="true" />}
@@ -137,6 +207,7 @@ export function WorkoutExerciseSelector({
               value={filters.source}
             />
           </div>
+
           <SelectField
             icon={<SearchIcon aria-hidden="true" />}
             id="exercise-group"
@@ -150,6 +221,7 @@ export function WorkoutExerciseSelector({
             options={muscleGroups}
             value={filters.muscle}
           />
+
           <div className="hidden sm:block">
             <SelectField
               icon={<BicepsFlexedIcon aria-hidden="true" />}
@@ -165,6 +237,7 @@ export function WorkoutExerciseSelector({
               value={filters.primaryMuscle}
             />
           </div>
+
           <div className="hidden sm:block">
             <SelectField
               icon={<BicepsFlexedIcon aria-hidden="true" />}
@@ -181,16 +254,24 @@ export function WorkoutExerciseSelector({
             />
           </div>
         </div>
+
         <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
           <div className="space-y-2">
             {results.map(exercise => {
-              const isSelected = target
+              const reference = referenceOf(exercise)
+              const isAlreadyAdded = target
                 ? getValues(`days.${target.dayIndex}.exercises`).some(
-                    item =>
+                    (item, index) =>
+                      index !== target.exerciseIndex &&
                       item.exerciseReference.source === exercise.source &&
                       item.exerciseReference.exerciseId === exercise.id
                   )
                 : false
+              const isPending = selectedReferences.includes(reference)
+              const isSelected = isAlreadyAdded || isPending
+              const isAdding = target?.exerciseIndex === undefined
+              const isSelectionLimitReached =
+                isAdding && !isPending && selectedReferences.length >= remainingSelections
 
               return (
                 <button
@@ -199,8 +280,9 @@ export function WorkoutExerciseSelector({
                       ? "flex w-full items-center justify-between gap-4 border border-primary bg-muted p-3 text-left"
                       : "flex w-full items-center justify-between gap-4 border p-3 text-left hover:bg-muted"
                   }
+                  disabled={isAlreadyAdded || isSelectionLimitReached}
                   key={`${exercise.source}:${exercise.id}`}
-                  onClick={() => select(exercise)}
+                  onClick={() => (isAdding ? toggleExercise(exercise) : select(exercise))}
                   type="button"
                 >
                   <span className="min-w-0">
@@ -216,15 +298,16 @@ export function WorkoutExerciseSelector({
                     </span>
                   </span>
                   <Badge variant={isSelected ? "default" : "secondary"}>
-                    {isSelected
-                      ? "Selecionado"
-                      : exercise.source === "default"
-                        ? "Padrão"
-                        : "Personalizado"}
+                    {exerciseBadgeLabel({
+                      isAlreadyAdded,
+                      isPending,
+                      source: exercise.source,
+                    })}
                   </Badge>
                 </button>
               )
             })}
+
             {results.length === 0 && (
               <p className="p-8 text-center text-muted-foreground">
                 Nenhum exercício encontrado
@@ -232,6 +315,23 @@ export function WorkoutExerciseSelector({
             )}
           </div>
         </div>
+
+        {target?.exerciseIndex === undefined && (
+          <DialogFooter className="border-t pt-4">
+            <p aria-live="polite" className="mr-auto text-sm text-muted-foreground">
+              {selectedReferences.length === 0
+                ? "Selecione os exercícios que deseja adicionar"
+                : `${selectedReferences.length} ${selectedReferences.length === 1 ? "exercício selecionado" : "exercícios selecionados"}`}
+            </p>
+            <Button
+              disabled={selectedReferences.length === 0}
+              onClick={addSelectedExercises}
+              type="button"
+            >
+              Adicionar
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   )

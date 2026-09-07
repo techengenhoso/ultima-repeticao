@@ -67,6 +67,10 @@ function DialogContent({
         {...props}
       >
         {children}
+        <div
+          className="pointer-events-none absolute inset-0"
+          data-slot="combobox-portal"
+        />
         {showCloseButton && (
           <DialogPrimitive.Close data-slot="dialog-close" asChild>
             <Button

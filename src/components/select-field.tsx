@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 
 interface Props {
   id: string
@@ -20,6 +21,8 @@ interface Props {
   error?: { message?: string }
   description?: ReactNode
   onChange: (value: string) => void
+  className?: string
+  "aria-label"?: string
 }
 
 export function SelectField({
@@ -31,10 +34,11 @@ export function SelectField({
   error,
   description,
   onChange,
+  className,
   ...props
 }: Props) {
   return (
-    <Field>
+    <Field className={cn(className)}>
       {label && <FieldLabel htmlFor={id}>{label}</FieldLabel>}
 
       <Select

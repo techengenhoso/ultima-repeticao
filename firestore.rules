@@ -13,6 +13,10 @@ service cloud.firestore {
         allow write: if false;
       }
 
+      match /bodyAssessments/{assessmentId} {
+        allow read, write: if false;
+      }
+
       function validExerciseContent(data) {
         return data.name is string && data.name.size() >= 3 && data.name.size() <= 100
           && data.muscleGroup in [

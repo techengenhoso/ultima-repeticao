@@ -72,6 +72,8 @@ const steps: { title: string; fields: FieldPath<AiWorkoutInput>[] }[] = [
   },
 ]
 
+const dialogHeightByStep = ["", "sm:h-[50rem]", ""] as const
+
 function generationError(error: unknown, signal: AbortSignal) {
   if (signal.aborted) return "A geração demorou mais que o esperado, tente novamente"
   if (error instanceof GenerationClientError) return error.message
@@ -110,7 +112,8 @@ export function WorkoutAiAssistant() {
   const activeRequest = useRef<AbortController | null>(null)
   const heading = useRef<HTMLHeadingElement>(null)
   const form = useForm<AiWorkoutInput>({
-    mode: "onChange",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
     resolver: zodResolver(aiWorkoutInputSchema, {
       error: () => "Confira o valor informado",
     }),
@@ -220,7 +223,7 @@ export function WorkoutAiAssistant() {
         </DialogTrigger>
 
         <DialogContent
-          className="flex max-h-[calc(100dvh-2rem)] min-w-0 flex-col gap-4 overflow-hidden p-4 sm:max-w-4xl sm:p-6"
+          className={`flex max-h-[calc(100dvh-2rem)] min-w-0 flex-col gap-4 overflow-hidden p-4 sm:max-w-4xl sm:p-6 ${dialogHeightByStep[step]}`}
           showCloseButton={!pending}
         >
           <DialogHeader className="pr-8">

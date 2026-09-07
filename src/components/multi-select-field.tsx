@@ -53,7 +53,11 @@ export function MultiSelectField({
   const setAnchor = useCallback(
     (node: HTMLDivElement | null) => {
       anchor.current = node
-      setPortalContainer(node?.closest<HTMLElement>("[data-slot=dialog-content]") ?? null)
+      setPortalContainer(
+        node
+          ?.closest<HTMLElement>("[data-slot=dialog-content]")
+          ?.querySelector<HTMLElement>("[data-slot=combobox-portal]") ?? null
+      )
     },
     [anchor]
   )
@@ -94,11 +98,11 @@ export function MultiSelectField({
           <ComboboxEmpty>Nenhuma opção encontrada</ComboboxEmpty>
 
           <ComboboxList>
-            {options.map(option => (
+            {option => (
               <ComboboxItem key={option.value} value={option}>
                 {option.label}
               </ComboboxItem>
-            ))}
+            )}
           </ComboboxList>
         </ComboboxContent>
       </Combobox>

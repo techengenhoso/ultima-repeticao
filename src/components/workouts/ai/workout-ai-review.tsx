@@ -34,7 +34,6 @@ import { WorkoutReviewContext, WorkoutReviewMessages } from "./workout-review-co
 export function WorkoutAiReview({
   result,
   input,
-  heading,
   busy,
   error,
   onCancel,

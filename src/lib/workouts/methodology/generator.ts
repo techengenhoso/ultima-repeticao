@@ -47,7 +47,7 @@ function makeExercise(
     repetitions: rules.repetitions[0],
     restSeconds: rules.restSeconds.min,
     targetRir: rules.targetRir.max,
-    initialLoad: 0,
+    initialLoad: Number.NaN,
   }
 }
 
@@ -134,8 +134,7 @@ function planFrom(
 ): WorkoutFormValues {
   return {
     name: input.name,
-    description:
-      "Ficha montada automaticamente pelas regras de planejamento, revise antes de salvar",
+    description: "Ficha montada automaticamente pelas regras de planejamento",
     days: days.map((exercises, index) => ({
       id: `day-${index}`,
       name: prescription.suggestedSplit[index],
