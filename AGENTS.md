@@ -143,7 +143,7 @@ Após a alteração:
 1. Revise o diff e confirme que somente arquivos do escopo foram modificados
 2. Rode `npx tsc --noEmit` para alterações TypeScript
 3. Rode `npm run build` quando a alteração afetar rotas, Next.js, API, Firebase, configuração ou integração entre módulos
-4. Rode `npm run lint` ou `npm run format` com cautela: ambos escrevem arquivos. Não execute uma reescrita global em um diretório com alterações fora do escopo
+4. Não execute o Biome (`npm run lint`, `npm run format` ou comandos `npx @biomejs/biome`): o usuário é responsável por essa verificação e formatação. Não execute uma reescrita global em um diretório com alterações fora do escopo
 5. Para mudanças no Firestore ou API, confira autenticação, isolamento por usuário, validação de entrada, mensagens de erro e compatibilidade dos dados
 6. Para interface, teste o fluxo principal e ao menos um viewport móvel
 
