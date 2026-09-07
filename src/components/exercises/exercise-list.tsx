@@ -12,7 +12,7 @@ export function ExerciseList() {
   return (
     <div className="space-y-8">
       {isLoading ? (
-        <Skeletons />
+        <Skeletons cards={2} />
       ) : filteredExercises.length === 0 ? (
         <Empty className="border">
           <EmptyHeader>

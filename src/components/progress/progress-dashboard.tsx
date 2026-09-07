@@ -2,7 +2,9 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
+  ActivityIcon,
   CalendarIcon,
+  DumbbellIcon,
   LoaderCircleIcon,
   PencilIcon,
   RulerIcon,
@@ -28,6 +30,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   type ChartConfig,
   ChartContainer,
@@ -368,103 +378,101 @@ function BodyChart({ assessments }: { assessments: BodyAssessment[] }) {
     value: { label: field?.label, color: "var(--chart-1)" },
   } satisfies ChartConfig
   return (
-    <section className="space-y-3 border bg-card p-4">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h2 className="font-semibold">Gráfico corporal</h2>
+    <Card>
+      <CardHeader>
+        <CardTitle>Gráfico corporal</CardTitle>
+        <CardDescription>Escolha uma métrica para analisar</CardDescription>
+        <CardAction className="col-span-full col-start-1 row-span-1 row-start-3 w-full sm:col-span-1 sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:w-64">
+          <SelectField
+            aria-label="Métrica do gráfico"
+            className="w-full"
+            icon={<ScaleIcon aria-hidden="true" />}
+            id="body-chart-metric"
+            onChange={selectedMetric => {
+              if (!selectedMetric) {
+                setSelected(null)
+                return
+              }
+              const [group, key] = selectedMetric.split(".")
+              setSelected({ group: group as AssessmentGroup, key })
+            }}
+            options={metricChoices.map(metric => ({
+              label: metricLabel(metric),
+              value: `${metric.group}.${metric.key}`,
+            }))}
+            value={selected ? `${selected.group}.${selected.key}` : ""}
+          />
+        </CardAction>
+      </CardHeader>
+      <CardContent>
+        {selected && data.length ? (
+          <>
+            <ChartContainer className="h-64 w-full" config={config}>
+              <LineChart
+                accessibilityLayer
+                data={data}
+                margin={{ bottom: 4, left: 4, right: 12, top: 28 }}
+              >
+                <CartesianGrid vertical={false} />
 
-          <p className="text-sm text-muted-foreground">
-            Escolha uma métrica para analisar
-          </p>
-        </div>
+                <XAxis dataKey="date" minTickGap={16} tickFormatter={formatChartDate} />
 
-        <SelectField
-          aria-label="Métrica do gráfico"
-          className="w-full sm:w-64"
-          icon={<ScaleIcon aria-hidden="true" />}
-          id="body-chart-metric"
-          onChange={selectedMetric => {
-            if (!selectedMetric) {
-              setSelected(null)
-              return
-            }
-            const [group, key] = selectedMetric.split(".")
-            setSelected({ group: group as AssessmentGroup, key })
-          }}
-          options={metricChoices.map(metric => ({
-            label: metricLabel(metric),
-            value: `${metric.group}.${metric.key}`,
-          }))}
-          value={selected ? `${selected.group}.${selected.key}` : ""}
-        />
-      </div>
-      {selected && data.length ? (
-        <>
-          <ChartContainer className="h-64 w-full" config={config}>
-            <LineChart
-              accessibilityLayer
-              data={data}
-              margin={{ bottom: 4, left: 4, right: 12, top: 28 }}
-            >
-              <CartesianGrid vertical={false} />
+                <YAxis width={48} />
 
-              <XAxis dataKey="date" minTickGap={16} tickFormatter={formatChartDate} />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      formatter={item =>
+                        `${Number(item).toLocaleString("pt-BR")} ${field?.unit ?? ""}`
+                      }
+                      labelFormatter={label => formatDate(String(label))}
+                    />
+                  }
+                />
 
-              <YAxis width={48} />
-
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
+                <Line
+                  dataKey="value"
+                  dot
+                  name="value"
+                  stroke="var(--color-value)"
+                  type="monotone"
+                >
+                  <LabelList
+                    dataKey="value"
+                    fill="var(--color-value)"
                     formatter={item =>
                       `${Number(item).toLocaleString("pt-BR")} ${field?.unit ?? ""}`
                     }
-                    labelFormatter={label => formatDate(String(label))}
+                    position="top"
                   />
-                }
-              />
+                </Line>
+              </LineChart>
+            </ChartContainer>
 
-              <Line
-                dataKey="value"
-                dot
-                name="value"
-                stroke="var(--color-value)"
-                type="monotone"
-              >
-                <LabelList
-                  dataKey="value"
-                  fill="var(--color-value)"
-                  formatter={item =>
-                    `${Number(item).toLocaleString("pt-BR")} ${field?.unit ?? ""}`
-                  }
-                  position="top"
-                />
-              </Line>
-            </LineChart>
-          </ChartContainer>
+            <p className="sr-only">
+              {field?.label}:{" "}
+              {data
+                .map(item => `${formatDate(item.date)} ${item.value} ${field?.unit ?? ""}`)
+                .join(", ")}
+            </p>
+          </>
+        ) : (
+          <Empty className="border">
+            <EmptyHeader>
+              <EmptyTitle>
+                {selected ? "Nenhum resultado encontrado" : "Selecione uma métrica"}
+              </EmptyTitle>
 
-          <p className="sr-only">
-            {field?.label}:{" "}
-            {data
-              .map(item => `${formatDate(item.date)} ${item.value} ${field?.unit ?? ""}`)
-              .join(", ")}
-          </p>
-        </>
-      ) : (
-        <Empty className="border">
-          <EmptyHeader>
-            <EmptyTitle>
-              {selected ? "Nenhum resultado encontrado" : "Selecione uma métrica"}
-            </EmptyTitle>
-
-            <EmptyDescription>
-              {selected
-                ? "Não há valores cadastrados para a métrica selecionada"
-                : "Nenhuma métrica foi selecionada"}
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      )}
-    </section>
+              <EmptyDescription>
+                {selected
+                  ? "Não há valores cadastrados para a métrica selecionada"
+                  : "Nenhuma métrica foi selecionada"}
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
@@ -475,34 +483,43 @@ function Indicators({ assessments }: { assessments: BodyAssessment[] }) {
     { group: "bodyIndex", key: "muscleRatePercentage" },
   ]
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {metrics.flatMap(metric => {
         const latest = sortAssessments(assessments).find(
           item => typeof value(item, metric.group, metric.key) === "number"
         )
+
         const current = latest ? value(latest, metric.group, metric.key) : null
+
         if (typeof current !== "number") return []
+
         const field = fieldFor(metric.group, metric.key)
         const change = comparison(assessments, metric)
 
         return (
-          <article className="border bg-card p-4" key={metric.key}>
-            <p className="text-sm text-muted-foreground">{field?.label}</p>
-            <p className="mt-1 text-2xl font-bold">
-              {current.toLocaleString("pt-BR")} {field?.unit}
-            </p>
-            <p className="mt-2 text-xs text-muted-foreground">
-              {change ? (
-                <>
-                  {change.difference > 0 ? "+" : ""}
-                  {change.difference.toLocaleString("pt-BR")}
-                  {field?.unit} desde a avaliação anterior
-                </>
-              ) : (
-                "Sem avaliação anterior para comparar"
-              )}
-            </p>
-          </article>
+          <Card className="gap-2 py-5" key={metric.key}>
+            <CardHeader>
+              <CardDescription>{field?.label}</CardDescription>
+
+              <CardTitle className="text-2xl tracking-normal normal-case">
+                {current.toLocaleString("pt-BR")} {field?.unit}
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                {change ? (
+                  <>
+                    {change.difference > 0 ? "+" : ""}
+                    {change.difference.toLocaleString("pt-BR")}
+                    {field?.unit} desde a avaliação anterior
+                  </>
+                ) : (
+                  "Sem avaliação anterior para comparar"
+                )}
+              </p>
+            </CardContent>
+          </Card>
         )
       })}
     </div>
@@ -536,6 +553,7 @@ function AssessmentDetails({ item }: { item: BodyAssessment }) {
     </div>
   )
 }
+
 function AssessmentHistory({
   items,
   onView,
@@ -563,48 +581,47 @@ function AssessmentHistory({
   return (
     <div className="grid gap-3">
       {visibleItems.map(item => (
-        <article
-          className="flex flex-wrap items-center justify-between gap-3 border bg-card p-4"
-          key={item.id}
-        >
-          <div>
-            <h3 className="font-semibold">{formatDate(item.assessmentDate)}</h3>
+        <Card key={item.id} size="sm">
+          <CardHeader>
+            <CardTitle className="text-base normal-case tracking-normal">
+              {formatDate(item.assessmentDate)}
+            </CardTitle>
+            <CardDescription>Criação da avaliação</CardDescription>
+            <CardAction>
+              <div className="flex gap-1">
+                <Button
+                  aria-label="Visualizar avaliação"
+                  onClick={() => onView(item)}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  Detalhes
+                </Button>
 
-            <p className="text-sm text-muted-foreground">criação da avaliação</p>
-          </div>
+                <Button
+                  aria-label="Editar avaliação"
+                  onClick={() => onEdit(item)}
+                  size="icon-sm"
+                  type="button"
+                  variant="blue"
+                >
+                  <PencilIcon />
+                </Button>
 
-          <div className="flex gap-1">
-            <Button
-              aria-label="Visualizar avaliação"
-              onClick={() => onView(item)}
-              size="sm"
-              type="button"
-              variant="outline"
-            >
-              Detalhes
-            </Button>
-
-            <Button
-              aria-label="Editar avaliação"
-              onClick={() => onEdit(item)}
-              size="icon-sm"
-              type="button"
-              variant="blue"
-            >
-              <PencilIcon />
-            </Button>
-
-            <Button
-              aria-label="Excluir avaliação"
-              onClick={() => onDelete(item)}
-              size="icon-sm"
-              type="button"
-              variant="destructive"
-            >
-              <Trash2Icon />
-            </Button>
-          </div>
-        </article>
+                <Button
+                  aria-label="Excluir avaliação"
+                  onClick={() => onDelete(item)}
+                  size="icon-sm"
+                  type="button"
+                  variant="destructive"
+                >
+                  <Trash2Icon />
+                </Button>
+              </div>
+            </CardAction>
+          </CardHeader>
+        </Card>
       ))}
       {pageCount >= 1 && (
         <Pagination>
@@ -802,7 +819,7 @@ function BodyAssessments() {
         </Dialog>
       )}
       {loading ? (
-        <Skeletons />
+        <Skeletons cards={4} />
       ) : error ? (
         <div role="alert">
           <p className="text-destructive">{error}</p>
@@ -938,77 +955,98 @@ function Performance() {
     )
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold">Desempenho nos treinos</h2>
-        <p className="text-sm text-muted-foreground">
-          Séries de trabalho concluídas nas suas sessões
-        </p>
-      </div>
       {options.length ? (
         <>
-          <select
-            aria-label="Exercício"
-            className="h-11 max-w-full border bg-background px-3"
-            onChange={e => setSelected(e.target.value)}
-            value={selected}
-          >
-            {options.map(option => (
-              <option key={option.key} value={option.key}>
-                {option.name} ·{" "}
-                {option.source === "custom" ? "Personalizado" : "Biblioteca"}
-              </option>
-            ))}
-          </select>
           {data.latest && (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <article className="border bg-card p-4">
-                Última carga
-                <strong className="block text-xl">{data.latest.load} kg</strong>
-              </article>
-              <article className="border bg-card p-4">
-                Melhor série
-                <strong className="block text-xl">
-                  {data.latest.best.load} kg × {data.latest.best.performedRepetitions}
-                </strong>
-              </article>
-              <article className="border bg-card p-4">
-                Maior carga<strong className="block text-xl">{data.maxLoad} kg</strong>
-              </article>
-              <article className="border bg-card p-4">
-                Sessões concluídas
-                <strong className="block text-xl">{data.sessions}</strong>
-              </article>
+              <Card>
+                <CardHeader>
+                  <CardDescription>Última carga</CardDescription>
+                  <CardTitle className="text-2xl tracking-normal normal-case">
+                    {data.latest.load} kg
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardDescription>Melhor série</CardDescription>
+                  <CardTitle className="text-2xl tracking-normal normal-case">
+                    {data.latest.best.load} kg × {data.latest.best.performedRepetitions}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardDescription>Maior carga</CardDescription>
+                  <CardTitle className="text-2xl tracking-normal normal-case">
+                    {data.maxLoad} kg
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardDescription>Sessões concluídas</CardDescription>
+                  <CardTitle className="text-2xl tracking-normal normal-case">
+                    {data.sessions}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
             </div>
           )}
-          <ChartContainer className="h-72 w-full" config={config}>
-            <LineChart accessibilityLayer data={data.rows}>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="date"
-                tickFormatter={value => new Date(value).toLocaleDateString("pt-BR")}
-              />
-              <YAxis />
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    labelFormatter={label =>
-                      new Date(Number(label)).toLocaleDateString("pt-BR")
+          <Card>
+            <CardHeader>
+              <CardTitle>Desempenho do exercício</CardTitle>
+              <CardDescription>
+                Acompanhe carga e volume nas séries concluídas
+              </CardDescription>
+              <CardAction className="col-span-full col-start-1 row-span-1 row-start-3 w-full sm:col-span-1 sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:w-72">
+                <select
+                  aria-label="Exercício"
+                  className="h-11 w-full border bg-background px-3 text-sm"
+                  onChange={e => setSelected(e.target.value)}
+                  value={selected}
+                >
+                  {options.map(option => (
+                    <option key={option.key} value={option.key}>
+                      {option.name} ·{" "}
+                      {option.source === "custom" ? "Personalizado" : "Biblioteca"}
+                    </option>
+                  ))}
+                </select>
+              </CardAction>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <ChartContainer className="h-72 w-full" config={config}>
+                <LineChart accessibilityLayer data={data.rows}>
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={value => new Date(value).toLocaleDateString("pt-BR")}
+                  />
+                  <YAxis />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        labelFormatter={label =>
+                          new Date(Number(label)).toLocaleDateString("pt-BR")
+                        }
+                      />
                     }
                   />
-                }
-              />
-              <Line dataKey="load" dot stroke="var(--color-load)" />
-              <Line dataKey="volume" dot stroke="var(--color-volume)" />
-            </LineChart>
-          </ChartContainer>
-          <ul className="space-y-2">
-            {data.rows.map(row => (
-              <li className="border p-3 text-sm" key={row.date}>
-                {new Date(row.date).toLocaleDateString("pt-BR")} · {row.target} · carga{" "}
-                {row.load} kg · volume {row.volume.toLocaleString("pt-BR")} kg
-              </li>
-            ))}
-          </ul>
+                  <Line dataKey="load" dot stroke="var(--color-load)" />
+                  <Line dataKey="volume" dot stroke="var(--color-volume)" />
+                </LineChart>
+              </ChartContainer>
+              <ul className="space-y-2">
+                {data.rows.map(row => (
+                  <li className="border p-3 text-sm" key={row.date}>
+                    {new Date(row.date).toLocaleDateString("pt-BR")} · {row.target} · carga{" "}
+                    {row.load} kg · volume {row.volume.toLocaleString("pt-BR")} kg
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
         </>
       ) : (
         <p className="text-sm text-muted-foreground">
@@ -1026,9 +1064,24 @@ export function ProgressDashboard() {
         title="Evolução"
       />
       <Tabs defaultValue="body">
-        <TabsList className="w-full sm:w-fit">
-          <TabsTrigger value="body">Avaliação corporal</TabsTrigger>
-          <TabsTrigger value="performance">Desempenho nos treinos</TabsTrigger>
+        <TabsList
+          className="h-auto w-full justify-start gap-6 border-b bg-transparent p-0"
+          variant="line"
+        >
+          <TabsTrigger
+            className="h-auto flex-none px-0 py-3 text-sm font-medium tracking-normal normal-case after:hidden data-active:!text-primary"
+            value="body"
+          >
+            <ActivityIcon aria-hidden="true" className="size-4" />
+            Avaliação corporal
+          </TabsTrigger>
+          <TabsTrigger
+            className="h-auto flex-none px-0 py-3 text-sm font-medium tracking-normal normal-case after:hidden data-active:!text-primary"
+            value="performance"
+          >
+            <DumbbellIcon aria-hidden="true" className="size-4" />
+            Desempenho nos treinos
+          </TabsTrigger>
         </TabsList>
         <TabsContent className="pt-6" value="body">
           <BodyAssessments />
