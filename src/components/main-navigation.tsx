@@ -6,7 +6,6 @@ import {
   DumbbellIcon,
   HistoryIcon,
   HomeIcon,
-  UserIcon,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -18,7 +17,6 @@ const navigationItems = [
   { href: "/exercises", icon: DumbbellIcon, label: "Exercícios" },
   { href: "/history", icon: HistoryIcon, label: "Histórico" },
   { href: "/progress", icon: ActivityIcon, label: "Evolução" },
-  { href: "/profile", icon: UserIcon, label: "Perfil" },
 ]
 
 function isCurrentRoute(pathname: string, href: string) {
@@ -30,7 +28,7 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
 
   return (
     <nav aria-label="Navegação principal" className={mobile ? "w-full" : undefined}>
-      <ul className={cn(mobile ? "grid grid-cols-6" : "flex flex-col gap-1 px-3")}>
+      <ul className={cn(mobile ? "grid grid-cols-5" : "flex flex-col gap-1 px-3")}>
         {navigationItems.map(item => {
           const isActive = isCurrentRoute(pathname, item.href)
           const Icon = item.icon

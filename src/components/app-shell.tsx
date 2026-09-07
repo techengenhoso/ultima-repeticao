@@ -1,9 +1,8 @@
 "use client"
 
-import { DumbbellIcon, InfoIcon, LogOutIcon } from "lucide-react"
+import { DumbbellIcon, InfoIcon, UserIcon } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { type ReactNode, useState } from "react"
+import type { ReactNode } from "react"
 import { MainNavigation } from "@/components/main-navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
@@ -11,21 +10,7 @@ import { useUser } from "@/contexts/user-context"
 import { Logo } from "./logo"
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const router = useRouter()
-  const { user, signOutUser } = useUser()
-
-  const [isSigningOut, setIsSigningOut] = useState(false)
-
-  async function handleSignOut() {
-    setIsSigningOut(true)
-
-    try {
-      await signOutUser()
-      router.replace("/sign-in")
-    } finally {
-      setIsSigningOut(false)
-    }
-  }
+  const { user } = useUser()
 
   return (
     <div className="min-h-svh bg-muted/30 md:grid md:grid-cols-[16rem_1fr]">
@@ -65,13 +50,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               <InfoIcon />
             </Button>
 
-            <Button
-              className="min-w-0 flex-1 shrink px-2"
-              disabled={isSigningOut}
-              onClick={handleSignOut}
-              variant="outline"
-            >
-              {isSigningOut ? "Saindo" : "Sair da conta"}
+            <Button asChild className="min-w-0 flex-1 shrink px-2" variant="outline">
+              <Link href="/profile">
+                <UserIcon aria-hidden="true" />
+                Perfil
+              </Link>
             </Button>
           </div>
         </div>
@@ -107,14 +90,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Button>
 
             <Button
-              aria-label="Sair da conta"
+              aria-label="Perfil"
+              asChild
               className="md:hidden"
-              disabled={isSigningOut}
-              onClick={handleSignOut}
               size="icon"
               variant="outline"
             >
-              <LogOutIcon />
+              <Link href="/profile">
+                <UserIcon />
+              </Link>
             </Button>
           </div>
         </header>

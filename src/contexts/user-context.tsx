@@ -54,6 +54,7 @@ function useUserState() {
     saveUser,
     changePasswordUser,
     signOutUser: authentication.signOut,
+    deleteAccountUser: authentication.deleteAccount,
   }
 }
 

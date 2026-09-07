@@ -9,6 +9,7 @@ export interface AuthenticationGateway {
   signUp(fullName: string, email: string, password: string): Promise<void>
   sendPasswordReset(email: string): Promise<void>
   signOut(): Promise<void>
+  deleteAccount(confirmation: string): Promise<void>
   updateProfile(user: AuthenticatedUser, data: UserEditable): Promise<void>
   changePassword(
     user: AuthenticatedUser,

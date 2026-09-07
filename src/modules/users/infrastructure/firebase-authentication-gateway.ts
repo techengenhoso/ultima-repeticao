@@ -45,6 +45,35 @@ export const firebaseAuthenticationGateway: AuthenticationGateway = {
   signOut() {
     return signOut(auth)
   },
+  async deleteAccount(confirmation) {
+    const current = auth.currentUser
+    if (!current) throw new Error("Usuário não autenticado")
+
+    const response = await fetch("/api/account", {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${await current.getIdToken()}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ confirmation }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(45000),
+    })
+    const data: unknown = await response.json().catch(() => null)
+
+    if (!response.ok) {
+      const message =
+        typeof data === "object" &&
+        data !== null &&
+        "message" in data &&
+        typeof data.message === "string"
+          ? data.message
+          : "Não foi possível excluir sua conta. Tente novamente"
+      throw new Error(message)
+    }
+
+    await signOut(auth)
+  },
   async updateProfile(user, data) {
     const current = auth.currentUser
     if (!current || current.uid !== user.uid) throw new Error("Usuário não autenticado")
