@@ -17,9 +17,13 @@ import {
 import { Button } from "@/components/ui/button"
 import { DialogFooter } from "@/components/ui/dialog"
 import { FieldError } from "@/components/ui/field"
-import type { Exercise, MuscleGroup } from "@/lib/exercises/types"
-import { workoutFormSchema } from "@/lib/workouts/schemas"
-import type { Workout, WorkoutFormValues, WorkoutInput } from "@/lib/workouts/types"
+import type { Exercise, MuscleGroup } from "@/modules/exercises/domain/exercise"
+import { workoutFormSchema } from "@/modules/workouts/domain/schemas"
+import type {
+  Workout,
+  WorkoutFormValues,
+  WorkoutInput,
+} from "@/modules/workouts/domain/workout"
 import { WorkoutDayForm } from "./workout-day-form"
 import { WorkoutExerciseSelector } from "./workout-exercise-selector"
 

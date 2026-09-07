@@ -5,8 +5,8 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { useUser } from "@/contexts/user-context"
-import { listSessionPage } from "@/lib/sessions/client"
-import type { WorkoutSession } from "@/lib/sessions/schemas"
+import type { WorkoutSession } from "@/modules/sessions/domain/session"
+import { useSessionGateway } from "@/modules/sessions/presentation/session-gateway-context"
 
 export function SessionHistory({ title = "Histórico" }: { title?: string }) {
   const { user } = useUser()
@@ -15,38 +15,42 @@ export function SessionHistory({ title = "Histórico" }: { title?: string }) {
 const historyError = (failure: unknown) =>
   failure instanceof Error ? failure.message : "Não foi possível carregar o histórico"
 function UserSessionHistory({ title }: { title: string }) {
+  const gateway = useSessionGateway()
   const [sessions, setSessions] = useState<WorkoutSession[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
   const [pending, setPending] = useState(true)
   const [error, setError] = useState("")
   const mounted = useRef(true)
   const active = useRef(false)
-  const load = useCallback(async (next?: string) => {
-    if (active.current) return
-    active.current = true
-    setPending(true)
-    setError("")
-    try {
-      const result = await listSessionPage(next)
-      if (!mounted.current) return
-      setSessions(current =>
-        next
-          ? [
-              ...current,
-              ...result.sessions.filter(
-                item => !current.some(previous => previous.id === item.id)
-              ),
-            ]
-          : result.sessions
-      )
-      setCursor(result.nextCursor)
-    } catch (failure) {
-      if (mounted.current) setError(historyError(failure))
-    } finally {
-      active.current = false
-      if (mounted.current) setPending(false)
-    }
-  }, [])
+  const load = useCallback(
+    async (next?: string) => {
+      if (active.current) return
+      active.current = true
+      setPending(true)
+      setError("")
+      try {
+        const result = await gateway.list(next)
+        if (!mounted.current) return
+        setSessions(current =>
+          next
+            ? [
+                ...current,
+                ...result.sessions.filter(
+                  item => !current.some(previous => previous.id === item.id)
+                ),
+              ]
+            : result.sessions
+        )
+        setCursor(result.nextCursor)
+      } catch (failure) {
+        if (mounted.current) setError(historyError(failure))
+      } finally {
+        active.current = false
+        if (mounted.current) setPending(false)
+      }
+    },
+    [gateway]
+  )
   useEffect(() => {
     mounted.current = true
     void load()

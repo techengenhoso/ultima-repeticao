@@ -4,7 +4,7 @@ A integração com a OpenAI foi removida a pedido do usuário. O gerador transfo
 
 ## Armazenamento e custos
 
-As regras ficam em `src/lib/workouts/methodology`, distribuídas com o aplicativo. Os exercícios padrão continuam em `src/seeds/default-exercises.ts`. Não é necessário salvar essas regras no Firestore ou contratar outro armazenamento.
+As regras ficam em `src/modules/workouts/domain/methodology`, distribuídas com o aplicativo. Os exercícios padrão continuam em `src/seeds/default-exercises.ts`. Não é necessário salvar essas regras no Firestore ou contratar outro armazenamento.
 
 A geração executa no navegador usando a biblioteca já carregada, incluindo personalizados e overrides. Não faz novas leituras no Firestore, não cria documentos e não depende do Firebase Admin. Salvar a ficha e usar sessões continuam utilizando os serviços existentes; os limites/custos de Firebase e hospedagem permanecem independentes da geração. Não há garantia de custo total zero desses serviços.
 
@@ -31,12 +31,12 @@ A validação local não substitui controles de segurança no servidor. A pendê
 
 ## Alterações
 
-- Criado `src/lib/workouts/methodology/generator.ts`
-- `src/lib/workouts/ai/client.ts` passou a montar e validar localmente, sem `fetch`
+- Criado `src/modules/workouts/domain/methodology/generator.ts`
+- `src/modules/workouts/application/workout-generation-use-cases.ts` monta e valida localmente, sem `fetch`
 - Atualizados formulário, rótulos e schemas do assistente
 - Removidos `provider.ts`, `generate.ts`, `rate-limit.ts` e a rota `/api/ai/workout-plan`
 - Removidas `AI_API_KEY` e `AI_MODEL` do exemplo e da configuração local, preservando a configuração Firebase
-- Mantida a leitura de biblioteca no servidor, ainda necessária para iniciar sessões
+- Mantida a leitura de biblioteca no adapter de infraestrutura de Exercícios, ainda necessária para iniciar sessões
 
 ## Verificações
 

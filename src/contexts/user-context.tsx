@@ -9,44 +9,42 @@ import {
   useReducer,
   useState,
 } from "react"
-import {
-  changePasswordUserRepository,
-  onAuthStateChangedUserRepository,
-  saveUserRepository,
-  signOutUserRepository,
-  User,
-  type UserEditable,
-} from "@/repositories/user-repository"
+import type {
+  AuthenticatedUser,
+  UserEditable,
+} from "@/modules/users/domain/authenticated-user"
+import { useAuthenticationUseCases } from "@/modules/users/presentation/authentication-use-cases-context"
 
 function useUserState() {
-  const [user, setUser] = useState<User | null>(null)
+  const authentication = useAuthenticationUseCases()
+  const [user, setUser] = useState<AuthenticatedUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [, renderUpdatedUser] = useReducer(current => current + 1, 0)
 
   useEffect(
     () =>
-      onAuthStateChangedUserRepository(currentUser => {
+      authentication.observe(currentUser => {
         setUser(currentUser)
         setIsLoading(false)
       }),
-    []
+    [authentication]
   )
 
   const saveUser = useCallback(
     async (data: UserEditable) => {
       if (!user) throw new Error("Usuário não autenticado")
-      await saveUserRepository(user, data)
+      await authentication.updateUser(user, data)
       renderUpdatedUser()
     },
-    [user]
+    [authentication, user]
   )
 
   const changePasswordUser = useCallback(
     async (currentPassword: string, newPassword: string) => {
       if (!user) throw new Error("Usuário não autenticado")
-      await changePasswordUserRepository(user, currentPassword, newPassword)
+      await authentication.changePassword(user, currentPassword, newPassword)
     },
-    [user]
+    [authentication, user]
   )
 
   if (isLoading || !user) return null
@@ -55,7 +53,7 @@ function useUserState() {
     user,
     saveUser,
     changePasswordUser,
-    signOutUser: signOutUserRepository,
+    signOutUser: authentication.signOut,
   }
 }
 

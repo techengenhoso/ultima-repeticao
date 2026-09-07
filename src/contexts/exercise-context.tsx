@@ -11,34 +11,23 @@ import {
 } from "react"
 import { toast } from "sonner"
 import { useUser } from "@/contexts/user-context"
+import { DuplicateExerciseNameError } from "@/modules/exercises/application/ports/exercise-repository"
+import type {
+  CustomExercise,
+  Exercise,
+  ExerciseInput,
+} from "@/modules/exercises/domain/exercise"
 import {
   type ExerciseFilters,
   emptyExerciseFilters,
-  filterExercises,
-  mergeExercises,
-} from "@/lib/exercises/catalog"
-import type {
-  CustomExercise,
-  DefaultExerciseOverride,
-  Exercise,
-  ExerciseInput,
-} from "@/lib/exercises/types"
-import {
-  createCustomExerciseRepository,
-  DuplicateExerciseNameError,
-  deleteCustomExerciseRepository,
-  listCustomExercisesRepository,
-  listDefaultExerciseOverridesRepository,
-  saveDefaultExerciseOverrideRepository,
-  updateCustomExerciseRepository,
-} from "@/repositories/exercise-repository"
-import { defaultExercises } from "@/seeds/default-exercises"
+} from "@/modules/exercises/domain/exercise-library"
+import { useExerciseUseCases } from "@/modules/exercises/presentation/exercise-use-cases-context"
 
 function useExerciseState() {
   const { user } = useUser()
+  const exerciseUseCases = useExerciseUseCases()
 
-  const [customExercises, setCustomExercises] = useState<CustomExercise[]>([])
-  const [defaultOverrides, setDefaultOverrides] = useState<DefaultExerciseOverride[]>([])
+  const [exercises, setExercises] = useState<Exercise[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
   const [filters, setFilters] = useState<ExerciseFilters>(emptyExerciseFilters)
@@ -50,32 +39,21 @@ function useExerciseState() {
     setIsLoading(true)
 
     try {
-      const [custom, overrides] = await Promise.all([
-        listCustomExercisesRepository(user.uid),
-        listDefaultExerciseOverridesRepository(user.uid),
-      ])
-
-      setCustomExercises(custom)
-      setDefaultOverrides(overrides)
+      setExercises(await exerciseUseCases.list(user.uid))
     } catch {
       toast.error("Não foi possível carregar seus exercícios")
     } finally {
       setIsLoading(false)
     }
-  }, [user])
+  }, [exerciseUseCases, user.uid])
 
   useEffect(() => {
     void loadExercises()
   }, [loadExercises])
 
-  const exercises = useMemo(
-    () => mergeExercises(defaultExercises, customExercises, defaultOverrides),
-    [customExercises, defaultOverrides]
-  )
-
   const filteredExercises = useMemo(
-    () => filterExercises(exercises, filters),
-    [exercises, filters]
+    () => exerciseUseCases.filter(exercises, filters),
+    [exerciseUseCases, exercises, filters]
   )
 
   async function saveExercise(
@@ -83,26 +61,13 @@ function useExerciseState() {
     values: ExerciseInput
   ) {
     try {
+      await exerciseUseCases.save(user.uid, exercise, values)
+      await loadExercises()
       if (exercise?.source === "default") {
-        const saved = await saveDefaultExerciseOverrideRepository(
-          user.uid,
-          exercise.id,
-          values
-        )
-        setDefaultOverrides(current => [
-          ...current.filter(item => item.id !== saved.id),
-          saved,
-        ])
         toast.success("Exercício padrão atualizado")
       } else if (exercise) {
-        const saved = await updateCustomExerciseRepository(user.uid, exercise.id, values)
-        setCustomExercises(current =>
-          current.map(item => (item.id === saved.id ? saved : item))
-        )
         toast.success("Exercício atualizado")
       } else {
-        const saved = await createCustomExerciseRepository(user.uid, values)
-        setCustomExercises(current => [...current, saved])
         toast.success("Exercício criado")
       }
 
@@ -120,8 +85,8 @@ function useExerciseState() {
   async function removeExercise(exercise: CustomExercise) {
     setIsDeleting(true)
     try {
-      await deleteCustomExerciseRepository(user.uid, exercise.id)
-      setCustomExercises(current => current.filter(item => item.id !== exercise.id))
+      await exerciseUseCases.remove(user.uid, exercise.id)
+      await loadExercises()
       toast.success("Exercício excluído")
       return true
     } catch {

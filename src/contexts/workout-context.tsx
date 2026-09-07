@@ -11,26 +11,16 @@ import {
 } from "react"
 import { toast } from "sonner"
 import { useUser } from "@/contexts/user-context"
-import { mergeExercises } from "@/lib/exercises/catalog"
-import type { Exercise } from "@/lib/exercises/types"
-import { emptyWorkoutFilters, filterWorkouts, sortWorkouts } from "@/lib/workouts/catalog"
-import type { Workout, WorkoutInput } from "@/lib/workouts/types"
-import {
-  listCustomExercisesRepository,
-  listDefaultExerciseOverridesRepository,
-} from "@/repositories/exercise-repository"
-import {
-  activateWorkoutRepository,
-  createWorkoutRepository,
-  deactivateWorkoutRepository,
-  deleteWorkoutRepository,
-  listWorkoutsRepository,
-  updateWorkoutRepository,
-} from "@/repositories/workout-repository"
-import { defaultExercises } from "@/seeds/default-exercises"
+import type { Exercise } from "@/modules/exercises/domain/exercise"
+import { useExerciseUseCases } from "@/modules/exercises/presentation/exercise-use-cases-context"
+import type { Workout, WorkoutInput } from "@/modules/workouts/domain/workout"
+import { emptyWorkoutFilters } from "@/modules/workouts/domain/workout-library"
+import { useWorkoutUseCases } from "@/modules/workouts/presentation/workout-use-cases-context"
 
 function useWorkoutState() {
   const { user } = useUser()
+  const exerciseUseCases = useExerciseUseCases()
+  const workoutUseCases = useWorkoutUseCases()
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -46,19 +36,18 @@ function useWorkoutState() {
     setIsLoading(true)
     setLoadingError(false)
     try {
-      const [loadedWorkouts, custom, overrides] = await Promise.all([
-        listWorkoutsRepository(user.uid),
-        listCustomExercisesRepository(user.uid),
-        listDefaultExerciseOverridesRepository(user.uid),
+      const [loadedWorkouts, loadedExercises] = await Promise.all([
+        workoutUseCases.list(user.uid),
+        exerciseUseCases.list(user.uid),
       ])
       setWorkouts(loadedWorkouts)
-      setExercises(mergeExercises(defaultExercises, custom, overrides))
+      setExercises(loadedExercises)
     } catch {
       setLoadingError(true)
     } finally {
       setIsLoading(false)
     }
-  }, [user])
+  }, [exerciseUseCases, user.uid, workoutUseCases])
 
   useEffect(() => {
     void loadWorkouts()
@@ -71,18 +60,14 @@ function useWorkoutState() {
   )
 
   const filteredWorkouts = useMemo(
-    () => filterWorkouts(workouts, filters),
-    [filters, workouts]
+    () => workoutUseCases.filter(workouts, filters),
+    [filters, workoutUseCases, workouts]
   )
 
   async function saveWorkout(workout: Workout | null | undefined, values: WorkoutInput) {
     try {
-      const saved = workout?.id
-        ? await updateWorkoutRepository(user.uid, workout.id, values)
-        : await createWorkoutRepository(user.uid, values)
-      setWorkouts(current =>
-        sortWorkouts([...current.filter(item => item.id !== saved.id), saved])
-      )
+      const saved = await workoutUseCases.save(user.uid, workout?.id, values)
+      setWorkouts(current => workoutUseCases.replace(current, saved))
       toast.success(workout?.id ? "Ficha atualizada" : "Ficha criada")
       return true
     } catch {
@@ -92,10 +77,8 @@ function useWorkoutState() {
   }
 
   async function createGeneratedWorkout(values: WorkoutInput, creationId: string) {
-    const saved = await createWorkoutRepository(user.uid, values, creationId)
-    setWorkouts(current =>
-      sortWorkouts([...current.filter(item => item.id !== saved.id), saved])
-    )
+    const saved = await workoutUseCases.save(user.uid, undefined, values, creationId)
+    setWorkouts(current => workoutUseCases.replace(current, saved))
     toast.success("Ficha criada")
     return saved
   }
@@ -103,15 +86,8 @@ function useWorkoutState() {
   async function activateWorkout(workout: Workout) {
     setIsActivating(true)
     try {
-      await activateWorkoutRepository(user.uid, workout.id)
-      setWorkouts(current =>
-        sortWorkouts(
-          current.map(item => ({
-            ...item,
-            isActive: item.id === workout.id,
-          }))
-        )
-      )
+      await workoutUseCases.activate(user.uid, workout.id)
+      setWorkouts(current => workoutUseCases.activateInList(current, workout.id))
       toast.success("Ficha definida como ativa")
     } catch {
       toast.error("Não foi possível ativar a ficha")
@@ -123,14 +99,8 @@ function useWorkoutState() {
   async function deactivateWorkout(workout: Workout) {
     setIsActivating(true)
     try {
-      await deactivateWorkoutRepository(user.uid, workout.id)
-      setWorkouts(current =>
-        sortWorkouts(
-          current.map(item =>
-            item.id === workout.id ? { ...item, isActive: false } : item
-          )
-        )
-      )
+      await workoutUseCases.deactivate(user.uid, workout.id)
+      setWorkouts(current => workoutUseCases.deactivateInList(current, workout.id))
       toast.success("Ficha desativada")
     } catch {
       toast.error("Não foi possível desativar a ficha")
@@ -159,8 +129,8 @@ function useWorkoutState() {
   async function removeWorkout(workout: Workout) {
     setIsDeleting(true)
     try {
-      await deleteWorkoutRepository(user.uid, workout.id)
-      setWorkouts(current => current.filter(item => item.id !== workout.id))
+      await workoutUseCases.remove(user.uid, workout.id)
+      setWorkouts(current => workoutUseCases.removeFromList(current, workout.id))
       toast.success("Ficha excluída")
       return true
     } catch {

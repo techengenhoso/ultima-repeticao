@@ -12,7 +12,7 @@ import {
   exerciseDifficultyLabel,
   muscleGroupLabel,
   muscleLabel,
-} from "@/lib/exercises/types"
+} from "@/modules/exercises/domain/exercise"
 import { DetailSection } from "./exercise-detail-section"
 
 export function ExerciseDetails() {

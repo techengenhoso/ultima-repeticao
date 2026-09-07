@@ -8,9 +8,8 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { FieldGroup } from "@/components/ui/field"
-import { getFirebaseErrorMessage } from "@/lib/firebase"
 import { emailSchema } from "@/lib/schemas-zod"
-import { forgotPasswordUserRepository } from "@/repositories/user-repository"
+import { useAuthenticationUseCases } from "@/modules/users/presentation/authentication-use-cases-context"
 import { TextField } from "../text-field"
 
 const forgotPasswordSchema = z.object({
@@ -20,6 +19,7 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordSchema = z.infer<typeof forgotPasswordSchema>
 
 export function ForgotPasswordForm() {
+  const authentication = useAuthenticationUseCases()
   const [emailSent, setEmailSent] = useState(false)
 
   const [forgotPasswordError, setForgotPasswordError] = useState<string | null>(null)
@@ -35,13 +35,13 @@ export function ForgotPasswordForm() {
     setForgotPasswordError(null)
 
     try {
-      await forgotPasswordUserRepository(data.email)
+      await authentication.requestPasswordReset(data.email)
       setEmailSent(true)
     } catch (error) {
-      const message = getFirebaseErrorMessage({
+      const message = authentication.publicError(
         error,
-        message: "Não foi possível enviar o e-mail, tente novamente",
-      })
+        "Não foi possível enviar o e-mail, tente novamente"
+      )
 
       setForgotPasswordError(message)
     }

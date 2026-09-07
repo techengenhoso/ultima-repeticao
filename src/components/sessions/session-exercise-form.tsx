@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import type { SessionFormValues } from "@/lib/sessions/schemas"
+import type { SessionFormValues } from "@/modules/sessions/domain/session"
 import { RestTimer } from "./rest-timer"
 
 export function SessionExerciseForm({ index }: { index: number }) {

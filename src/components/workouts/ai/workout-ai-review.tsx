@@ -16,17 +16,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { useWorkout } from "@/contexts/workout-context"
-import { muscleGroupLabel } from "@/lib/exercises/types"
-import { filterAvailableExercises } from "@/lib/workouts/ai/available-exercises"
-import { reviewWorkout } from "@/lib/workouts/ai/review"
-import type { AiWorkoutInput, AiWorkoutResult } from "@/lib/workouts/ai/schemas"
-import { createWorkoutPrescription } from "@/lib/workouts/methodology/prescription"
-import {
-  calculateWeeklyVolume,
-  estimateSessionMinutes,
-} from "@/lib/workouts/methodology/validation"
-import { workoutFormSchema } from "@/lib/workouts/schemas"
-import type { Workout, WorkoutFormValues } from "@/lib/workouts/types"
+import { muscleGroupLabel } from "@/modules/exercises/domain/exercise"
+import type {
+  AiWorkoutInput,
+  AiWorkoutResult,
+} from "@/modules/workouts/application/workout-generation-schema"
+import { workoutFormSchema } from "@/modules/workouts/domain/schemas"
+import type { Workout, WorkoutFormValues } from "@/modules/workouts/domain/workout"
+import { useWorkoutGenerationUseCases } from "@/modules/workouts/presentation/workout-generation-use-cases-context"
 import { WorkoutDayForm } from "../workout-day-form"
 import { WorkoutExerciseSelector } from "../workout-exercise-selector"
 import { WorkoutReviewContext, WorkoutReviewMessages } from "./workout-review-context"
@@ -52,15 +49,15 @@ export function WorkoutAiReview({
   onSaved: (workout: Workout) => void
 }) {
   const { exercises, createGeneratedWorkout } = useWorkout()
-  const prescription = useMemo(() => createWorkoutPrescription(input), [input])
-  const available = useMemo(() => {
-    const keys = new Set(
-      filterAvailableExercises(exercises, input).map(
-        item => `${item.source}:${item.exerciseId}`
-      )
-    )
-    return exercises.filter(item => keys.has(`${item.source}:${item.id}`))
-  }, [exercises, input])
+  const workoutGenerationUseCases = useWorkoutGenerationUseCases()
+  const prescription = useMemo(
+    () => workoutGenerationUseCases.prescribe(input),
+    [input, workoutGenerationUseCases]
+  )
+  const available = useMemo(
+    () => workoutGenerationUseCases.available(exercises, input),
+    [exercises, input, workoutGenerationUseCases]
+  )
   const library = useMemo(
     () => new Map(available.map(item => [`${item.source}:${item.id}`, item])),
     [available]
@@ -72,10 +69,10 @@ export function WorkoutAiReview({
   })
   const values = useWatch({ control: form.control }) as WorkoutFormValues
   const review = useMemo(
-    () => reviewWorkout(values, prescription, library),
-    [values, prescription, library]
+    () => workoutGenerationUseCases.review(values, prescription, library),
+    [values, prescription, library, workoutGenerationUseCases]
   )
-  const volume = calculateWeeklyVolume(review.plan.days)
+  const volume = workoutGenerationUseCases.weeklyVolume(review.plan.days)
   const errors = review.issues.filter(item => item.severity === "error")
   const warnings = review.issues.filter(item => item.severity === "warning")
   const days = useFieldArray({ control: form.control, name: "days" })
@@ -91,7 +88,7 @@ export function WorkoutAiReview({
 
   async function save(acceptWarnings = false) {
     if (saving.current || busy) return
-    const final = reviewWorkout(form.getValues(), prescription, library)
+    const final = workoutGenerationUseCases.review(form.getValues(), prescription, library)
     if (final.issues.some(item => item.severity === "error")) {
       setConfirmation(null)
       setSaveError("Corrija os erros indicados antes de salvar")
@@ -155,7 +152,7 @@ export function WorkoutAiReview({
               </p>
               <ol className="grid gap-2 sm:grid-cols-2">
                 {review.plan.days.map((day, index) => {
-                  const minutes = estimateSessionMinutes(day)
+                  const minutes = workoutGenerationUseCases.estimateDuration(day)
                   return (
                     <li
                       className="min-w-0 border p-3 text-sm wrap-break-word"

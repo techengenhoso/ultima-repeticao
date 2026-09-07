@@ -18,8 +18,8 @@ import {
 } from "@/components/ui/collapsible"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { type Exercise, muscleGroupLabel } from "@/lib/exercises/types"
-import type { WorkoutFormValues } from "@/lib/workouts/types"
+import { type Exercise, muscleGroupLabel } from "@/modules/exercises/domain/exercise"
+import type { WorkoutFormValues } from "@/modules/workouts/domain/workout"
 
 import { useWorkoutReview, WorkoutReviewMessages } from "./ai/workout-review-context"
 

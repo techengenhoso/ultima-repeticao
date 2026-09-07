@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { ProgressDashboard } from "@/components/progress/progress-dashboard"
+import { ProgressDashboard } from "@/modules/progress/presentation/progress-dashboard"
 
 export const metadata: Metadata = {
   title: "Evolução | Última Repetição",

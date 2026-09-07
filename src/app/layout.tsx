@@ -4,6 +4,7 @@ import { AuthGuard } from "@/components/auth-guard"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
+import { ApplicationProviders } from "./application-providers"
 import "./globals.css"
 
 const robotoSans = Roboto({
@@ -28,15 +29,17 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          disableTransitionOnChange
-          enableSystem
-        >
-          <AuthGuard>{children}</AuthGuard>
-          <Toaster position="top-right" />
-        </ThemeProvider>
+        <ApplicationProviders>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            disableTransitionOnChange
+            enableSystem
+          >
+            <AuthGuard>{children}</AuthGuard>
+            <Toaster position="top-right" />
+          </ThemeProvider>
+        </ApplicationProviders>
       </body>
     </html>
   )

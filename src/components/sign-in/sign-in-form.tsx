@@ -9,9 +9,8 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { FieldGroup } from "@/components/ui/field"
-import { getFirebaseErrorMessage } from "@/lib/firebase"
 import { requiredSchema } from "@/lib/schemas-zod"
-import { signInUserRepository } from "@/repositories/user-repository"
+import { useAuthenticationUseCases } from "@/modules/users/presentation/authentication-use-cases-context"
 import { PasswordField } from "../password-field"
 import { TextField } from "../text-field"
 
@@ -24,6 +23,7 @@ type SignInSchema = z.infer<typeof signInSchema>
 
 export function SignInForm() {
   const router = useRouter()
+  const authentication = useAuthenticationUseCases()
 
   const [signInError, setSignInError] = useState<string | null>(null)
 
@@ -37,15 +37,15 @@ export function SignInForm() {
     setSignInError(null)
 
     try {
-      await signInUserRepository(data.email, data.password)
+      await authentication.signIn(data.email, data.password)
 
       router.replace("/")
       router.refresh()
     } catch (error) {
-      const message = getFirebaseErrorMessage({
+      const message = authentication.publicError(
         error,
-        message: "Não foi possível entrar. Tente novamente.",
-      })
+        "Não foi possível entrar. Tente novamente."
+      )
 
       setSignInError(message)
     }

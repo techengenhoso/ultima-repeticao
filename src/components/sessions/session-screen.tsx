@@ -18,12 +18,12 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { useUser } from "@/contexts/user-context"
-import { loadSession, mutateSession } from "@/lib/sessions/client"
 import {
   type SessionFormValues,
   sessionFormSchema,
   type WorkoutSession,
-} from "@/lib/sessions/schemas"
+} from "@/modules/sessions/domain/session"
+import { useSessionGateway } from "@/modules/sessions/presentation/session-gateway-context"
 import { SessionExerciseForm } from "./session-exercise-form"
 import { SessionSummary } from "./session-summary"
 
@@ -34,6 +34,7 @@ function SessionEditor({
   session: WorkoutSession
   onUpdated: (session: WorkoutSession) => void
 }) {
+  const gateway = useSessionGateway()
   const form = useForm<z.input<typeof sessionFormSchema>, unknown, SessionFormValues>({
     resolver: zodResolver(sessionFormSchema),
     defaultValues: { exercises: session.exercises },
@@ -64,7 +65,7 @@ function SessionEditor({
     setError("")
     setConfirmation(null)
     try {
-      const saved = await mutateSession({
+      const saved = await gateway.mutate({
         action: "save",
         id: session.id,
         version: session.version,
@@ -172,7 +173,8 @@ function SessionEditor({
                 if (confirmation === "reload") {
                   setConfirmation(null)
                   setPending(true)
-                  void loadSession(session.id)
+                  void gateway
+                    .load(session.id)
                     .then(saved => {
                       form.reset({ exercises: saved.exercises })
                       onUpdated(saved)
@@ -213,13 +215,15 @@ export function SessionScreen({ id }: { id: string }) {
 }
 
 function LoadedSession({ id, onRetry }: { id: string; onRetry: () => void }) {
+  const gateway = useSessionGateway()
   const [session, setSession] = useState<WorkoutSession | null>(null)
   const [error, setError] = useState("")
   useEffect(() => {
     let current = true
     setSession(null)
     setError("")
-    loadSession(id)
+    gateway
+      .load(id)
       .then(value => {
         if (current) setSession(value)
       })
@@ -232,7 +236,7 @@ function LoadedSession({ id, onRetry }: { id: string; onRetry: () => void }) {
     return () => {
       current = false
     }
-  }, [id])
+  }, [gateway, id])
   return (
     <div className="min-w-0 space-y-6">
       <PageHeader

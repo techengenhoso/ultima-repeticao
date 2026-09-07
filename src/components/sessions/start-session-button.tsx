@@ -3,9 +3,10 @@
 import { useRouter } from "next/navigation"
 import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { mutateSession } from "@/lib/sessions/client"
+import { useSessionGateway } from "@/modules/sessions/presentation/session-gateway-context"
 
 export function StartSessionButton({ planId, dayId }: { planId: string; dayId: string }) {
+  const gateway = useSessionGateway()
   const router = useRouter()
   const id = useRef<string | null>(null)
   const active = useRef(false)
@@ -18,7 +19,7 @@ export function StartSessionButton({ planId, dayId }: { planId: string; dayId: s
     setError("")
     id.current ??= crypto.randomUUID()
     try {
-      const session = await mutateSession({
+      const session = await gateway.mutate({
         action: "start",
         id: id.current,
         workoutPlanId: planId,

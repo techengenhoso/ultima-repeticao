@@ -13,7 +13,7 @@ Manter este documento como referência até finalizar as implementações, confo
 
 ## Escopo e integração
 
-O motor está em `src/lib/workouts/methodology`, junto ao domínio existente de fichas. Não importa Firebase, componentes React, serviços de rede ou provedores de IA. `createWorkoutPrescription` valida entradas com Zod. `validateWorkoutPlan` recebe uma ficha, a prescrição e um mapa `source:exerciseId → compound | isolation`, retornando problemas com código, severidade, caminho e mensagem em português. Os validadores de exercício, volume e recuperação também podem ser usados separadamente.
+O motor está em `src/modules/workouts/domain/methodology`, junto ao domínio de fichas. Não importa Firebase, componentes React, serviços de rede ou provedores de IA. `createWorkoutPrescription` valida entradas com Zod. `validateWorkoutPlan` recebe uma ficha, a prescrição e um mapa `source:exerciseId → compound | isolation`, retornando problemas com código, severidade, caminho e mensagem em português. Os validadores de exercício, volume e recuperação também podem ser usados separadamente.
 
 A biblioteca atual tem `movementPattern` textual, mas não classificação confiável de composto/isolado. O chamador deve fornecer metadados revisados; classificação ausente impede aprovação da ficha. Na Fase 2, referências e snapshots deverão ser reconstruídos da biblioteca real, com overrides e exercícios personalizados. Não há inferência por nome.
 
@@ -50,17 +50,16 @@ Essa pendência deve ser retomada antes de considerar a validação de gravaçã
 
 Criados:
 
-- `src/lib/workouts/repetitions.ts`
-- `src/lib/workouts/document-schema.ts`
-- `src/lib/workouts/methodology/types.ts`
-- `src/lib/workouts/methodology/prescription.ts`
-- `src/lib/workouts/methodology/validation.ts`
+- `src/modules/workouts/domain/repetitions.ts`
+- `src/modules/workouts/domain/methodology/types.ts`
+- `src/modules/workouts/domain/methodology/prescription.ts`
+- `src/modules/workouts/domain/methodology/validation.ts`
 - `docs/workout-methodology-phase-1.md`
 
 Alterados:
 
-- `src/lib/workouts/types.ts`
-- `src/lib/workouts/schemas.ts`
+- `src/modules/workouts/domain/workout.ts`
+- `src/modules/workouts/domain/schemas.ts`
 - `src/repositories/workout-repository.ts`
 - `src/components/workouts/workout-exercise-form.tsx`
 - `src/components/workouts/workout-exercise-selector.tsx`

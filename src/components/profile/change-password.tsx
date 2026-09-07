@@ -15,8 +15,8 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { useUser } from "@/contexts/user-context"
-import { getFirebaseErrorMessage } from "@/lib/firebase"
 import { passwordSchema, requiredSchema } from "@/lib/schemas-zod"
+import { useAuthenticationUseCases } from "@/modules/users/presentation/authentication-use-cases-context"
 
 const changePasswordSchema = z
   .object({
@@ -32,7 +32,8 @@ const changePasswordSchema = z
 type ChangePasswordSchema = z.infer<typeof changePasswordSchema>
 
 export function ChangePassword() {
-  const { user, changePasswordUser } = useUser()
+  const { changePasswordUser } = useUser()
+  const authentication = useAuthenticationUseCases()
 
   const {
     handleSubmit,
@@ -43,16 +44,6 @@ export function ChangePassword() {
 
   // revisar menos a parte catch
   async function onSubmit(values: ChangePasswordSchema) {
-    if (!user.email) {
-      toast.error("Não foi possível identificar o endereço de e-mail")
-      return
-    }
-
-    if (!user.providerData.some(provider => provider.providerId === "password")) {
-      toast.error("Esta conta não utiliza senha para entrar")
-      return
-    }
-
     try {
       await changePasswordUser(values.currentPassword, values.newPassword)
 
@@ -60,10 +51,10 @@ export function ChangePassword() {
 
       toast.success("Senha alterada com sucesso")
     } catch (error) {
-      const message = getFirebaseErrorMessage({
+      const message = authentication.publicError(
         error,
-        message: "Não foi possível alterar sua senha. Tente novamente.",
-      })
+        "Não foi possível alterar sua senha. Tente novamente."
+      )
 
       toast.error(message)
     }

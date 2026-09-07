@@ -15,37 +15,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  type ExerciseFilters,
-  emptyExerciseFilters,
-  filterExercises,
-} from "@/lib/exercises/catalog"
+import { difficulties, muscleGroups, muscles, origins } from "@/lib/options-select"
 import {
   type Exercise,
   exerciseDifficultyLabel,
   muscleGroupLabel,
   muscleLabel,
-} from "@/lib/exercises/types"
-import { difficulties, muscleGroups, muscles, origins } from "@/lib/options-select"
-import { classifyMovement } from "@/lib/workouts/ai/movement-classification"
-import type { WorkoutPrescription } from "@/lib/workouts/methodology/types"
-import type { WorkoutFormValues } from "@/lib/workouts/types"
+} from "@/modules/exercises/domain/exercise"
+import {
+  type ExerciseFilters,
+  emptyExerciseFilters,
+  filterExercises,
+} from "@/modules/exercises/domain/exercise-library"
+import type { WorkoutFormValues } from "@/modules/workouts/domain/workout"
+import { useWorkoutGenerationUseCases } from "@/modules/workouts/presentation/workout-generation-use-cases-context"
 import { useWorkoutReview } from "./ai/workout-review-context"
-
-function exerciseDefaults(exercise: Exercise, prescription?: WorkoutPrescription) {
-  if (!prescription) return { sets: Number.NaN, repetitions: "", initialLoad: Number.NaN }
-  const rules =
-    classifyMovement(exercise.movementPattern) === "compound"
-      ? prescription.compoundExerciseRules
-      : prescription.isolationExerciseRules
-  return {
-    sets: rules.sets.min,
-    repetitions: rules.repetitions[0],
-    initialLoad: Number.NaN,
-    restSeconds: rules.restSeconds.min,
-    targetRir: rules.targetRir.max,
-  }
-}
 
 function exerciseBadgeLabel({
   isAlreadyAdded,
@@ -71,6 +55,7 @@ export function WorkoutExerciseSelector({
   target: { dayIndex: number; exerciseIndex?: number } | null
 }) {
   const review = useWorkoutReview()
+  const workoutGenerationUseCases = useWorkoutGenerationUseCases()
   const { getValues, setValue } = useFormContext<WorkoutFormValues>()
   const [filters, setFilters] = useState<ExerciseFilters>(emptyExerciseFilters)
   const [selectedReferences, setSelectedReferences] = useState<string[]>([])
@@ -108,7 +93,7 @@ export function WorkoutExerciseSelector({
           order: current.length + index,
           exerciseReference: { source: exercise.source, exerciseId: exercise.id },
           exerciseSnapshot: { name: exercise.name, muscleGroup: exercise.muscleGroup },
-          ...exerciseDefaults(exercise, review?.prescription),
+          ...workoutGenerationUseCases.exerciseDefaults(exercise, review?.prescription),
         })),
       ],
       { shouldDirty: true, shouldValidate: true }
@@ -133,7 +118,7 @@ export function WorkoutExerciseSelector({
       order: target.exerciseIndex ?? current.length,
       exerciseReference: { source: exercise.source, exerciseId: exercise.id },
       exerciseSnapshot: { name: exercise.name, muscleGroup: exercise.muscleGroup },
-      ...exerciseDefaults(exercise, review?.prescription),
+      ...workoutGenerationUseCases.exerciseDefaults(exercise, review?.prescription),
     }
     const next = [...current]
     if (target.exerciseIndex === undefined) next.push(nextExercise)

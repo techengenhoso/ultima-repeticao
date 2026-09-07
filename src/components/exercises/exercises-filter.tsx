@@ -7,17 +7,17 @@ import { TextField } from "@/components/text-field"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { useExercise } from "@/contexts/exercise-context"
-import {
-  emptyExerciseFilters,
-  type ExerciseFilters as Filters,
-} from "@/lib/exercises/catalog"
+import { difficulties, muscleGroups, muscles, origins } from "@/lib/options-select"
 import {
   type ExerciseDifficulty,
   type ExerciseSource,
   type Muscle,
   type MuscleGroup,
-} from "@/lib/exercises/types"
-import { difficulties, muscleGroups, muscles, origins } from "@/lib/options-select"
+} from "@/modules/exercises/domain/exercise"
+import {
+  emptyExerciseFilters,
+  type ExerciseFilters as Filters,
+} from "@/modules/exercises/domain/exercise-library"
 import { Badge } from "../ui/badge"
 
 export function ExercisesFilter() {

@@ -8,9 +8,8 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { FieldGroup } from "@/components/ui/field"
-import { getFirebaseErrorMessage } from "@/lib/firebase"
 import { emailSchema, passwordSchema, textSchema } from "@/lib/schemas-zod"
-import { createUserRepository } from "@/repositories/user-repository"
+import { useAuthenticationUseCases } from "@/modules/users/presentation/authentication-use-cases-context"
 import { PasswordField } from "../password-field"
 import { TextField } from "../text-field"
 
@@ -30,6 +29,7 @@ type SignUpSchema = z.infer<typeof signUpSchema>
 
 export function SignUpForm() {
   const router = useRouter()
+  const authentication = useAuthenticationUseCases()
 
   const [signUpError, setSignUpError] = useState<string | null>(null)
 
@@ -43,15 +43,15 @@ export function SignUpForm() {
     setSignUpError(null)
 
     try {
-      await createUserRepository(data.fullName, data.email, data.password)
+      await authentication.signUp(data.fullName, data.email, data.password)
 
       router.replace("/")
       router.refresh()
     } catch (error) {
-      const message = getFirebaseErrorMessage({
+      const message = authentication.publicError(
         error,
-        message: "Não foi possível criar sua conta. Tente novamente.",
-      })
+        "Não foi possível criar sua conta. Tente novamente."
+      )
 
       setSignUpError(message)
     }

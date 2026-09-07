@@ -17,7 +17,6 @@ import { Controller, useForm } from "react-hook-form"
 import z from "zod"
 import { Button } from "@/components/ui/button"
 import { DialogFooter } from "@/components/ui/dialog"
-import { type Exercise, type ExerciseInput } from "@/lib/exercises/types"
 import { difficulties, muscleGroups, muscles } from "@/lib/options-select"
 import {
   difficultiesSchema,
@@ -27,6 +26,7 @@ import {
   textLongSchema,
   textSchema,
 } from "@/lib/schemas-zod"
+import type { Exercise, ExerciseInput } from "@/modules/exercises/domain/exercise"
 import { LongTextField } from "../long-text-field"
 import { MultiSelectField } from "../multi-select-field"
 import { SelectField } from "../select-field"

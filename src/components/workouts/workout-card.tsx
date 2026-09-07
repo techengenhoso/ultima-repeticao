@@ -4,7 +4,7 @@ import { CheckCircle2Icon, CopyIcon, PencilIcon, Trash2Icon } from "lucide-react
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import type { Workout } from "@/lib/workouts/types"
+import type { Workout } from "@/modules/workouts/domain/workout"
 
 interface Props {
   isActivating: boolean
@@ -49,7 +49,7 @@ export function WorkoutCard({
           <p>
             <span className="text-muted-foreground">Atualizado: </span>
             {new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(
-              workout.updatedAt.toDate()
+              new Date(workout.updatedAt)
             )}
           </p>
         </div>

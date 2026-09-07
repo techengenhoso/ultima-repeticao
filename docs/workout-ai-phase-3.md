@@ -38,8 +38,8 @@ Criados:
 
 - `src/components/workouts/ai/workout-ai-review.tsx`
 - `src/components/workouts/ai/workout-review-context.tsx`
-- `src/lib/workouts/ai/available-exercises.ts`
-- `src/lib/workouts/ai/review.ts`
+- `src/modules/workouts/domain/generation/available-exercises.ts`
+- `src/modules/workouts/domain/generation/review.ts`
 - `docs/workout-ai-phase-3.md`
 
 Alterados:
@@ -50,7 +50,7 @@ Alterados:
 - `src/components/workouts/workout-exercise-selector.tsx`
 - `src/contexts/workout-context.tsx`
 - `src/repositories/workout-repository.ts`
-- `src/lib/workouts/ai/library.ts`
+- `src/modules/exercises/infrastructure/firebase-admin-exercise-library-source.ts`
 - `docs/workout-ai-phase-2.md`
 
 O resumo provisório `workout-ai-summary.tsx` foi substituído pela revisão completa. As alterações preexistentes das Fases 1 e 2 e o placeholder do formulário manual foram preservados.

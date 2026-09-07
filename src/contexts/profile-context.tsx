@@ -9,15 +9,12 @@ import {
   useState,
 } from "react"
 import { useUser } from "@/contexts/user-context"
-import {
-  ensureProfileRepository,
-  type Profile,
-  type ProfileEditable,
-  saveProfileRepository,
-} from "@/repositories/profile-repository"
+import type { Profile, ProfileEditable } from "@/modules/users/domain/profile"
+import { useProfileUseCases } from "@/modules/users/presentation/profile-use-cases-context"
 
 function useProfileState() {
   const { user } = useUser()
+  const profileUseCases = useProfileUseCases()
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loadingError, setLoadingError] = useState<unknown>(null)
@@ -28,7 +25,8 @@ function useProfileState() {
     setProfile(null)
     setLoadingError(null)
 
-    ensureProfileRepository(user.uid)
+    profileUseCases
+      .load(user.uid)
       .then(result => {
         if (isActive) setProfile(result)
       })
@@ -39,19 +37,19 @@ function useProfileState() {
     return () => {
       isActive = false
     }
-  }, [user.uid])
+  }, [profileUseCases, user.uid])
 
   const saveProfile = useCallback(
     async (data: ProfileEditable) => {
-      const result = await saveProfileRepository(user.uid, data)
+      const result = await profileUseCases.save(user.uid, data)
       setProfile(result)
     },
-    [user.uid]
+    [profileUseCases, user.uid]
   )
 
   const refreshProfile = useCallback(async () => {
-    setProfile(await ensureProfileRepository(user.uid))
-  }, [user.uid])
+    setProfile(await profileUseCases.load(user.uid))
+  }, [profileUseCases, user.uid])
 
   if (loadingError) throw loadingError
   if (!profile) return null

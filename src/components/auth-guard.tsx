@@ -3,12 +3,13 @@
 import { DumbbellIcon } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { type ReactNode, useEffect, useState } from "react"
-import { onAuthStateChangedUserRepository } from "@/repositories/user-repository"
+import { useAuthenticationUseCases } from "@/modules/users/presentation/authentication-use-cases-context"
 import { Blur } from "./blur"
 
 const publicRoutes = new Set(["/sign-up", "/sign-in", "/forgot-password"])
 
 export function AuthGuard({ children }: { children: ReactNode }) {
+  const authentication = useAuthenticationUseCases()
   const pathname = usePathname()
   const router = useRouter()
 
@@ -16,11 +17,11 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   useEffect(() => {
-    return onAuthStateChangedUserRepository(user => {
+    return authentication.observe(user => {
       setIsAuthenticated(Boolean(user))
       setIsCheckingAuthentication(false)
     })
-  }, [])
+  }, [authentication])
 
   useEffect(() => {
     if (isCheckingAuthentication) {

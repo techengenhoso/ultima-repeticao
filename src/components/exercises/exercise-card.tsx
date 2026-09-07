@@ -8,7 +8,7 @@ import {
   exerciseDifficultyLabel,
   muscleGroupLabel,
   muscleLabel,
-} from "@/lib/exercises/types"
+} from "@/modules/exercises/domain/exercise"
 
 interface Props {
   exercise: Exercise

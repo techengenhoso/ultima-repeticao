@@ -5,7 +5,8 @@
   "scripts": {
     "firebase": "npx firebase-tools deploy --only firestore --project ultima-repeticao-5da2b",
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run check:architecture && next build",
+    "check:architecture": "node scripts/check-architecture.mjs",
     "start": "next start",
     "lint": "biome check --write",
     "format": "biome format --write"

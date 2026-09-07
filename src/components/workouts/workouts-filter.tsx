@@ -11,7 +11,10 @@ import { WorkoutAiAssistant } from "@/components/workouts/ai/workout-ai-assistan
 import { useUser } from "@/contexts/user-context"
 import { useWorkout } from "@/contexts/workout-context"
 import { statuses } from "@/lib/options-select"
-import { emptyWorkoutFilters, type WorkoutFilters } from "@/lib/workouts/catalog"
+import {
+  emptyWorkoutFilters,
+  type WorkoutFilters,
+} from "@/modules/workouts/domain/workout-library"
 
 export function WorkoutsFilter() {
   const { user } = useUser()

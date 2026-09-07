@@ -1,5 +1,5 @@
-import type { DefaultExercise, Muscle } from "@/lib/exercises/types"
 import { muscles } from "@/lib/options-select"
+import type { DefaultExercise, Muscle } from "@/modules/exercises/domain/exercise"
 
 type DefaultExerciseSeed = Omit<DefaultExercise, "primaryMuscles" | "secondaryMuscles"> & {
   primaryMuscles: string[]

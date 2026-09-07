@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useWorkout } from "@/contexts/workout-context"
-import { muscleGroupLabel, muscleLabel } from "@/lib/exercises/types"
+import { muscleGroupLabel, muscleLabel } from "@/modules/exercises/domain/exercise"
 import { WorkoutBadgeList } from "./workout-badge-list"
 import { WorkoutDetailField } from "./workout-detail-field"
 import { WorkoutExerciseDetails } from "./workout-exercise-details"
@@ -50,7 +50,7 @@ export function WorkoutDetails() {
               <>
                 Última atualização em{" "}
                 {new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" }).format(
-                  workout.updatedAt.toDate()
+                  new Date(workout.updatedAt)
                 )}
               </>
             )}

@@ -9,14 +9,14 @@ import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { loadSuggestion, mutateSession } from "@/lib/sessions/client"
-import { exerciseHistory } from "@/lib/sessions/progression"
+import { exerciseHistory } from "@/modules/sessions/domain/progression"
 import {
   incrementSchema,
   type LoadSuggestion,
   loadSchema,
   type WorkoutSession,
-} from "@/lib/sessions/schemas"
+} from "@/modules/sessions/domain/session"
+import { useSessionGateway } from "@/modules/sessions/presentation/session-gateway-context"
 
 const settingsFormSchema = incrementSchema.extend({ customLoad: loadSchema })
 type SettingsForm = z.infer<typeof settingsFormSchema>
@@ -36,6 +36,7 @@ export function SessionProgression({
   index: number
   onUpdated: (session: WorkoutSession) => void
 }) {
+  const gateway = useSessionGateway()
   const exercise = session.exercises[index]
   const form = useForm<z.input<typeof settingsFormSchema>, unknown, SettingsForm>({
     resolver: zodResolver(settingsFormSchema),
@@ -65,12 +66,13 @@ export function SessionProgression({
   useEffect(() => {
     let current = true
     setPending(true)
-    loadSuggestion({
-      action: "suggest",
-      id: session.id,
-      exerciseIndex: index,
-      settings: initialSettings.current,
-    })
+    gateway
+      .suggest({
+        action: "suggest",
+        id: session.id,
+        exerciseIndex: index,
+        settings: initialSettings.current,
+      })
       .then(value => {
         if (current) setResult(value)
       })
@@ -88,7 +90,7 @@ export function SessionProgression({
     return () => {
       current = false
     }
-  }, [session.id, index])
+  }, [session.id, index, gateway.suggest])
 
   async function calculate(values: SettingsForm) {
     const sequence = ++requestNumber.current
@@ -96,7 +98,7 @@ export function SessionProgression({
     setError("")
     try {
       const { customLoad: _custom, ...settings } = values
-      const value = await loadSuggestion({
+      const value = await gateway.suggest({
         action: "suggest",
         id: session.id,
         exerciseIndex: index,
@@ -118,7 +120,7 @@ export function SessionProgression({
     setError("")
     try {
       const { customLoad, ...settings } = values
-      const saved = await mutateSession({
+      const saved = await gateway.mutate({
         action: "decide",
         id: session.id,
         version: session.version,

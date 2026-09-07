@@ -30,13 +30,13 @@ import {
 } from "@/components/ui/dialog"
 import { useProfile } from "@/contexts/profile-context"
 import { useWorkout } from "@/contexts/workout-context"
-import { GenerationClientError, requestWorkout } from "@/lib/workouts/ai/client"
-import { getSafetyBlock } from "@/lib/workouts/ai/safety"
 import {
   type AiWorkoutInput,
   type AiWorkoutResult,
   aiWorkoutInputSchema,
-} from "@/lib/workouts/ai/schemas"
+} from "@/modules/workouts/application/workout-generation-schema"
+import { WorkoutGenerationError } from "@/modules/workouts/application/workout-generation-use-cases"
+import { useWorkoutGenerationUseCases } from "@/modules/workouts/presentation/workout-generation-use-cases-context"
 import {
   WorkoutAiBasics,
   WorkoutAiPreferences,
@@ -76,16 +76,22 @@ const dialogHeightByStep = ["", "sm:h-[50rem]", ""] as const
 
 function generationError(error: unknown, signal: AbortSignal) {
   if (signal.aborted) return "A geração demorou mais que o esperado, tente novamente"
-  if (error instanceof GenerationClientError) return error.message
+  if (error instanceof WorkoutGenerationError) return error.message
   return "Não foi possível gerar a ficha, confira sua conexão e tente novamente"
 }
 
-function useSafetyBlock(control: Control<AiWorkoutInput>, generationAttempted: boolean) {
+function useSafetyBlock(
+  control: Control<AiWorkoutInput>,
+  generationAttempted: boolean,
+  safetyBlock: (
+    input: Pick<AiWorkoutInput, "safetyConfirmed" | "safetyFlags">
+  ) => string | null
+) {
   const values = useWatch({ control: control })
 
   if (!generationAttempted && !values.safetyFlags?.length) return null
 
-  return getSafetyBlock({
+  return safetyBlock({
     safetyConfirmed: values.safetyConfirmed ?? false,
     safetyFlags: values.safetyFlags ?? [],
   })
@@ -99,6 +105,7 @@ function submitLabel(pending: boolean, step: number) {
 export function WorkoutAiAssistant() {
   const { profile } = useProfile()
   const { exercises, isLoading, loadingError } = useWorkout()
+  const workoutGenerationUseCases = useWorkoutGenerationUseCases()
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
   const [result, setResult] = useState<AiWorkoutResult | null>(null)
@@ -131,7 +138,11 @@ export function WorkoutAiAssistant() {
       safetyConfirmed: false,
     },
   })
-  const safety = useSafetyBlock(form.control, generationAttempted)
+  const safety = useSafetyBlock(
+    form.control,
+    generationAttempted,
+    workoutGenerationUseCases.safetyBlock
+  )
   const visibleSafety = step === 2 ? safety : null
   const hasFieldError = steps[step].fields.some(field => field in form.formState.errors)
   const pending = form.formState.isSubmitting || generating || saving
@@ -154,7 +165,7 @@ export function WorkoutAiAssistant() {
   async function generate(input: AiWorkoutInput) {
     if (activeRequest.current) return
 
-    const blocked = getSafetyBlock(input)
+    const blocked = workoutGenerationUseCases.safetyBlock(input)
 
     if (blocked) {
       setError(blocked)
@@ -171,7 +182,11 @@ export function WorkoutAiAssistant() {
     const timeout = setTimeout(() => controller.abort(), 85000)
 
     try {
-      const generated = await requestWorkout(input, exercises, controller.signal)
+      const generated = await workoutGenerationUseCases.generate(
+        input,
+        exercises,
+        controller.signal
+      )
       setOriginalInput(input)
       setResult(generated)
       setRevision(value => value + 1)
@@ -264,7 +279,7 @@ export function WorkoutAiAssistant() {
                       void next()
                     } else {
                       setGenerationAttempted(true)
-                      if (getSafetyBlock(form.getValues())) {
+                      if (workoutGenerationUseCases.safetyBlock(form.getValues())) {
                         event.preventDefault()
                         setError("")
                         return

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import type { WorkoutSession } from "@/lib/sessions/schemas"
+import type { WorkoutSession } from "@/modules/sessions/domain/session"
 import { SessionProgression } from "./session-progression"
 
 export function SessionSummary({

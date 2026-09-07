@@ -13,9 +13,12 @@ import { SelectField } from "@/components/select-field"
 import { TextField } from "@/components/text-field"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import type { Exercise } from "@/lib/exercises/types"
 import { experiences, goals, muscleGroups } from "@/lib/options-select"
-import { type AiWorkoutInput, safetyQuestions } from "@/lib/workouts/ai/schemas"
+import type { Exercise } from "@/modules/exercises/domain/exercise"
+import {
+  type AiWorkoutInput,
+  safetyQuestions,
+} from "@/modules/workouts/application/workout-generation-schema"
 
 function selectionError(error: unknown): { message: string } | undefined {
   if (!error || typeof error !== "object") return undefined

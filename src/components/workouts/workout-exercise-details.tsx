@@ -4,9 +4,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import type { Exercise } from "@/lib/exercises/types"
-import { muscleGroupLabel } from "@/lib/exercises/types"
-import type { WorkoutExercise } from "@/lib/workouts/types"
+import { type Exercise, muscleGroupLabel } from "@/modules/exercises/domain/exercise"
+import type { WorkoutExercise } from "@/modules/workouts/domain/workout"
 import { WorkoutExerciseMetric } from "./workout-exercise-metric"
 
 interface Props {

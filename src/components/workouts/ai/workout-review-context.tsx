@@ -1,8 +1,8 @@
 "use client"
 
 import { createContext, useContext } from "react"
-import type { WorkoutPrescription } from "@/lib/workouts/methodology/types"
-import type { MethodologyIssue } from "@/lib/workouts/methodology/validation"
+import type { WorkoutPrescription } from "@/modules/workouts/domain/methodology/types"
+import type { MethodologyIssue } from "@/modules/workouts/domain/methodology/validation"
 
 export const WorkoutReviewContext = createContext<{
   prescription: WorkoutPrescription

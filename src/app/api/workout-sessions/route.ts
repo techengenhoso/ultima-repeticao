@@ -1,50 +1,30 @@
-import { FirebaseAuthError } from "firebase-admin/auth"
 import { NextResponse } from "next/server"
-import { getAdminAuth } from "@/lib/server/firebase-admin"
+import { SessionUseCaseError } from "@/modules/sessions/application/session-use-cases"
+import { documentIdSchema, sessionCommandSchema } from "@/modules/sessions/domain/session"
 import {
-  getSession,
-  listSessions,
-  SessionError,
-  sessionCommand,
-} from "@/lib/server/session-service"
-import { documentIdSchema, sessionCommandSchema } from "@/lib/sessions/schemas"
-import { readLimitedJson } from "@/lib/workouts/ai/http"
+  authenticateFirebaseRequest,
+  RequestAuthenticationError,
+} from "@/modules/shared/infrastructure/firebase-request-authenticator"
+import { readLimitedJson } from "@/modules/shared/infrastructure/http-request-body"
+import { sessionUseCases } from "./dependencies"
 
 export const runtime = "nodejs"
 const headers = { "Cache-Control": "no-store" }
 
-function isInvalidSession(error: unknown) {
-  return (
-    error instanceof FirebaseAuthError &&
-    [
-      "auth/id-token-expired",
-      "auth/id-token-revoked",
-      "auth/invalid-id-token",
-      "auth/user-disabled",
-      "auth/user-not-found",
-    ].includes(error.code)
-  )
-}
-
 async function handle(request: Request) {
   try {
-    const token = request.headers.get("authorization")
-    if (!token?.startsWith("Bearer ") || token.length > 8192)
-      throw new SessionError(401, "Entre na sua conta para acessar as sessões")
-    const auth = getAdminAuth()
-    const user = await auth.verifyIdToken(token.slice(7), true).catch(error => {
-      if (isInvalidSession(error))
-        throw new SessionError(401, "Sua sessão expirou, entre novamente")
-      throw error
-    })
+    const user = await authenticateFirebaseRequest(
+      request,
+      "Entre na sua conta para acessar as sessões"
+    )
     if (request.method === "GET") {
       const params = new URL(request.url).searchParams
       const id = params.get("id")
       const cursor = params.get("cursor")
       return NextResponse.json(
         id
-          ? { session: await getSession(user.uid, documentIdSchema.parse(id)) }
-          : await listSessions(
+          ? { session: await sessionUseCases.get(user.uid, documentIdSchema.parse(id)) }
+          : await sessionUseCases.list(
               user.uid,
               cursor ? documentIdSchema.parse(cursor) : undefined
             ),
@@ -52,7 +32,7 @@ async function handle(request: Request) {
       )
     }
     if (!request.headers.get("content-type")?.startsWith("application/json"))
-      throw new SessionError(415, "Envie os dados em JSON")
+      throw new SessionUseCaseError(415, "Envie os dados em JSON")
     const raw = await readLimitedJson(
       request.body,
       256 * 1024,
@@ -60,10 +40,17 @@ async function handle(request: Request) {
     )
     const command = sessionCommandSchema.safeParse(raw)
     if (!command.success)
-      throw new SessionError(422, "Revise cargas, repetições, RIR e séries informadas")
-    return NextResponse.json(await sessionCommand(user.uid, command.data), { headers })
+      throw new SessionUseCaseError(
+        422,
+        "Revise cargas, repetições, RIR e séries informadas"
+      )
+    return NextResponse.json(await sessionUseCases.execute(user.uid, command.data), {
+      headers,
+    })
   } catch (error) {
-    if (error instanceof SessionError)
+    if (error instanceof RequestAuthenticationError)
+      return NextResponse.json({ message: error.message }, { status: 401, headers })
+    if (error instanceof SessionUseCaseError)
       return NextResponse.json(
         { message: error.message },
         { status: error.status, headers }
