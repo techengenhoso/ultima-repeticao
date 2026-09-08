@@ -1,9 +1,10 @@
 "use client"
 
-import { DumbbellIcon, InfoIcon, UserIcon } from "lucide-react"
+import { DumbbellIcon, UserIcon } from "lucide-react"
 import Link from "next/link"
 import type { ReactNode } from "react"
 import { MainNavigation } from "@/components/main-navigation"
+import { SupportDialog } from "@/components/support-dialog"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { useUser } from "@/contexts/user-context"
@@ -46,9 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="flex w-full min-w-0 gap-2">
             <ThemeToggle />
 
-            <Button aria-label="Suporte" disabled size="icon" variant="outline">
-              <InfoIcon />
-            </Button>
+            <SupportDialog />
 
             <Button asChild className="min-w-0 flex-1 shrink px-2" variant="outline">
               <Link href="/profile">
@@ -79,15 +78,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-2">
             <ThemeToggle />
 
-            <Button
-              aria-label="Suporte"
-              className="md:hidden"
-              disabled
-              size="icon"
-              variant="outline"
-            >
-              <InfoIcon />
-            </Button>
+            <SupportDialog className="md:hidden" />
 
             <Button
               aria-label="Perfil"

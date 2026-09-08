@@ -22,9 +22,11 @@ import {
 import {
   type AssessmentGroup,
   assessmentFields,
+  type FieldDefinition,
   groups,
 } from "@/modules/body-assessments/presentation/fields"
 import { useProgressUseCases } from "../progress-use-cases-context"
+import { BodyAssessmentGroupsAccordion } from "./body-assessment-groups-accordion"
 
 type FormValues = {
   assessmentDate: string
@@ -34,6 +36,8 @@ const number = (value: string) =>
   value.trim() === "" ? null : Number(value.replace(",", "."))
 const fieldValue = (values: FormValues, group: AssessmentGroup, key: string) =>
   values.values[group]?.[key] ?? ""
+const fieldsFor = (group: AssessmentGroup) =>
+  assessmentFields.filter(field => field.group === group)
 const emptyValues = (item?: BodyAssessment): FormValues => ({
   assessmentDate: item ? formatIsoDateToBrazilian(item.assessmentDate) : "",
   values: Object.fromEntries(
@@ -127,46 +131,65 @@ export function BodyAssessmentForm({
       setSaving(false)
     }
   }
+  const renderField = (field: FieldDefinition) => {
+    const name = `values.${field.group}.${field.key}` as FieldPath<FormValues>
+    return (
+      <TextField
+        {...form.register(name)}
+        error={form.formState.errors.values?.[field.group]?.[field.key]}
+        icon={field.group === "bodyIndex" ? <ScaleIcon /> : <RulerIcon />}
+        id={name}
+        key={name}
+        label={field.label}
+        placeholder={field.placeholder ?? "Ex: 86,2"}
+      />
+    )
+  }
+
   return (
     <form className="space-y-5" onSubmit={form.handleSubmit(submit)}>
-      <fieldset className="grid gap-5 sm:grid-cols-2" disabled={saving}>
-        {visibleGroups.includes("bodyIndex") && (
-          <TextField
-            {...form.register("assessmentDate")}
-            error={form.formState.errors.assessmentDate}
-            icon={<CalendarIcon />}
-            id="assessment-date"
-            label="Data da avaliação"
-            onChange={event => {
-              event.target.value = formatBrazilianDateInput(event.target.value)
-              form.setValue("assessmentDate", event.target.value, { shouldDirty: true })
-            }}
-            placeholder="DD/MM/AAAA"
+      <div className="no-scrollbar max-h-[calc(100dvh-15rem)] overflow-y-auto overscroll-contain">
+        <fieldset className="grid content-start gap-5 sm:grid-cols-2" disabled={saving}>
+          <div className="sm:col-span-2">
+            <TextField
+              {...form.register("assessmentDate")}
+              error={form.formState.errors.assessmentDate}
+              icon={<CalendarIcon />}
+              id="assessment-date"
+              label="Data da avaliação"
+              onChange={event => {
+                event.target.value = formatBrazilianDateInput(event.target.value)
+                form.setValue("assessmentDate", event.target.value, { shouldDirty: true })
+              }}
+              placeholder="DD/MM/AAAA"
+            />
+          </div>
+          <BodyAssessmentGroupsAccordion
+            className="sm:col-span-2"
+            groups={visibleGroups.map(assessmentGroup => {
+              const groupFields = fieldsFor(assessmentGroup)
+              return {
+                key: assessmentGroup,
+                label:
+                  groups.find(groupItem => groupItem.key === assessmentGroup)?.label ??
+                  assessmentGroup,
+                measureCount: groupFields.length,
+              }
+            })}
+            renderContent={assessmentGroup => (
+              <div className="grid gap-5 sm:grid-cols-2">
+                {fieldsFor(assessmentGroup).map(renderField)}
+              </div>
+            )}
           />
-        )}
-        {assessmentFields
-          .filter(field => visibleGroups.includes(field.group))
-          .map(field => {
-            const name = `values.${field.group}.${field.key}` as FieldPath<FormValues>
-            return (
-              <TextField
-                {...form.register(name)}
-                error={form.formState.errors.values?.[field.group]?.[field.key]}
-                icon={field.group === "bodyIndex" ? <ScaleIcon /> : <RulerIcon />}
-                id={name}
-                key={name}
-                label={field.label}
-                placeholder={field.placeholder ?? "Ex: 86,2"}
-              />
-            )
-          })}
-      </fieldset>
+        </fieldset>
+      </div>
       {failure && (
         <p className="text-sm text-destructive" role="alert">
           {failure}
         </p>
       )}
-      <DialogFooter>
+      <DialogFooter className="border-t pt-4">
         <Button disabled={saving} onClick={onCancel} type="button" variant="outline">
           Cancelar
         </Button>

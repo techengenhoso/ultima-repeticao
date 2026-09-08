@@ -17,7 +17,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -38,6 +37,7 @@ const formatDate = (value: string) =>
   new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeZone: "UTC" })
     .format(new Date(`${value}T00:00:00Z`))
     .replaceAll(".", "")
+
 export function BodyAssessmentsSection() {
   const progressUseCases = useProgressUseCases()
   const [items, setItems] = useState<BodyAssessment[]>([])
@@ -53,6 +53,7 @@ export function BodyAssessmentsSection() {
   const [confirmingClose, setConfirmingClose] = useState<"creating" | "editing" | null>(
     null
   )
+
   const load = useCallback(async () => {
     setLoading(true)
     try {
@@ -64,9 +65,11 @@ export function BodyAssessmentsSection() {
       setLoading(false)
     }
   }, [progressUseCases])
+
   useEffect(() => {
     void load()
   }, [load])
+
   const saved = (item: BodyAssessment) => {
     setItems(current => progressUseCases.replaceAssessment(current, item))
     setEditing(null)
@@ -74,10 +77,13 @@ export function BodyAssessmentsSection() {
     setCreatingDirty(false)
     setEditingDirty(false)
   }
+
   const closeCreating = () =>
     creatingDirty ? setConfirmingClose("creating") : setCreatingGroup(null)
+
   const closeEditing = () =>
     editingDirty ? setConfirmingClose("editing") : setEditing(null)
+
   const discardChanges = () => {
     if (confirmingClose === "creating") {
       setCreatingGroup(null)
@@ -89,8 +95,10 @@ export function BodyAssessmentsSection() {
     }
     setConfirmingClose(null)
   }
+
   async function remove() {
     if (!deleting) return
+
     try {
       await progressUseCases.removeAssessment(deleting.id)
       setItems(current => progressUseCases.removeAssessmentFromList(current, deleting.id))
@@ -101,6 +109,7 @@ export function BodyAssessmentsSection() {
       )
     }
   }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap justify-between gap-3">
@@ -187,7 +196,7 @@ export function BodyAssessmentsSection() {
           <BodyAssessmentIndicators assessments={items} />
           <BodyAssessmentChart assessments={items} />
           <section className="space-y-3" id="assessment-history">
-            <h2 className="font-semibold">Histórico de avaliações</h2>
+            <h2 className="text-xl font-bold">Histórico de avaliações</h2>
             <BodyAssessmentHistory
               items={items}
               onDelete={setDeleting}
@@ -210,11 +219,6 @@ export function BodyAssessmentsSection() {
           <div className="min-h-0 overflow-y-auto overscroll-contain scrollbar-none [&::-webkit-scrollbar]:hidden">
             {viewing && <BodyAssessmentDetails item={viewing} />}
           </div>
-          <DialogFooter className="border-t pt-4">
-            <Button onClick={() => setViewing(null)} type="button" variant="outline">
-              Fechar
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
       <AlertDialog

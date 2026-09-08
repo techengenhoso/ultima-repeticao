@@ -3,13 +3,7 @@
 import { PencilIcon, Trash2Icon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardAction,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Pagination,
   PaginationContent,
@@ -45,13 +39,16 @@ export function BodyAssessmentHistory({
   return (
     <div className="grid gap-3">
       {visible.map(item => (
-        <Card key={item.id} size="sm">
+        <Card className="py-3" key={item.id} size="sm">
           <CardHeader>
             <CardTitle className="text-base normal-case tracking-normal">
               {formatDate(item.assessmentDate)}
             </CardTitle>
             <CardDescription>Criação da avaliação</CardDescription>
-            <CardAction>
+            <div
+              className="col-start-2 row-span-2 row-start-1 self-center justify-self-end"
+              data-slot="card-action"
+            >
               <div className="flex gap-1">
                 <Button
                   aria-label="Visualizar avaliação"
@@ -81,7 +78,7 @@ export function BodyAssessmentHistory({
                   <Trash2Icon />
                 </Button>
               </div>
-            </CardAction>
+            </div>
           </CardHeader>
         </Card>
       ))}
