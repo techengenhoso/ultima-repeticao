@@ -33,10 +33,6 @@ export const completedSetSchema = z
     warmup: z.boolean().default(false),
   })
   .strict()
-  .refine(set => !set.completed || set.performedRepetitions > 0, {
-    path: ["performedRepetitions"],
-    message: "Registre as repetições antes de concluir a série",
-  })
 export const incrementSchema = z
   .object({
     roundingStep: z.number().positive().max(100).multipleOf(0.01).optional(),

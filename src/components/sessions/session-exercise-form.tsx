@@ -1,182 +1,279 @@
 "use client"
 
-import { useFieldArray, useFormContext, useWatch } from "react-hook-form"
+import { ArrowLeftIcon, CheckIcon } from "lucide-react"
+import { useState } from "react"
+import { useFormContext, useWatch } from "react-hook-form"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import type { SessionFormValues } from "@/modules/sessions/domain/session"
-import { RestTimer } from "./rest-timer"
 
-export function SessionExerciseForm({ index }: { index: number }) {
+function WorkSetNavigator({
+  editingSetIndex,
+  nextWorkSetIndex,
+  onSelect,
+  sets,
+  workSetIndexes,
+}: {
+  editingSetIndex: number | null
+  nextWorkSetIndex: number
+  onSelect: (setIndex: number) => void
+  sets: SessionFormValues["exercises"][number]["sets"]
+  workSetIndexes: number[]
+}) {
+  return (
+    <fieldset className="flex flex-wrap gap-2">
+      <legend className="sr-only">Sequência de séries</legend>
+      {workSetIndexes.map(setIndex => {
+        const set = sets[setIndex]
+        const isSelected = setIndex === (editingSetIndex ?? nextWorkSetIndex)
+        return (
+          <Button
+            aria-current={isSelected ? "step" : undefined}
+            aria-label={`Série ${set.setNumber}`}
+            disabled={!set.completed && !isSelected}
+            key={set.setNumber}
+            onClick={() => onSelect(setIndex)}
+            size="xs"
+            type="button"
+            variant={isSelected ? "default" : set.completed ? "secondary" : "outline"}
+          >
+            {set.completed && <CheckIcon aria-hidden="true" />}
+            Série {set.setNumber}
+          </Button>
+        )
+      })}
+    </fieldset>
+  )
+}
+
+function RirFeedback({
+  perceivedRir,
+  targetRir,
+}: {
+  perceivedRir?: number
+  targetRir?: number
+}) {
+  if (perceivedRir === undefined || targetRir === undefined) return null
+  return (
+    <p className="text-sm text-muted-foreground">
+      {perceivedRir < targetRir
+        ? "Esforço acima do desejado: RIR menor que a meta"
+        : "RIR igual ou acima da meta"}
+    </p>
+  )
+}
+
+export function SessionExerciseForm({
+  index,
+  onBack,
+  onWorkSetsCompleted,
+  onSeriesCompleted,
+  totalExercises,
+}: {
+  index: number
+  onBack: () => void
+  onWorkSetsCompleted: () => void
+  onSeriesCompleted: (restSeconds?: number) => void
+  totalExercises: number
+}) {
   const {
     register,
     control,
     setValue,
     getValues,
+    trigger,
     formState: { errors },
   } = useFormContext<SessionFormValues>()
   const exercise = useWatch({ control, name: `exercises.${index}` })
-  const sets = useFieldArray({ control, name: `exercises.${index}.sets` })
-  const firstLoad = exercise.referenceLoad === undefined && exercise.initialLoad === 0
+  const [editingSetIndex, setEditingSetIndex] = useState<number | null>(null)
+  const nextWorkSetIndex = exercise.sets.findIndex(set => !set.warmup && !set.completed)
+  const selectedSetIndex = editingSetIndex ?? nextWorkSetIndex
+  const selectedSet = selectedSetIndex === -1 ? undefined : exercise.sets[selectedSetIndex]
+  const selectedSetErrors =
+    selectedSetIndex === -1
+      ? undefined
+      : errors.exercises?.[index]?.sets?.[selectedSetIndex]
+  const workSetIndexes = exercise.sets
+    .map((set, setIndex) => (!set.warmup ? setIndex : null))
+    .filter((setIndex): setIndex is number => setIndex !== null)
+
+  function selectSet(setIndex: number) {
+    setEditingSetIndex(setIndex === nextWorkSetIndex ? null : setIndex)
+  }
+
+  function handleCompletedChange(setIndex: number, completed: boolean) {
+    const prefix = `exercises.${index}.sets.${setIndex}` as const
+    setValue(`${prefix}.completed`, completed, {
+      shouldDirty: true,
+      shouldValidate: true,
+    })
+    if (!completed) return
+    if (setIndex !== nextWorkSetIndex) {
+      void trigger(prefix).then(valid => {
+        if (!valid) return
+        const nextSetIndex = workSetIndexes.find(
+          candidate => candidate > setIndex && !exercise.sets[candidate].completed
+        )
+        if (nextSetIndex !== undefined) {
+          setEditingSetIndex(nextSetIndex === nextWorkSetIndex ? null : nextSetIndex)
+          return
+        }
+        onWorkSetsCompleted()
+      })
+      return
+    }
+    void trigger(prefix).then(valid => {
+      if (!valid) return
+      onSeriesCompleted(exercise.restSeconds)
+      const nextSetIndex = workSetIndexes.find(
+        candidate => candidate > setIndex && !exercise.sets[candidate].completed
+      )
+      if (nextSetIndex !== undefined) {
+        setValue(
+          `exercises.${index}.sets.${nextSetIndex}.performedRepetitions`,
+          getValues(`${prefix}.performedRepetitions`),
+          { shouldDirty: true, shouldValidate: true }
+        )
+        setEditingSetIndex(null)
+        return
+      }
+      onWorkSetsCompleted()
+    })
+  }
+
   return (
-    <section
-      aria-label={exercise.exerciseSnapshot.name}
-      className="min-w-0 space-y-4 border bg-card p-3 sm:p-5"
-    >
-      <h2 className="wrap-break-word text-lg font-semibold">
-        {index + 1} · {exercise.exerciseSnapshot.name}
-      </h2>
-      <p className="text-sm">
-        Meta: {exercise.targetSets} séries de {exercise.targetRepetitions} repetições · RIR{" "}
-        {exercise.targetRir ?? "não definido"}
-      </p>
-      <p className="text-sm text-muted-foreground">
-        {firstLoad
-          ? "Carga a definir: comece de forma conservadora e informe a carga realmente utilizada"
-          : `Referência: ${exercise.referenceLoad ?? exercise.initialLoad} kg · Você pode escolher outra carga`}
-      </p>
-      <RestTimer seconds={exercise.restSeconds} />
-      <div className="flex items-start gap-3">
-        <Checkbox
-          checked={exercise.painReported}
-          id={`pain-${index}`}
-          onCheckedChange={value =>
-            setValue(`exercises.${index}.painReported`, value === true, {
-              shouldDirty: true,
-            })
-          }
-        />
-        <label className="text-sm" htmlFor={`pain-${index}`}>
-          Senti dor neste exercício
-        </label>
+    <section aria-label={exercise.exerciseSnapshot.name} className="min-w-0 space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Button onClick={onBack} size="sm" type="button" variant="ghost">
+          <ArrowLeftIcon aria-hidden="true" />
+          Todos os exercícios
+        </Button>
+        <span className="text-xs font-medium text-muted-foreground">
+          Exercício {index + 1} de {totalExercises}
+        </span>
       </div>
-      {exercise.painReported && (
-        <p className="text-sm text-destructive" role="alert">
-          Interrompa o exercício em caso de dor aguda e procure orientação profissional ·
-          Não será sugerida progressão
-        </p>
-      )}
-      <p className="text-xs text-muted-foreground">
-        RIR é o número de repetições que você ainda conseguiria fazer · Opcional,
-        recomendado nas séries de trabalho
-      </p>
-      {sets.fields.map((field, setIndex) => {
-        const set = exercise.sets[setIndex]
-        const prefix = `exercises.${index}.sets.${setIndex}` as const
-        const setErrors = errors.exercises?.[index]?.sets?.[setIndex]
-        return (
-          <div className="space-y-3 border p-3" key={field.id}>
-            <p className="font-medium">
-              Série {setIndex + 1}
-              {set.warmup ? " · Aquecimento" : " · Trabalho"}
+
+      <div className="border border-border border-l-2 border-l-primary bg-card">
+        <div className="flex items-center gap-3 p-4">
+          <h2 className="min-w-0 wrap-break-word text-lg font-semibold">
+            {exercise.exerciseSnapshot.name}
+          </h2>
+          {exercise.painReported && (
+            <p className="ml-auto text-xs text-destructive" role="alert">
+              Dor relatada
             </p>
-            <div className="grid min-w-0 gap-3 sm:grid-cols-3">
-              {(
-                [
-                  { name: "load", label: "Carga (kg)", max: 1000, step: 0.01 },
-                  {
-                    name: "performedRepetitions",
-                    label: "Repetições realizadas",
-                    max: 100,
-                    step: 1,
-                  },
-                ] as const
-              ).map(metric => (
-                <Field key={metric.name}>
-                  <FieldLabel htmlFor={`${prefix}-${metric.name}`}>
-                    {metric.label}
+          )}
+        </div>
+
+        <div className="space-y-5 border-t border-border p-4">
+          <WorkSetNavigator
+            editingSetIndex={editingSetIndex}
+            nextWorkSetIndex={nextWorkSetIndex}
+            onSelect={selectSet}
+            sets={exercise.sets}
+            workSetIndexes={workSetIndexes}
+          />
+
+          {selectedSet ? (
+            <div className="space-y-4">
+              <div className="grid min-w-0 gap-3 sm:grid-cols-3">
+                <Field>
+                  <FieldLabel htmlFor={`exercises.${index}.sets.${selectedSetIndex}-load`}>
+                    Carga
                   </FieldLabel>
                   <Input
-                    id={`${prefix}-${metric.name}`}
-                    inputMode={metric.name === "load" ? "decimal" : "numeric"}
-                    max={metric.max}
+                    id={`exercises.${index}.sets.${selectedSetIndex}-load`}
+                    inputMode="decimal"
+                    max={1000}
                     min={0}
-                    step={metric.step}
+                    step={0.01}
                     type="number"
-                    {...register(`${prefix}.${metric.name}`, { valueAsNumber: true })}
+                    {...register(`exercises.${index}.sets.${selectedSetIndex}.load`, {
+                      valueAsNumber: true,
+                    })}
                   />
-                  <FieldError errors={[setErrors?.[metric.name]]} />
+                  <FieldError errors={[selectedSetErrors?.load]} />
                 </Field>
-              ))}
-              <Field>
-                <FieldLabel htmlFor={`${prefix}-rir`}>RIR percebido</FieldLabel>
-                <Input
-                  id={`${prefix}-rir`}
-                  inputMode="numeric"
-                  max={5}
-                  min={0}
-                  placeholder="Opcional"
-                  step={1}
-                  type="number"
-                  {...register(`${prefix}.perceivedRir`, {
-                    setValueAs: value => (value === "" ? undefined : Number(value)),
-                  })}
-                />
-                <FieldError errors={[setErrors?.perceivedRir]} />
-              </Field>
-            </div>
-            {!set.warmup &&
-              set.perceivedRir !== undefined &&
-              exercise.targetRir !== undefined && (
-                <p className="text-xs text-muted-foreground">
-                  {set.perceivedRir < exercise.targetRir
-                    ? "Esforço acima do desejado: RIR menor que a meta"
-                    : "RIR igual ou acima da meta"}
-                </p>
-              )}
-            <div className="flex flex-wrap items-center gap-3">
-              <Checkbox
-                checked={set.completed}
-                id={`${prefix}-completed`}
-                onCheckedChange={value =>
-                  setValue(`${prefix}.completed`, value === true, {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  })
-                }
+                <Field>
+                  <FieldLabel
+                    htmlFor={`exercises.${index}.sets.${selectedSetIndex}-repetitions`}
+                  >
+                    Repetições
+                  </FieldLabel>
+                  <Input
+                    id={`exercises.${index}.sets.${selectedSetIndex}-repetitions`}
+                    inputMode="numeric"
+                    max={100}
+                    min={0}
+                    step={1}
+                    type="number"
+                    {...register(
+                      `exercises.${index}.sets.${selectedSetIndex}.performedRepetitions`,
+                      {
+                        setValueAs: value => (value === "" ? undefined : Number(value)),
+                      }
+                    )}
+                  />
+                  <FieldError errors={[selectedSetErrors?.performedRepetitions]} />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor={`exercises.${index}.sets.${selectedSetIndex}-rir`}>
+                    RIR percebido
+                  </FieldLabel>
+                  <Input
+                    id={`exercises.${index}.sets.${selectedSetIndex}-rir`}
+                    inputMode="numeric"
+                    max={5}
+                    min={0}
+                    placeholder="Opcional"
+                    step={1}
+                    type="number"
+                    {...register(
+                      `exercises.${index}.sets.${selectedSetIndex}.perceivedRir`,
+                      {
+                        setValueAs: value => (value === "" ? undefined : Number(value)),
+                      }
+                    )}
+                  />
+                  <FieldError errors={[selectedSetErrors?.perceivedRir]} />
+                </Field>
+              </div>
+              <RirFeedback
+                perceivedRir={selectedSet.perceivedRir}
+                targetRir={exercise.targetRir}
               />
-              <label className="text-sm" htmlFor={`${prefix}-completed`}>
-                Série concluída
-              </label>
-              {setIndex > 0 && (
+              <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-start">
                 <Button
-                  onClick={() =>
-                    setValue(
-                      `${prefix}.load`,
-                      getValues(`exercises.${index}.sets.${setIndex - 1}.load`),
-                      { shouldDirty: true, shouldValidate: true }
-                    )
-                  }
+                  aria-pressed={selectedSet.completed}
+                  className="sm:order-2 sm:ml-auto"
+                  onClick={() => handleCompletedChange(selectedSetIndex, true)}
                   size="sm"
                   type="button"
-                  variant="outline"
+                  variant={selectedSet.completed ? "secondary" : "default"}
                 >
-                  Repetir carga anterior
+                  {selectedSet.completed ? "Atualizar série" : "Concluir série"}
                 </Button>
-              )}
+
+                <FieldDescription className="sm:order-1">
+                  <strong>RIR percebido</strong> é a estimativa de quantas repetições ainda
+                  seriam possíveis ao fim da série
+                </FieldDescription>
+              </div>
             </div>
-          </div>
-        )
-      })}
-      <FieldError errors={[errors.exercises?.[index]?.sets?.root]} />
-      <Button
-        disabled={exercise.sets.filter(set => set.warmup).length >= 5}
-        onClick={() =>
-          sets.append({
-            setNumber: exercise.sets.length + 1,
-            targetRepetitions: exercise.targetRepetitions,
-            load: 0,
-            performedRepetitions: 0,
-            completed: false,
-            warmup: true,
-          })
-        }
-        type="button"
-        variant="outline"
-      >
-        Adicionar aquecimento
-      </Button>
+          ) : (
+            <div className="flex items-center gap-3 bg-muted/40 p-4">
+              <CheckIcon aria-hidden="true" className="size-5 text-primary" />
+              <div>
+                <h3 className="font-semibold">Exercício concluído</h3>
+                <p className="text-sm text-muted-foreground">
+                  Você pode voltar à lista ou revisar uma série acima
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </section>
   )
 }

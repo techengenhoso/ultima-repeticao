@@ -45,6 +45,10 @@ function exerciseBadgeLabel({
   return source === "default" ? "Padrão" : "Personalizado"
 }
 
+function referenceOf(exercise: Exercise) {
+  return `${exercise.source}:${exercise.id}`
+}
+
 export function WorkoutExerciseSelector({
   exercises,
   onClose,
@@ -59,7 +63,12 @@ export function WorkoutExerciseSelector({
   const { getValues, setValue } = useFormContext<WorkoutFormValues>()
   const [filters, setFilters] = useState<ExerciseFilters>(emptyExerciseFilters)
   const [selectedReferences, setSelectedReferences] = useState<string[]>([])
+
   const results = useMemo(() => filterExercises(exercises, filters), [exercises, filters])
+  const exercisesByReference = useMemo(
+    () => new Map(exercises.map(exercise => [referenceOf(exercise), exercise])),
+    [exercises]
+  )
   const currentExerciseCount = target
     ? getValues(`days.${target.dayIndex}.exercises`).length
     : 0
@@ -74,14 +83,13 @@ export function WorkoutExerciseSelector({
     onClose()
   }
 
-  const referenceOf = (exercise: Exercise) => `${exercise.source}:${exercise.id}`
-
   function addSelectedExercises() {
     if (!target || target.exerciseIndex !== undefined) return
     const current = getValues(`days.${target.dayIndex}.exercises`)
-    const selected = exercises.filter(exercise =>
-      selectedReferences.includes(referenceOf(exercise))
-    )
+    const selected = selectedReferences.flatMap(reference => {
+      const exercise = exercisesByReference.get(reference)
+      return exercise ? [exercise] : []
+    })
     if (selected.length === 0) return
 
     setValue(

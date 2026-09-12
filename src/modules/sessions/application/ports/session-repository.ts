@@ -2,6 +2,7 @@ import type { SessionExercise, WorkoutSession } from "../../domain/session"
 
 export interface SessionRepository {
   find(uid: string, id: string): Promise<WorkoutSession | null>
+  findInProgress(uid: string): Promise<WorkoutSession | null>
   list(
     uid: string,
     cursor?: string

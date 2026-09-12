@@ -32,21 +32,15 @@ export function ExerciseCard({ exercise, onDelete, onDetails, onEdit }: Props) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-3 text-sm">
-        <p>
-          <span className="text-muted-foreground">Grupo muscular: </span>
-          {muscleGroupLabel[exercise.muscleGroup]}
-        </p>
+      <CardContent className="space-y-3 text-sm text-muted-foreground">
+        <p>Grupo muscular: {muscleGroupLabel[exercise.muscleGroup]}</p>
 
         <p>
-          <span className="text-muted-foreground">Músculos principais: </span>
+          Músculos principais:{" "}
           {exercise.primaryMuscles.map(muscle => muscleLabel[muscle] ?? muscle).join(", ")}
         </p>
 
-        <p>
-          <span className="text-muted-foreground">Dificuldade: </span>
-          {exerciseDifficultyLabel[exercise.difficulty]}
-        </p>
+        <p>Dificuldade: {exerciseDifficultyLabel[exercise.difficulty]}</p>
       </CardContent>
 
       <CardFooter className="flex flex-wrap justify-end gap-2 border-t">

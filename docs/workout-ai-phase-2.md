@@ -74,7 +74,7 @@ Antes de chamar o provedor, o servidor executa a prescrição, recusa as incompa
 
 Após a chamada, valida JSON, formato estrito, referências permitidas, ordem sequencial e todos os limites pelo motor da Fase 1: séries, repetições, descanso, RIR, duplicidade, volume, distribuição, recuperação e duração. Qualquer erro descarta a resposta inteira. Avisos não impeditivos são apresentados no resumo.
 
-IDs dos dias e itens são gerados com `randomUUID`; snapshots vêm da biblioteca real; carga inicial é sempre zero. A resposta do modelo não aceita IDs internos, carga, timestamps, `isActive` ou snapshots.
+IDs dos dias e itens são gerados com `randomUUID`; snapshots vêm da biblioteca real; carga é sempre zero. A resposta do modelo não aceita IDs internos, carga, timestamps, `isActive` ou snapshots.
 
 ## Arquivos da Fase 2
 

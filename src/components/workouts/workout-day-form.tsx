@@ -112,10 +112,12 @@ export function WorkoutDayForm({
   return (
     <Collapsible onOpenChange={setIsOpen} open={isOpen}>
       <Card
-        className="min-w-0 gap-0 border border-border border-l-2 border-l-primary py-0"
+        className="min-w-0 gap-0 border border-border border-l-primary py-0 shadow-none ring-0"
         size="sm"
       >
-        <CardHeader className="border-b bg-muted/40 py-4 [.border-b]:pb-4">
+        <CardHeader
+          className={`bg-muted/40 py-4 [.border-b]:pb-4 ${isOpen ? "border-b" : ""}`}
+        >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <CollapsibleTrigger asChild>
               <button
@@ -126,7 +128,6 @@ export function WorkoutDayForm({
                 <span className="flex size-9 shrink-0 items-center justify-center bg-primary text-sm font-bold text-primary-foreground">
                   {index + 1}
                 </span>
-
                 <span className="min-w-0 flex-1">
                   <CardTitle className="text-base">Treino</CardTitle>
 

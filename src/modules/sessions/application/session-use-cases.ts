@@ -38,6 +38,10 @@ export class SessionUseCases {
     return session
   }
 
+  findInProgress(uid: string) {
+    return this.repository.findInProgress(uid)
+  }
+
   list(uid: string, cursor?: string) {
     return this.repository.list(uid, cursor)
   }

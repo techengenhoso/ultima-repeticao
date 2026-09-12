@@ -223,7 +223,7 @@ export function SessionProgression({
               A decisão deve ser registrada na{" "}
               <Link
                 className="underline"
-                href={`/sessions/${encodeURIComponent(latestSessionId)}`}
+                href={`/workouts/sessions/${encodeURIComponent(latestSessionId)}`}
               >
                 sessão concluída mais recente
               </Link>
@@ -283,7 +283,7 @@ export function SessionProgression({
           </div>
           <Field>
             <FieldLabel htmlFor={`custom-load-${index}`}>
-              Ou informe outra carga (kg)
+              Ou informe outra carga
             </FieldLabel>
             <Input
               disabled={pending || !canDecide}

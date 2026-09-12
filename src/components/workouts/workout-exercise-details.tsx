@@ -63,7 +63,7 @@ export function WorkoutExerciseDetails({ exercise, exercisesByReference, index }
               value={exercise.repetitions.toString()}
             />
             <WorkoutExerciseMetric
-              label="Carga inicial"
+              label="Carga"
               value={`${exercise.initialLoad.toLocaleString("pt-BR", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,

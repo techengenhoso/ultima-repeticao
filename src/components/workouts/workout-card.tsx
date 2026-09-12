@@ -6,6 +6,39 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import type { Workout } from "@/modules/workouts/domain/workout"
 
+function formatUpdatedAt(updatedAt: number, now = new Date()) {
+  const updatedDate = new Date(updatedAt)
+  const updatedDay = new Date(
+    updatedDate.getFullYear(),
+    updatedDate.getMonth(),
+    updatedDate.getDate()
+  )
+  const currentDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const daysSinceUpdate = Math.max(
+    0,
+    Math.round((currentDay.getTime() - updatedDay.getTime()) / 86_400_000)
+  )
+  const monthsSinceUpdate = Math.max(
+    0,
+    (now.getFullYear() - updatedDate.getFullYear()) * 12 +
+      now.getMonth() -
+      updatedDate.getMonth() -
+      Number(now.getDate() < updatedDate.getDate())
+  )
+  const yearsSinceUpdate = Math.floor(monthsSinceUpdate / 12)
+
+  if (daysSinceUpdate === 0) return "hoje"
+
+  if (yearsSinceUpdate > 0)
+    return `há ${yearsSinceUpdate} ${yearsSinceUpdate === 1 ? "ano" : "anos"}`
+
+  if (monthsSinceUpdate > 0)
+    return `há ${monthsSinceUpdate} ${monthsSinceUpdate === 1 ? "mês" : "meses"}`
+
+  if (daysSinceUpdate === 1) return "há 1 dia"
+  return `há ${daysSinceUpdate} dias`
+}
+
 interface Props {
   isActivating: boolean
   onActivate: (workout: Workout) => void
@@ -34,25 +67,19 @@ export function WorkoutCard({
           <CardTitle className="min-w-0 wrap-break-word normal-case tracking-normal">
             {workout.name}
           </CardTitle>
-          <Badge variant="secondary"> {workout.isActive ? "Ativa" : "Inativa"}</Badge>
+
+          <Badge variant={workout.isActive ? "default" : "secondary"}>
+            {workout.isActive ? "Ativa" : "Inativa"}
+          </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm">
-        {workout.description && (
-          <p className="line-clamp-2 text-muted-foreground">{workout.description}</p>
-        )}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <p>
-            <span className="text-muted-foreground">Dias: </span>
-            {workout.days.length}
-          </p>
-          <p>
-            <span className="text-muted-foreground">Atualizado: </span>
-            {new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(
-              new Date(workout.updatedAt)
-            )}
-          </p>
-        </div>
+
+      <CardContent className="space-y-3 text-sm text-muted-foreground">
+        <p>
+          {workout.description ?? "Ficha sem descrição"}, existe {workout.days.length} dia
+          {workout.days.length > 1 && "s"} de treino e a última atualização feita foi{" "}
+          {formatUpdatedAt(workout.updatedAt)}
+        </p>
       </CardContent>
 
       <CardFooter className="flex flex-wrap justify-end gap-2 border-t">

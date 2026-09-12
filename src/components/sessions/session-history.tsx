@@ -91,7 +91,7 @@ function UserSessionHistory({ title }: { title: string }) {
               séries de trabalho concluídas
             </p>
             <Button asChild className="w-full" variant="outline">
-              <Link href={`/sessions/${encodeURIComponent(session.id)}`}>
+              <Link href={`/workouts/sessions/${encodeURIComponent(session.id)}`}>
                 {session.status === "inProgress" ? "Retomar sessão" : "Ver desempenho"}
               </Link>
             </Button>

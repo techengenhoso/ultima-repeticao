@@ -25,6 +25,11 @@ async function request(command?: SessionCommand, params = "") {
 }
 
 export const httpSessionGateway: SessionGateway = {
+  async findInProgress() {
+    return z
+      .object({ session: sessionSchema.nullable() })
+      .parse(await request(undefined, "?status=inProgress")).session
+  },
   async load(id) {
     return z
       .object({ session: sessionSchema })

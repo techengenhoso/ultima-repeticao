@@ -69,51 +69,50 @@ export function WorkoutExerciseForm({
   return (
     <Collapsible onOpenChange={setIsOpen} open={isOpen}>
       <article className="min-w-0 border bg-background">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/30 p-3">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <span className="flex size-8 shrink-0 items-center justify-center bg-primary text-xs font-bold text-primary-foreground">
-              {exerciseIndex + 1}
-            </span>
+        <header
+          className={`flex flex-wrap items-center justify-between gap-3 bg-muted/30 p-3 ${isOpen ? "border-b" : ""}`}
+        >
+          <CollapsibleTrigger asChild>
+            <button
+              aria-label={`${isOpen ? "Ocultar" : "Exibir"} detalhes do exercício ${current?.name ?? item.exerciseSnapshot.name}`}
+              className="group flex min-w-0 flex-1 items-center gap-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              type="button"
+            >
+              <span className="flex size-8 shrink-0 items-center justify-center bg-primary text-xs font-bold text-primary-foreground">
+                {exerciseIndex + 1}
+              </span>
+              <div className="min-w-0">
+                <p className="wrap-break-word font-semibold">
+                  {current?.name ?? item.exerciseSnapshot.name}
+                </p>
 
-            <div className="min-w-0">
-              <p className="wrap-break-word font-semibold">
-                {current?.name ?? item.exerciseSnapshot.name}
-              </p>
+                <p className="text-xs text-muted-foreground">
+                  {
+                    muscleGroupLabel[
+                      current?.muscleGroup ?? item.exerciseSnapshot.muscleGroup
+                    ]
+                  }{" "}
+                  ·{" "}
+                  {item.exerciseReference.source === "default"
+                    ? "Padrão"
+                    : "Personalizado"}
+                </p>
 
-              <p className="text-xs text-muted-foreground">
-                {
-                  muscleGroupLabel[
-                    current?.muscleGroup ?? item.exerciseSnapshot.muscleGroup
-                  ]
-                }{" "}
-                ·{" "}
-                {item.exerciseReference.source === "default" ? "Padrão" : "Personalizado"}
-              </p>
+                {!current && (
+                  <Badge className="mt-2 self-start" variant="secondary">
+                    Indisponível
+                  </Badge>
+                )}
+              </div>
 
-              {!current && (
-                <Badge className="mt-2 self-start" variant="secondary">
-                  Indisponível
-                </Badge>
-              )}
-            </div>
-          </div>
+              <ChevronDownIcon
+                aria-hidden="true"
+                className="size-4 ml-auto shrink-0 transition-transform group-aria-expanded:rotate-180"
+              />
+            </button>
+          </CollapsibleTrigger>
 
           <div className="flex shrink-0 gap-1">
-            <CollapsibleTrigger asChild>
-              <Button
-                aria-label="Ocultar ou exibir exercício"
-                className="aria-expanded:bg-transparent"
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-              >
-                <ChevronDownIcon
-                  aria-hidden="true"
-                  className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
-                />
-              </Button>
-            </CollapsibleTrigger>
-
             <Button
               aria-label="Substituir exercício"
               onClick={onReplace}
@@ -209,9 +208,7 @@ export function WorkoutExerciseForm({
             </Field>
 
             <Field>
-              <FieldLabel htmlFor={`load-${dayIndex}-${exerciseIndex}`}>
-                Carga inicial
-              </FieldLabel>
+              <FieldLabel htmlFor={`load-${dayIndex}-${exerciseIndex}`}>Carga</FieldLabel>
 
               <Input
                 id={`load-${dayIndex}-${exerciseIndex}`}

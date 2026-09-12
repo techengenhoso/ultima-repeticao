@@ -1,3 +1,4 @@
+import { parseRepetitions } from "@/modules/workouts/domain/repetitions"
 import { suggestLoad } from "./progression"
 import {
   type IncrementSettings,
@@ -147,6 +148,7 @@ export function initialExercise(
   const referenceLoad =
     latest?.decision?.load ??
     latest?.sets.filter(set => set.completed && !set.warmup).at(-1)?.load
+  const targetRepetitions = parseRepetitions(target.targetRepetitions)?.min ?? 0
   return {
     ...initial,
     ...(latest?.decision?.settings || latest?.incrementSettings
@@ -156,7 +158,10 @@ export function initialExercise(
     sets: Array.from({ length: target.sets }, (_, index) => ({
       setNumber: index + 1,
       targetRepetitions: target.targetRepetitions,
-      performedRepetitions: 0,
+      performedRepetitions:
+        latest?.sets.find(
+          set => !set.warmup && set.completed && set.setNumber === index + 1
+        )?.performedRepetitions ?? targetRepetitions,
       load: referenceLoad ?? target.initialLoad,
       completed: false,
       warmup: false,

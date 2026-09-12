@@ -19,7 +19,7 @@ A geração executa no navegador usando a biblioteca já carregada, incluindo pe
 7. Ordena compostos antes de isolados e valida a ficha inteira com o mesmo motor usado na revisão
 8. Entrega apenas uma combinação sem erros; caso não encontre, pede ajuste das opções sem relaxar os limites
 
-Repetições, descanso e RIR são escolhidos dentro das regras já existentes. A carga inicial permanece zero, a definir na execução. A busca tem limites de candidatos, alternativas e duração; não é um otimizador exaustivo e pode não encontrar uma combinação mesmo quando alguma solução teórica existe. Os limites tornam o processamento finito. Gerar novamente pode repetir uma ficha quando há poucas alternativas válidas.
+Repetições, descanso e RIR são escolhidos dentro das regras já existentes. A carga permanece zero, a definir na execução. A busca tem limites de candidatos, alternativas e duração; não é um otimizador exaustivo e pode não encontrar uma combinação mesmo quando alguma solução teórica existe. Os limites tornam o processamento finito. Gerar novamente pode repetir uma ficha quando há poucas alternativas válidas.
 
 As preferências orientam a seleção, mas não garantem a inclusão de todos os exercícios preferidos. Volume de grupos acessórios preferidos também precisa caber nos limites. A geração não interpreta pedidos em texto livre; o campo de observações para o antigo provedor foi retirado. A descrição continua editável na revisão.
 

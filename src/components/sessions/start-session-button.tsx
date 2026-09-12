@@ -25,7 +25,7 @@ export function StartSessionButton({ planId, dayId }: { planId: string; dayId: s
         workoutPlanId: planId,
         workoutDayId: dayId,
       })
-      router.push(`/sessions/${encodeURIComponent(session.id)}`)
+      router.push(`/workouts/sessions/${encodeURIComponent(session.id)}`)
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : "Não foi possível iniciar")
       active.current = false

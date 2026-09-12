@@ -23,6 +23,16 @@ export class FirebaseSessionRepository implements SessionRepository {
       : null
   }
 
+  async findInProgress(uid: string) {
+    const snapshot = await sessions(uid)
+      .where("status", "==", "inProgress")
+      .orderBy("startedAt", "desc")
+      .limit(1)
+      .get()
+    const current = snapshot.docs[0]
+    return current ? decodeFirebaseSession(current.id, current.data()) : null
+  }
+
   async list(uid: string, cursor?: string) {
     let query = sessions(uid).orderBy("startedAt", "desc").limit(20)
     if (cursor) {

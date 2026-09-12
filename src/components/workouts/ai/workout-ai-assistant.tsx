@@ -246,8 +246,8 @@ export function WorkoutAiAssistant() {
 
             <DialogDescription>
               Uma sugestão montada por regras a partir das suas respostas e da biblioteca.
-              Revise sua ficha. Informe a carga inicial de cada exercício ou ajuste durante
-              o treino
+              Revise sua ficha. Informe a carga de cada exercício ou ajuste durante o
+              treino
             </DialogDescription>
           </DialogHeader>
 

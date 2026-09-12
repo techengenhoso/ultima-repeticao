@@ -152,7 +152,7 @@ export function WorkoutDetails() {
                                       Exercícios do treino
                                     </span>
                                     <span className="block text-xs text-muted-foreground">
-                                      Sequência, séries, repetições e carga inicial
+                                      Sequência, séries, repetições e carga
                                     </span>
                                   </span>
                                 </CollapsibleTrigger>

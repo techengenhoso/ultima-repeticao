@@ -43,7 +43,7 @@ export const workoutExerciseSchema = z.object({
     .max(5, "Hora de aumentar a carga")
     .optional(),
   initialLoad: z
-    .number({ error: "Informe a carga inicial" })
+    .number({ error: "Informe a carga" })
     .min(0, "A carga não pode ser negativa")
     .multipleOf(0.01, "Use no máximo duas casas decimais")
     .max(1000, "Informe uma carga de até 1000 kg"),

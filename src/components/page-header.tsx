@@ -1,4 +1,6 @@
-type PageHeaderProps = {
+import { OngoingSession } from "@/components/sessions/ongoing-session"
+
+type Props = {
   title: string
   description: string
 }
@@ -14,7 +16,7 @@ function getToday() {
     .toLocaleUpperCase("pt-BR")
 }
 
-export function PageHeader({ description, title }: PageHeaderProps) {
+export function PageHeader({ title, description }: Props) {
   return (
     <header className="grid gap-y-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-x-8">
       <h1 className="text-3xl font-bold tracking-tight sm:col-start-1 sm:row-start-1 sm:text-4xl">
@@ -25,9 +27,11 @@ export function PageHeader({ description, title }: PageHeaderProps) {
         {description}
       </p>
 
-      <time className="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase sm:col-start-2 sm:row-start-2 sm:self-center">
+      <time className="text-left text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase sm:col-start-2 sm:row-start-2 sm:justify-self-end sm:self-center sm:text-right">
         {getToday()}
       </time>
+
+      <OngoingSession />
     </header>
   )
 }

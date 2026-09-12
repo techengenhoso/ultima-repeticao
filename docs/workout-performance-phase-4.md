@@ -16,7 +16,7 @@ Coleção: `users/{uid}/workoutSessions/{sessionId}`. Cada sessão guarda o prop
 
 Os timestamps são produzidos pelo servidor e armazenados como `Timestamp`; a API usa milissegundos em JSON, validados com Zod. A data de encerramento também é usada nas sessões canceladas. Não são aceitos UID, snapshots, datas ou prescrições arbitrárias como autoridade do cliente.
 
-A API `/api/workout-sessions` verifica o Firebase ID Token, inclusive revogação, e usa exclusivamente seu UID. A criação lê a ficha persistida e a biblioteca real, aplicando a normalização de documentos legados já existente. O salvamento preserva as metas, referências, snapshots e carga inicial do servidor; aceita somente o desempenho e o relato de dor editáveis. A decisão de carga é uma operação específica, permitida após a conclusão.
+A API `/api/workout-sessions` verifica o Firebase ID Token, inclusive revogação, e usa exclusivamente seu UID. A criação lê a ficha persistida e a biblioteca real, aplicando a normalização de documentos legados já existente. O salvamento preserva as metas, referências, snapshots e carga do servidor; aceita somente o desempenho e o relato de dor editáveis. A decisão de carga é uma operação específica, permitida após a conclusão.
 
 Schemas estritos limitam a sessão a 30 exercícios, 20 séries de trabalho e cinco de aquecimento por exercício. Carga: 0–1000 kg, até duas casas decimais; repetições: 0–100, sendo pelo menos uma em séries concluídas; RIR: inteiro de 0–5. Identificadores, estrutura, sequência, metas e estados também são verificados. O corpo da solicitação é limitado a 256 KiB.
 
@@ -26,7 +26,7 @@ Não foram encontrados modelos anteriores de sessões no repositório para migra
 
 ## Primeira carga e referência
 
-Sem histórico e com carga inicial zero, a tela informa **Carga a definir** e orienta o registro conservador da carga realmente usada. O zero continua sendo uma carga válida para exercícios sem carga externa; não representa uma recomendação em quilogramas.
+Sem histórico e com carga zero, a tela informa **Carga a definir** e orienta o registro conservador da carga realmente usada. O zero continua sendo uma carga válida para exercícios sem carga externa; não representa uma recomendação em quilogramas.
 
 A referência seguinte vem da última sessão concluída com desempenho válido para a mesma referência `source + exerciseId`, ou da decisão explícita de carga registrada nela. Quando as cargas variam, a última série de trabalho concluída serve como referência, mas não autoriza progressão automática. Uma sessão que não executou esse exercício não apaga uma referência anterior disponível no histórico consultado.
 
