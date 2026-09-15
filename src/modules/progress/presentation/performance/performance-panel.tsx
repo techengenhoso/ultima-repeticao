@@ -69,7 +69,7 @@ export function PerformancePanel() {
             value={`${data.latest.best.load} kg × ${data.latest.best.performedRepetitions}`}
           />
           <Metric label="Maior carga" value={`${data.maxLoad} kg`} />
-          <Metric label="Sessões concluídas" value={String(data.sessions)} />
+          <Metric label="Treinos concluídos" value={String(data.sessions)} />
         </div>
       )}
       <Card>

@@ -1,7 +1,12 @@
 import { z } from "zod"
 import { auth } from "@/infrastructure/firebase/client"
 import type { SessionGateway } from "../../application/ports/session-gateway"
-import { type SessionCommand, sessionSchema, suggestionSchema } from "../../domain/session"
+import {
+  preparedSessionSchema,
+  type SessionCommand,
+  sessionSchema,
+  suggestionSchema,
+} from "../../domain/session"
 
 async function request(command?: SessionCommand, params = "") {
   if (!auth.currentUser) throw new Error("Entre novamente para continuar")
@@ -44,6 +49,9 @@ export const httpSessionGateway: SessionGateway = {
       .parse(
         await request(undefined, cursor ? `?cursor=${encodeURIComponent(cursor)}` : "")
       )
+  },
+  async prepare(command) {
+    return z.object({ draft: preparedSessionSchema }).parse(await request(command)).draft
   },
   async mutate(command) {
     return z.object({ session: sessionSchema }).parse(await request(command)).session

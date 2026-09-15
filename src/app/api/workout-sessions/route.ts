@@ -25,9 +25,9 @@ async function getSessions(request: Request, uid: string) {
   const cursor = params.get("cursor")
   const status = params.get("status")
   if (invalidSessionFilter(id, cursor, status))
-    throw new SessionUseCaseError(422, "Use apenas um filtro de sessão por vez")
+    throw new SessionUseCaseError(422, "Use apenas um filtro de treino por vez")
   if (status && status !== "inProgress")
-    throw new SessionUseCaseError(422, "Filtro de sessão inválido")
+    throw new SessionUseCaseError(422, "Filtro de treino inválido")
   if (id)
     return NextResponse.json(
       { session: await sessionUseCases.get(uid, documentIdSchema.parse(id)) },
@@ -69,7 +69,7 @@ function sessionErrorResponse(error: unknown) {
   return NextResponse.json(
     {
       message:
-        "Não foi possível acessar as sessões, confira a conexão e a configuração do servidor",
+        "Não foi possível acessar os treinos, confira a conexão e a configuração do servidor",
     },
     { status: 503, headers }
   )
@@ -79,7 +79,7 @@ async function handle(request: Request) {
   try {
     const user = await authenticateFirebaseRequest(
       request,
-      "Entre na sua conta para acessar as sessões"
+      "Entre na sua conta para acessar os treinos"
     )
     return request.method === "GET"
       ? await getSessions(request, user.uid)

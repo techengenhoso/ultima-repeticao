@@ -6,17 +6,17 @@ O repositório não possuía execução de treino, armazenamento de séries nem 
 
 Fluxo: **Fichas → detalhes da ficha → dia → Iniciar este treino**. A rota `/sessions/{id}` permite registrar carga, repetições e RIR percebido, marcar séries concluídas, acrescentar até cinco aquecimentos, repetir a carga anterior e iniciar o temporizador de descanso. RIR é opcional, inclusive nos aquecimentos, e nunca é preenchido por inferência.
 
-**Salvar andamento** persiste a execução. **Histórico** permite retomar sessões em andamento e consultar as encerradas, com paginação de 20 registros. **Evolução** dá acesso ao mesmo histórico e à análise por exercício. Ao concluir, o resumo preserva as séries incompletas e permite abrir **Evolução e próxima carga** em cada exercício.
+O andamento é salvo automaticamente apenas neste dispositivo. O Firestore recebe a sessão somente ao **Concluir treino** ou **Cancelar**. Enquanto estiver em andamento, o treino pode ser retomado no mesmo navegador e perfil, mas não aparece no Histórico nem em outro dispositivo. **Histórico** lista as sessões encerradas, com paginação de 20 registros. **Evolução** dá acesso ao mesmo histórico e à análise por exercício. Ao concluir, o resumo preserva as séries incompletas e permite abrir **Evolução e próxima carga** em cada exercício.
 
 Nenhum teste, arquivo de teste, dependência de testes ou script de testes foi criado, conforme orientação expressa do usuário. Não houve commit, push ou publicação no Firebase.
 
 ## Modelo e persistência
 
-Coleção: `users/{uid}/workoutSessions/{sessionId}`. Cada sessão guarda o proprietário, referências da ficha e dia, nomes históricos, início/encerramento, status, versão e exercícios com snapshots e metas. Cada série registra número, meta, repetições realizadas, carga, RIR opcional, conclusão e identificação de aquecimento. O relato de dor é apenas um booleano por exercício, sem texto clínico.
+Coleção: `users/{uid}/workoutSessions/{sessionId}`. Apenas sessões concluídas ou canceladas são gravadas. Cada sessão guarda o proprietário, referências da ficha e dia, nomes históricos, início/encerramento, status, versão e exercícios com snapshots e metas. Cada série registra número, meta, repetições realizadas, carga, RIR opcional, conclusão e identificação de aquecimento. O relato de dor é apenas um booleano por exercício, sem texto clínico.
 
 Os timestamps são produzidos pelo servidor e armazenados como `Timestamp`; a API usa milissegundos em JSON, validados com Zod. A data de encerramento também é usada nas sessões canceladas. Não são aceitos UID, snapshots, datas ou prescrições arbitrárias como autoridade do cliente.
 
-A API `/api/workout-sessions` verifica o Firebase ID Token, inclusive revogação, e usa exclusivamente seu UID. A criação lê a ficha persistida e a biblioteca real, aplicando a normalização de documentos legados já existente. O salvamento preserva as metas, referências, snapshots e carga do servidor; aceita somente o desempenho e o relato de dor editáveis. A decisão de carga é uma operação específica, permitida após a conclusão.
+A API `/api/workout-sessions` verifica o Firebase ID Token, inclusive revogação, e usa exclusivamente seu UID. Ao iniciar, ela lê a ficha persistida e a biblioteca real, aplica a normalização de documentos legados e devolve um rascunho assinado, sem escrita no Firestore. O navegador persiste esse rascunho localmente. Ao encerrar, a API verifica a assinatura e preserva metas, referências, snapshots e carga originalmente preparados; aceita somente o desempenho e o relato de dor editáveis. A decisão de carga é uma operação específica, permitida após a conclusão.
 
 Schemas estritos limitam a sessão a 30 exercícios, 20 séries de trabalho e cinco de aquecimento por exercício. Carga: 0–1000 kg, até duas casas decimais; repetições: 0–100, sendo pelo menos uma em séries concluídas; RIR: inteiro de 0–5. Identificadores, estrutura, sequência, metas e estados também são verificados. O corpo da solicitação é limitado a 256 KiB.
 
@@ -57,13 +57,14 @@ Por exercício são exibidos data, cargas, repetições, séries concluídas, RI
 
 ## Concorrência e recuperação
 
-A criação usa UUID estável durante a tentativa e transação para impedir duplicação por cliques/repetições. Cada gravação usa versão otimista: uma aba ou tentativa antiga não sobrescreve uma versão mais nova. Após falha, os valores locais permanecem; o editor oferece recarregar a versão salva com confirmação. A análise pode ser recalculada para recuperar a versão atual após uma resposta de decisão perdida.
+O início usa UUID estável e o encerramento cria o documento de forma idempotente, impedindo duplicação por cliques ou repetição da requisição. Sessões já gravadas mantêm versão otimista para decisões posteriores. Após falha no encerramento, os valores locais permanecem para nova tentativa. A análise pode ser recalculada para recuperar a versão atual após uma resposta de decisão perdida.
 
-O andamento não é salvo automaticamente. Navegar por links pode descartar alterações locais; a tela orienta salvar antes de sair e registra um aviso do navegador para recarga/fechamento com alterações. O cancelamento preserva a última versão salva, encerra a sessão como cancelada e exclui seus dados das sugestões. Não há exclusão de documentos.
+O andamento é salvo automaticamente no armazenamento local do navegador a cada alteração válida. Iniciar outro treino no mesmo dispositivo exige encerrar ou retomar o rascunho existente. Limpar os dados do navegador, trocar de dispositivo ou usar outro perfil do navegador impede a recuperação do rascunho. O cancelamento grava a sessão como cancelada e a exclui das sugestões. Não há exclusão de documentos.
 
 ## Configuração necessária
 
 - Configurar as credenciais Firebase Admin já descritas na Fase 2, correspondentes ao projeto Firebase do aplicativo
+- Opcionalmente, configurar `WORKOUT_SESSION_DRAFT_SECRET` com uma sequência aleatória de pelo menos 32 caracteres; a mesma sequência precisa permanecer disponível para validar rascunhos iniciados antes de reiniciar o servidor. Na ausência dela, o servidor deriva a assinatura da chave privada já configurada do Firebase Admin
 - A identidade do servidor precisa ler fichas/biblioteca, verificar usuários e ler/gravar sessões no Firestore
 - Publicar as regras e o índice composto declarados em `firebase.json` e aguardar a criação do índice
 - Reiniciar ou publicar o servidor Next.js com essa configuração
@@ -106,7 +107,7 @@ Alterados nesta fase:
 - Diff revisado, sem alterações deliberadas fora do escopo
 - Interface em cards, sem tabelas largas, campos em coluna no celular, labels e avisos acessíveis; barra inferior preservada
 - Conferência visual da execução completa em 320 px e gravações reais continuam pendentes da configuração de Admin, índice e sessão autenticada disponível
-- Sem funcionamento offline, autosave, bloqueio de navegação interna ou migração de sessões externas desconhecidas
+- O autosave local não é sincronizado entre navegadores ou dispositivos e depende de o armazenamento local estar disponível
 - O painel inicial ainda contém os indicadores provisórios anteriores; o desempenho real está em Histórico/Evolução
 - A progressão é uma sugestão simples, não considera técnica, fadiga geral, idade do histórico, pausas prolongadas ou mudanças de equipamento
 - Para expansão futura: histórico analítico paginado por exercício, tratamento explícito de troca de equipamento e salvamento automático com recuperação de conflitos

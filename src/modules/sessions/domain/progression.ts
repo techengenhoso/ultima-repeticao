@@ -31,7 +31,7 @@ function dataProblem(exercise: SessionExercise, latest?: HistoryEntry) {
   if (!latest || !workSets(latest.exercise).some(set => set.completed))
     return "Sem desempenho concluído: defina a carga de forma conservadora durante o treino"
   if (!comparable(exercise, latest.exercise))
-    return "A prescrição mudou, registre uma sessão com as metas atuais antes de progredir"
+    return "A prescrição mudou, registre um treino com as metas atuais antes de progredir"
   const sets = workSets(latest.exercise)
   if (sets.some(set => !set.completed) || sets.length !== exercise.targetSets)
     return "Séries incompletas não indicam perda de força, registre todas as séries de trabalho para avaliar a progressão"
@@ -162,7 +162,7 @@ function evaluateLoadSuggestion(
       confidence,
       action: "maintain",
       suggestedLoad: base.currentLoad,
-      reason: `${below ? "Uma sessão abaixo da meta não justifica reduzir a carga, repita e observe a recuperação" : "Mantenha a carga e busque completar a faixa de repetições"}${note}`,
+      reason: `${below ? "Um treino abaixo da meta não justifica reduzir a carga, repita e observe a recuperação" : "Mantenha a carga e busque completar a faixa de repetições"}${note}`,
     }
   return adjustedLoad(
     {
@@ -171,7 +171,7 @@ function evaluateLoadSuggestion(
       basedOnSessionIds: decrease
         ? [latest.session.id, previous.session.id]
         : base.basedOnSessionIds,
-      reason: `${increase ? "Todas as séries atingiram o limite superior sem RIR informado abaixo da meta" : "Duas sessões completas na mesma carga ficaram abaixo das metas, considere uma redução conservadora"}${note}`,
+      reason: `${increase ? "Todas as séries atingiram o limite superior sem RIR informado abaixo da meta" : "Dois treinos completos na mesma carga ficaram abaixo das metas, considere uma redução conservadora"}${note}`,
     },
     increase,
     settings

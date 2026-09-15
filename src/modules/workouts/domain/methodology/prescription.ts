@@ -210,7 +210,7 @@ export function createWorkoutPrescription(
         : []),
       ...(priorityMuscleGroups.length
         ? [
-            "Distribuir o volume prioritário entre as sessões compatíveis, sem somar sessões intensas consecutivas",
+            "Distribuir o volume prioritário entre os treinos compatíveis, sem somar treinos intensos consecutivos",
           ]
         : []),
     ],

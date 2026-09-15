@@ -6,6 +6,10 @@ import {
   initialExercise,
   SessionDomainError,
 } from "../domain/session-execution"
+import {
+  type SessionDraftSigner,
+  SessionDraftVerificationError,
+} from "./ports/session-draft-signer"
 import type {
   SessionExerciseLibrary,
   SessionPlanReader,
@@ -28,13 +32,14 @@ export class SessionUseCases {
     private readonly repository: SessionRepository,
     private readonly planReader: SessionPlanReader,
     private readonly exerciseLibrary: SessionExerciseLibrary,
+    private readonly draftSigner: SessionDraftSigner,
     private readonly now: () => number = Date.now
   ) {}
 
   async get(uid: string, id: string) {
     const session = await this.repository.find(uid, id)
-    if (!session) throw new SessionUseCaseError(404, "Sessão não encontrada")
-    if (session.userId !== uid) throw new SessionUseCaseError(403, "Sessão indisponível")
+    if (!session) throw new SessionUseCaseError(404, "Treino não encontrado")
+    if (session.userId !== uid) throw new SessionUseCaseError(403, "Treino indisponível")
     return session
   }
 
@@ -47,7 +52,9 @@ export class SessionUseCases {
   }
 
   async execute(uid: string, command: SessionCommand) {
-    if (command.action === "start") return { session: await this.start(uid, command) }
+    if (command.action === "start") return { draft: await this.prepare(uid, command) }
+    if (command.action === "finalize")
+      return { session: await this.finalize(uid, command) }
     const session = await this.get(uid, command.id)
     if (command.action === "suggest") {
       const exercise = session.exercises[command.exerciseIndex]
@@ -68,7 +75,7 @@ export class SessionUseCases {
       if (error instanceof SessionConcurrencyError)
         throw new SessionUseCaseError(
           409,
-          "A sessão mudou em outra tentativa ou aba, recarregue antes de continuar"
+          "O treino mudou em outra tentativa ou aba, recarregue antes de continuar"
         )
       if (error instanceof SessionDomainError)
         throw new SessionUseCaseError(409, error.message)
@@ -80,9 +87,10 @@ export class SessionUseCases {
     return { sessions: await this.repository.listCompleted(uid) }
   }
 
-  private async start(uid: string, command: Extract<SessionCommand, { action: "start" }>) {
-    const existing = await this.repository.find(uid, command.id)
-    if (existing) return existing
+  private async prepare(
+    uid: string,
+    command: Extract<SessionCommand, { action: "start" }>
+  ) {
     const day = await this.planReader.findDay(
       uid,
       command.workoutPlanId,
@@ -120,21 +128,54 @@ export class SessionUseCases {
         return initialExercise(target, snapshot, history)
       })
     )
-    return this.repository.createIfAbsent(
-      uid,
-      sessionSchema.parse({
-        id: command.id,
-        userId: uid,
-        workoutPlanId: command.workoutPlanId,
-        workoutDayId: command.workoutDayId,
-        workoutPlanName: day.workoutPlanName,
-        workoutDayName: day.workoutDayName,
-        startedAt: this.now(),
-        status: "inProgress",
-        version: 0,
-        exercises,
-      })
-    )
+    const session = sessionSchema.parse({
+      id: command.id,
+      userId: uid,
+      workoutPlanId: command.workoutPlanId,
+      workoutDayId: command.workoutDayId,
+      workoutPlanName: day.workoutPlanName,
+      workoutDayName: day.workoutDayName,
+      startedAt: this.now(),
+      status: "inProgress",
+      version: 0,
+      exercises,
+    })
+    return { session, draftToken: this.draftSigner.sign(uid, session) }
+  }
+
+  private async finalize(
+    uid: string,
+    command: Extract<SessionCommand, { action: "finalize" }>
+  ) {
+    let session: WorkoutSession
+    try {
+      session = this.draftSigner.verify(uid, command.draftToken)
+    } catch (error) {
+      if (error instanceof SessionDraftVerificationError)
+        throw new SessionUseCaseError(409, error.message)
+      throw error
+    }
+    if (session.id !== command.id)
+      throw new SessionUseCaseError(409, "O rascunho não corresponde a este treino")
+    try {
+      const updated = applyPerformance(
+        session,
+        {
+          action: "save",
+          id: command.id,
+          version: session.version,
+          status: command.status,
+          exercises: command.exercises,
+        },
+        this.now()
+      )
+      return await this.repository.createIfAbsent(uid, sessionSchema.parse(updated))
+    } catch (error) {
+      if (error instanceof SessionUseCaseError) throw error
+      if (error instanceof SessionDomainError)
+        throw new SessionUseCaseError(409, error.message)
+      throw error
+    }
   }
 
   private async decide(
@@ -148,7 +189,7 @@ export class SessionUseCases {
     if (exerciseHistory(history, exercise)[0]?.session.id !== session.id)
       throw new SessionUseCaseError(
         409,
-        "Registre a decisão na sessão concluída mais recente deste exercício"
+        "Registre a decisão no treino concluído mais recente deste exercício"
       )
     return applyLoadDecision(session, command.exerciseIndex, command, history, this.now())
   }

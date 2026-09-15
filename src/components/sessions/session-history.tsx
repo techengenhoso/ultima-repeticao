@@ -61,7 +61,7 @@ function UserSessionHistory({ title }: { title: string }) {
   return (
     <div className="space-y-6">
       <PageHeader
-        description="Consulte suas sessões e abra um treino concluído para ver a evolução de cada exercício"
+        description="Consulte seus treinos e abra um treino concluído para ver a evolução de cada exercício"
         title={title}
       />
       <Button asChild variant="outline">
@@ -92,7 +92,7 @@ function UserSessionHistory({ title }: { title: string }) {
             </p>
             <Button asChild className="w-full" variant="outline">
               <Link href={`/workouts/sessions/${encodeURIComponent(session.id)}`}>
-                {session.status === "inProgress" ? "Retomar sessão" : "Ver desempenho"}
+                {session.status === "inProgress" ? "Retomar treino" : "Ver desempenho"}
               </Link>
             </Button>
           </article>
@@ -101,7 +101,7 @@ function UserSessionHistory({ title }: { title: string }) {
       {pending && <output>Carregando histórico</output>}
       {!pending && !error && sessions.length === 0 && (
         <p className="text-sm text-muted-foreground">
-          Nenhuma sessão registrada · Inicie um dia pelos detalhes da sua ficha
+          Nenhum treino registrado · Inicie um dia pelos detalhes da sua ficha
         </p>
       )}
       {error && (
@@ -123,7 +123,7 @@ function UserSessionHistory({ title }: { title: string }) {
           type="button"
           variant="outline"
         >
-          Carregar mais sessões
+          Carregar mais treinos
         </Button>
       )}
     </div>

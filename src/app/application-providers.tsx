@@ -14,7 +14,9 @@ import { createProgressUseCases } from "@/modules/progress/application/progress-
 import { loadPerformanceSessions } from "@/modules/progress/infrastructure/http-performance-gateway"
 import { createHttpProgressGateway } from "@/modules/progress/infrastructure/http-progress-gateway"
 import { ProgressUseCasesProvider } from "@/modules/progress/presentation/progress-use-cases-context"
+import { localSessionDraftStore } from "@/modules/sessions/infrastructure/browser/local-session-draft-store"
 import { httpSessionGateway } from "@/modules/sessions/infrastructure/http/http-session-gateway"
+import { SessionDraftStoreProvider } from "@/modules/sessions/presentation/session-draft-store-context"
 import { SessionGatewayProvider } from "@/modules/sessions/presentation/session-gateway-context"
 import { createAuthenticationUseCases } from "@/modules/users/application/authentication-use-cases"
 import { createProfileUseCases } from "@/modules/users/application/profile-use-cases"
@@ -55,9 +57,11 @@ export function ApplicationProviders({ children }: { children: ReactNode }) {
           <WorkoutGenerationUseCasesProvider useCases={workoutGenerationUseCases}>
             <WorkoutUseCasesProvider useCases={workoutUseCases}>
               <ProgressUseCasesProvider useCases={progressUseCases}>
-                <SessionGatewayProvider gateway={httpSessionGateway}>
-                  {children}
-                </SessionGatewayProvider>
+                <SessionDraftStoreProvider store={localSessionDraftStore}>
+                  <SessionGatewayProvider gateway={httpSessionGateway}>
+                    {children}
+                  </SessionGatewayProvider>
+                </SessionDraftStoreProvider>
               </ProgressUseCasesProvider>
             </WorkoutUseCasesProvider>
           </WorkoutGenerationUseCasesProvider>

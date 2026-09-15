@@ -225,7 +225,7 @@ export function SessionProgression({
                 className="underline"
                 href={`/workouts/sessions/${encodeURIComponent(latestSessionId)}`}
               >
-                sessão concluída mais recente
+                treino concluído mais recente
               </Link>
             </p>
           )}
@@ -252,7 +252,7 @@ export function SessionProgression({
                   result?.history.find(item => item.id === id)?.startedAt ??
                     session.startedAt
                 ).toLocaleString("pt-BR")}{" "}
-                · Sessão <span className="break-all">{id}</span>
+                · Treino <span className="break-all">{id}</span>
               </li>
             ))}
           </ul>
@@ -334,7 +334,7 @@ function ExerciseHistoryList({
   if (!history.length) return null
   return (
     <section aria-label="Histórico do exercício" className="space-y-3">
-      <h3 className="font-semibold">Últimas {history.length} sessões concluídas</h3>
+      <h3 className="font-semibold">Últimos {history.length} treinos concluídos</h3>
       {newestLoad !== undefined && oldestLoad !== undefined && (
         <p className="text-sm">
           Carga registrada no período: {oldestLoad} kg → {newestLoad} kg · Variação de{" "}

@@ -15,21 +15,21 @@ export function applyPerformance(
   completedAt: number
 ): WorkoutSession {
   if (session.status !== "inProgress")
-    throw new SessionDomainError("Esta sessão já foi encerrada, recarregue para conferir")
+    throw new SessionDomainError("Este treino já foi encerrado, recarregue para conferir")
   if (session.exercises.length !== command.exercises.length)
-    throw new SessionDomainError("A lista de exercícios da sessão não pode ser alterada")
+    throw new SessionDomainError("A lista de exercícios do treino não pode ser alterada")
   const exercises = session.exercises.map((exercise, index) => {
     const incoming = command.exercises[index]
     if (!incoming || incoming.sets.length !== exercise.sets.length)
       throw new SessionDomainError(
-        "As séries planejadas da sessão não podem ser alteradas"
+        "As séries planejadas do treino não podem ser alteradas"
       )
     if (
       incoming.exerciseReference.source !== exercise.exerciseReference.source ||
       incoming.exerciseReference.exerciseId !== exercise.exerciseReference.exerciseId
     )
       throw new SessionDomainError(
-        "A identidade do exercício da sessão não pode ser alterada"
+        "A identidade do exercício do treino não pode ser alterada"
       )
     return {
       ...exercise,
@@ -42,7 +42,7 @@ export function applyPerformance(
           set.warmup !== planned.warmup
         )
           throw new SessionDomainError(
-            "A sequência das séries da sessão não pode ser alterada"
+            "A sequência das séries do treino não pode ser alterada"
           )
         return {
           ...set,
@@ -56,7 +56,7 @@ export function applyPerformance(
     !exercises.some(item => item.sets.some(set => set.completed && !set.warmup))
   )
     throw new SessionDomainError(
-      "Conclua pelo menos uma série de trabalho ou cancele a sessão"
+      "Conclua pelo menos uma série de trabalho ou cancele o treino"
     )
   return {
     ...session,
@@ -74,7 +74,7 @@ export function applyLoadDecision(
   decidedAt: number
 ): WorkoutSession {
   if (session.status !== "completed")
-    throw new SessionDomainError("Conclua a sessão antes de escolher a próxima carga")
+    throw new SessionDomainError("Conclua o treino antes de escolher a próxima carga")
   const exercise = session.exercises[exerciseIndex]
   if (!exercise) throw new SessionDomainError("Exercício não encontrado")
   const suggestion = suggestLoad(exercise, history, command.settings)

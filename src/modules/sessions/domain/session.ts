@@ -123,12 +123,26 @@ export const sessionSchema = z
       context.addIssue({
         code: "custom",
         path: ["completedAt"],
-        message: "Datas incompatíveis com o estado da sessão",
+        message: "Datas incompatíveis com o estado do treino",
       })
   })
 export const sessionFormSchema = z.object({
   exercises: z.array(sessionExerciseSchema).min(1).max(30),
 })
+export const preparedSessionSchema = z
+  .object({
+    session: sessionSchema,
+    draftToken: z.string().min(1).max(200_000),
+  })
+  .strict()
+  .superRefine((draft, context) => {
+    if (draft.session.status !== "inProgress")
+      context.addIssue({
+        code: "custom",
+        path: ["session", "status"],
+        message: "O rascunho precisa estar em andamento",
+      })
+  })
 export const sessionCommandSchema = z.discriminatedUnion("action", [
   z
     .object({
@@ -144,6 +158,15 @@ export const sessionCommandSchema = z.discriminatedUnion("action", [
       id: documentIdSchema,
       version: z.number().int().min(0),
       status: z.enum(["inProgress", "completed", "cancelled"]),
+      exercises: z.array(sessionExerciseSchema).min(1).max(30),
+    })
+    .strict(),
+  z
+    .object({
+      action: z.literal("finalize"),
+      id: documentIdSchema,
+      draftToken: z.string().min(1).max(200_000),
+      status: z.enum(["completed", "cancelled"]),
       exercises: z.array(sessionExerciseSchema).min(1).max(30),
     })
     .strict(),
@@ -174,3 +197,4 @@ export type LoadSuggestion = z.infer<typeof suggestionSchema>
 export type IncrementSettings = z.infer<typeof incrementSchema>
 export type SessionCommand = z.infer<typeof sessionCommandSchema>
 export type SessionFormValues = z.infer<typeof sessionFormSchema>
+export type PreparedSession = z.infer<typeof preparedSessionSchema>

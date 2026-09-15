@@ -144,7 +144,7 @@ function validateDayStructure(
     issues.push(
       issue(
         "exercise_count",
-        `Use no máximo ${prescription.maxExercisesPerDay} exercícios nesta sessão`,
+        `Use no máximo ${prescription.maxExercisesPerDay} exercícios neste treino`,
         [...path, "exercises"]
       )
     )
@@ -202,7 +202,7 @@ function validateSession(
     compounds < Math.ceil(day.exercises.length / 2)
   )
     issues.push(
-      issue("compound_priority", "Priorize movimentos compostos nesta sessão", [
+      issue("compound_priority", "Priorize movimentos compostos neste treino", [
         ...path,
         "exercises",
       ])
@@ -301,7 +301,7 @@ export function validateWeeklyVolume(
       issues.push(
         issue(
           "frequency",
-          "Distribua o grupo em pelo menos duas sessões semanais",
+          "Distribua o grupo em pelo menos dois treinos semanais",
           path,
           "warning"
         )

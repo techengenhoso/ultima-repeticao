@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { useUser } from "@/contexts/user-context"
 import type { WorkoutSession } from "@/modules/sessions/domain/session"
+import { useSessionDraftStore } from "@/modules/sessions/presentation/session-draft-store-context"
 import { useSessionGateway } from "@/modules/sessions/presentation/session-gateway-context"
 
 function isHiddenPath(pathname: string) {
@@ -17,6 +19,8 @@ function isHiddenPath(pathname: string) {
 
 export function OngoingSession() {
   const gateway = useSessionGateway()
+  const draftStore = useSessionDraftStore()
+  const { user } = useUser()
   const pathname = usePathname()
   const [session, setSession] = useState<WorkoutSession | null>(null)
   const [pending, setPending] = useState(true)
@@ -27,7 +31,8 @@ export function OngoingSession() {
     setSession(null)
 
     try {
-      setSession(await gateway.findInProgress())
+      const draft = draftStore.current(user.uid)
+      setSession(draft?.session ?? (await gateway.findInProgress()))
     } catch {
       toast.error("Não foi possível verificar seu treino em andamento", {
         position: "top-left",
@@ -35,7 +40,7 @@ export function OngoingSession() {
     } finally {
       setPending(false)
     }
-  }, [gateway])
+  }, [draftStore, gateway, user.uid])
 
   useEffect(() => {
     if (!isHidden) void load()

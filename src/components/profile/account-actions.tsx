@@ -110,7 +110,7 @@ export function AccountActions() {
               <AlertDialogTitle>Excluir conta</AlertDialogTitle>
 
               <AlertDialogDescription>
-                Todos os seus dados como perfil, exercícios, fichas, sessões, avaliações
+                Todos os seus dados como perfil, exercícios, fichas, treinos, avaliações
                 corporais e outros serão excluídos sem possibilidade de recuperar.
               </AlertDialogDescription>
             </AlertDialogHeader>
