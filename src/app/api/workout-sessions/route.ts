@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server"
 import { SessionUseCaseError } from "@/modules/sessions/application/session-use-cases"
-import { documentIdSchema, sessionCommandSchema } from "@/modules/sessions/domain/session"
+import {
+  documentIdSchema,
+  sessionCommandSchema,
+  sessionDeletionResultSchema,
+} from "@/modules/sessions/domain/session"
 import {
   authenticateFirebaseRequest,
   RequestAuthenticationError,
@@ -61,6 +65,24 @@ async function executeSession(request: Request, uid: string) {
   return NextResponse.json(await sessionUseCases.execute(uid, command.data), { headers })
 }
 
+async function deleteSession(request: Request, uid: string) {
+  const params = new URL(request.url).searchParams
+  const id = params.get("id")
+  if (
+    !id ||
+    params.getAll("id").length !== 1 ||
+    [...params.keys()].some(key => key !== "id")
+  )
+    throw new SessionUseCaseError(422, "Identificador do treino inválido")
+  const parsedId = documentIdSchema.safeParse(id)
+  if (!parsedId.success)
+    throw new SessionUseCaseError(422, "Identificador do treino inválido")
+  return NextResponse.json(
+    sessionDeletionResultSchema.parse(await sessionUseCases.remove(uid, parsedId.data)),
+    { headers }
+  )
+}
+
 function sessionErrorResponse(error: unknown) {
   if (error instanceof RequestAuthenticationError)
     return NextResponse.json({ message: error.message }, { status: 401, headers })
@@ -81,12 +103,13 @@ async function handle(request: Request) {
       request,
       "Entre na sua conta para acessar os treinos"
     )
-    return request.method === "GET"
-      ? await getSessions(request, user.uid)
-      : await executeSession(request, user.uid)
+    if (request.method === "GET") return await getSessions(request, user.uid)
+    if (request.method === "DELETE") return await deleteSession(request, user.uid)
+    return await executeSession(request, user.uid)
   } catch (error) {
     return sessionErrorResponse(error)
   }
 }
 export const GET = handle
 export const POST = handle
+export const DELETE = handle

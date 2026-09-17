@@ -6,7 +6,7 @@ O repositório não possuía execução de treino, armazenamento de séries nem 
 
 Fluxo: **Fichas → detalhes da ficha → dia → Iniciar este treino**. A rota `/sessions/{id}` permite registrar carga, repetições e RIR percebido, marcar séries concluídas, acrescentar até cinco aquecimentos, repetir a carga anterior e iniciar o temporizador de descanso. RIR é opcional, inclusive nos aquecimentos, e nunca é preenchido por inferência.
 
-O andamento é salvo automaticamente apenas neste dispositivo. O Firestore recebe a sessão somente ao **Concluir treino** ou **Cancelar**. Enquanto estiver em andamento, o treino pode ser retomado no mesmo navegador e perfil, mas não aparece no Histórico nem em outro dispositivo. **Histórico** lista as sessões encerradas, com paginação de 20 registros. **Evolução** dá acesso ao mesmo histórico e à análise por exercício. Ao concluir, o resumo preserva as séries incompletas e permite abrir **Evolução e próxima carga** em cada exercício.
+O andamento é salvo automaticamente apenas neste dispositivo. O Firestore recebe a sessão somente ao **Concluir treino** ou **Cancelar**. Enquanto estiver em andamento, o treino pode ser retomado no mesmo navegador e perfil, mas não aparece no Histórico nem em outro dispositivo. O temporizador de descanso também preserva localmente seu horário de término e continua a contagem ao sair e retornar à sessão. **Histórico** lista as sessões encerradas, com paginação de 20 registros, e permite excluí-las permanentemente após confirmação. **Evolução** dá acesso ao mesmo histórico e à análise por exercício. Ao concluir, o resumo preserva as séries incompletas e permite abrir **Evolução e próxima carga** em cada exercício.
 
 Nenhum teste, arquivo de teste, dependência de testes ou script de testes foi criado, conforme orientação expressa do usuário. Não houve commit, push ou publicação no Firebase.
 
@@ -59,7 +59,7 @@ Por exercício são exibidos data, cargas, repetições, séries concluídas, RI
 
 O início usa UUID estável e o encerramento cria o documento de forma idempotente, impedindo duplicação por cliques ou repetição da requisição. Sessões já gravadas mantêm versão otimista para decisões posteriores. Após falha no encerramento, os valores locais permanecem para nova tentativa. A análise pode ser recalculada para recuperar a versão atual após uma resposta de decisão perdida.
 
-O andamento é salvo automaticamente no armazenamento local do navegador a cada alteração válida. Iniciar outro treino no mesmo dispositivo exige encerrar ou retomar o rascunho existente. Limpar os dados do navegador, trocar de dispositivo ou usar outro perfil do navegador impede a recuperação do rascunho. O cancelamento grava a sessão como cancelada e a exclui das sugestões. Não há exclusão de documentos.
+O andamento é salvo automaticamente no armazenamento local do navegador a cada alteração válida. Iniciar outro treino no mesmo dispositivo exige encerrar ou retomar o rascunho existente. Limpar os dados do navegador, trocar de dispositivo ou usar outro perfil do navegador impede a recuperação do rascunho. O cancelamento grava a sessão como cancelada e a exclui das sugestões. A exclusão pelo Histórico remove permanentemente o documento da sessão; cargas e sugestões futuras passam a considerar o histórico restante.
 
 ## Configuração necessária
 

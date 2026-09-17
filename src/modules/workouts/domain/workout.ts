@@ -1,7 +1,4 @@
-import { statuses } from "@/lib/options-select"
 import type { MuscleGroup } from "@/modules/exercises/domain/exercise"
-
-export type Status = (typeof statuses)[number]["value"]
 
 export interface WorkoutExerciseReference {
   source: "default" | "custom"

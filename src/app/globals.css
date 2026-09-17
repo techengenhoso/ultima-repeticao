@@ -139,7 +139,6 @@
   }
 
   html {
-    @apply font-sans;
-    overflow-y: scroll;
+    @apply bg-muted/30 font-sans;
   }
 }

@@ -1,13 +1,16 @@
-import type { Status, Workout } from "@/modules/workouts/domain/workout"
+import type { MuscleGroup } from "@/modules/exercises/domain/exercise"
+import type { Workout } from "@/modules/workouts/domain/workout"
 
 export interface WorkoutFilters {
   search: string
-  status: "" | Status
+  daysPerWeek: "" | "1" | "2" | "3" | "4" | "5+"
+  muscleGroup: "" | MuscleGroup
 }
 
 export const emptyWorkoutFilters: WorkoutFilters = {
   search: "",
-  status: "",
+  daysPerWeek: "",
+  muscleGroup: "",
 }
 
 function normalizeWorkoutName(value: string) {
@@ -21,13 +24,17 @@ function normalizeWorkoutName(value: string) {
 
 export function filterWorkouts(workouts: Workout[], filters: WorkoutFilters) {
   const normalizedSearch = normalizeWorkoutName(filters.search)
+  const muscleGroup = filters.muscleGroup
 
   return workouts.filter(
     workout =>
       (!normalizedSearch ||
         normalizeWorkoutName(workout.name).includes(normalizedSearch)) &&
-      (!filters.status ||
-        (filters.status === "active" ? workout.isActive : !workout.isActive))
+      (!filters.daysPerWeek ||
+        (filters.daysPerWeek === "5+"
+          ? workout.days.length >= 5
+          : workout.days.length === Number(filters.daysPerWeek))) &&
+      (!muscleGroup || workout.days.some(day => day.muscleGroups.includes(muscleGroup)))
   )
 }
 

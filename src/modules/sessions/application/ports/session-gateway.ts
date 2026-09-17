@@ -9,6 +9,7 @@ export interface SessionGateway {
   findInProgress(): Promise<WorkoutSession | null>
   load(id: string): Promise<WorkoutSession>
   list(cursor?: string): Promise<{ sessions: WorkoutSession[]; nextCursor: string | null }>
+  delete(id: string): Promise<void>
   prepare(command: Extract<SessionCommand, { action: "start" }>): Promise<PreparedSession>
   mutate(
     command: Exclude<SessionCommand, { action: "start" | "suggest" }>

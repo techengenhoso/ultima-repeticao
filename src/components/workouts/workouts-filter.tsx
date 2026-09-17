@@ -1,28 +1,23 @@
 "use client"
 
-import { CircleDotIcon, SearchIcon } from "lucide-react"
+import { BicepsFlexedIcon, CalendarDaysIcon, SearchIcon } from "lucide-react"
 import { useState } from "react"
 import { SelectField } from "@/components/select-field"
 import { TextField } from "@/components/text-field"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { WorkoutAiAssistant } from "@/components/workouts/ai/workout-ai-assistant"
-import { useUser } from "@/contexts/user-context"
+import { WorkoutCreateChoice } from "@/components/workouts/workout-create-choice"
 import { useWorkout } from "@/contexts/workout-context"
-import { statuses } from "@/lib/options-select"
+import { muscleGroups } from "@/lib/options-select"
+import type { MuscleGroup } from "@/modules/exercises/domain/exercise"
 import {
   emptyWorkoutFilters,
   type WorkoutFilters,
 } from "@/modules/workouts/domain/workout-library"
 
 export function WorkoutsFilter() {
-  const { user } = useUser()
-  const {
-    filteredWorkouts,
-    setFilters: onFiltersChange,
-    setFormWorkout: onCreate,
-  } = useWorkout()
+  const { filteredWorkouts, setFilters: onFiltersChange } = useWorkout()
 
   const [filters, setFilters] = useState(emptyWorkoutFilters)
   const hasFilters = Object.values(filters).some(Boolean)
@@ -41,7 +36,7 @@ export function WorkoutsFilter() {
 
   return (
     <Card>
-      <CardContent className="grid gap-5 md:grid-cols-2">
+      <CardContent className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         <TextField
           icon={<SearchIcon aria-hidden="true" />}
           id="workoutName"
@@ -53,12 +48,29 @@ export function WorkoutsFilter() {
         />
 
         <SelectField
-          icon={<CircleDotIcon aria-hidden="true" />}
-          id="workoutStatus"
-          label="Status"
-          onChange={value => updateFilters({ status: value as WorkoutFilters["status"] })}
-          options={statuses}
-          value={filters.status}
+          icon={<CalendarDaysIcon aria-hidden="true" />}
+          id="workoutDaysPerWeek"
+          label="Dias de treino"
+          onChange={value =>
+            updateFilters({ daysPerWeek: value as WorkoutFilters["daysPerWeek"] })
+          }
+          options={[
+            { label: "1 dia", value: "1" },
+            { label: "2 dias", value: "2" },
+            { label: "3 dias", value: "3" },
+            { label: "4 dias", value: "4" },
+            { label: "5 ou mais dias", value: "5+" },
+          ]}
+          value={filters.daysPerWeek}
+        />
+
+        <SelectField
+          icon={<BicepsFlexedIcon aria-hidden="true" />}
+          id="workoutMuscleGroup"
+          label="Grupo muscular"
+          onChange={value => updateFilters({ muscleGroup: value as "" | MuscleGroup })}
+          options={muscleGroups}
+          value={filters.muscleGroup}
         />
       </CardContent>
 
@@ -83,11 +95,7 @@ export function WorkoutsFilter() {
             Limpar filtros
           </Button>
 
-          <WorkoutAiAssistant key={user.uid} />
-
-          <Button onClick={() => onCreate(null)} type="button">
-            Nova ficha
-          </Button>
+          <WorkoutCreateChoice />
         </div>
       </CardFooter>
     </Card>

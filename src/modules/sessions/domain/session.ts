@@ -129,6 +129,9 @@ export const sessionSchema = z
 export const sessionFormSchema = z.object({
   exercises: z.array(sessionExerciseSchema).min(1).max(30),
 })
+export const sessionDeletionResultSchema = z
+  .object({ deletedId: documentIdSchema })
+  .strict()
 export const preparedSessionSchema = z
   .object({
     session: sessionSchema,

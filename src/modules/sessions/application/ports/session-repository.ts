@@ -17,5 +17,6 @@ export interface SessionRepository {
     session: WorkoutSession,
     expectedVersion: number
   ): Promise<void>
+  delete(uid: string, id: string): Promise<void>
   listCompleted(uid: string): Promise<WorkoutSession[]>
 }

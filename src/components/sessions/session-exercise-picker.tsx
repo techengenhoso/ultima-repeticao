@@ -1,6 +1,5 @@
 "use client"
 
-import { ArrowRightIcon, CheckIcon } from "lucide-react"
 import type { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -17,15 +16,13 @@ const exerciseCardStates = {
     label: "Concluído",
     labelStyle: "text-primary",
     progress: "[&>span]:bg-primary",
-    action: "Revisar séries",
   },
   inProgress: {
-    button: "border-primary/50 bg-primary/10 hover:bg-primary/10",
+    button: "border-border bg-card hover:bg-card",
     badge: "bg-primary/15 text-primary",
     label: "Em execução",
     labelStyle: "text-primary",
     progress: "[&>span]:bg-primary",
-    action: "Continuar registrando",
   },
   pending: {
     button: "border-border bg-card hover:bg-card",
@@ -33,7 +30,6 @@ const exerciseCardStates = {
     label: "Pendente",
     labelStyle: "text-muted-foreground",
     progress: "",
-    action: "Registrar séries",
   },
 } as const
 
@@ -60,11 +56,11 @@ function SessionExerciseCard({
 }) {
   const completed = completedWorkSets(exercise)
   const state = exerciseCardStates[getExerciseCardState(completed, exercise.targetSets)]
+
   return (
     <Button
-      aria-label={`${state.action}: ${exercise.exerciseSnapshot.name}`}
       className={cn(
-        "h-auto min-h-40 w-full justify-start p-4 text-left normal-case tracking-normal whitespace-normal",
+        "h-auto min-h-28 w-full justify-start p-4 text-left normal-case tracking-normal whitespace-normal",
         state.button
       )}
       onClick={() => onSelect(index)}
@@ -101,20 +97,11 @@ function SessionExerciseCard({
             </h3>
           </div>
         </div>
-        <div className="space-y-2 border-t border-border pt-3">
-          <Progress
-            className={cn("h-1.5", state.progress)}
-            value={(completed / exercise.targetSets) * 100}
-          />
-          <span className="flex items-center justify-between gap-3 text-xs font-semibold tracking-wider uppercase text-primary">
-            <span>{state.action}</span>
-            {state.label === "Concluído" ? (
-              <CheckIcon aria-hidden="true" />
-            ) : (
-              <ArrowRightIcon aria-hidden="true" />
-            )}
-          </span>
-        </div>
+
+        <Progress
+          className={cn("h-1.5", state.progress)}
+          value={(completed / exercise.targetSets) * 100}
+        />
       </div>
     </Button>
   )

@@ -24,19 +24,21 @@ function WorkSetNavigator({
   return (
     <fieldset className="flex flex-wrap gap-2">
       <legend className="sr-only">Sequência de séries</legend>
+
       {workSetIndexes.map(setIndex => {
         const set = sets[setIndex]
         const isSelected = setIndex === (editingSetIndex ?? nextWorkSetIndex)
+
         return (
           <Button
             aria-current={isSelected ? "step" : undefined}
             aria-label={`Série ${set.setNumber}`}
-            disabled={!set.completed && !isSelected}
+            disabled={!set.completed && setIndex !== nextWorkSetIndex}
             key={set.setNumber}
             onClick={() => onSelect(setIndex)}
             size="xs"
             type="button"
-            variant={isSelected ? "default" : set.completed ? "secondary" : "outline"}
+            variant={isSelected ? "default" : "secondary"}
           >
             {set.completed && <CheckIcon aria-hidden="true" />}
             Série {set.setNumber}
@@ -55,6 +57,7 @@ function RirFeedback({
   targetRir?: number
 }) {
   if (perceivedRir === undefined || targetRir === undefined) return null
+
   return (
     <p className="text-sm text-muted-foreground">
       {perceivedRir < targetRir
@@ -81,7 +84,6 @@ export function SessionExerciseForm({
     register,
     control,
     setValue,
-    getValues,
     trigger,
     formState: { errors },
   } = useFormContext<SessionFormValues>()
@@ -104,37 +106,22 @@ export function SessionExerciseForm({
 
   function handleCompletedChange(setIndex: number, completed: boolean) {
     const prefix = `exercises.${index}.sets.${setIndex}` as const
+    const wasCompleted = exercise.sets[setIndex]?.completed ?? false
     setValue(`${prefix}.completed`, completed, {
       shouldDirty: true,
       shouldValidate: true,
     })
     if (!completed) return
-    if (setIndex !== nextWorkSetIndex) {
-      void trigger(prefix).then(valid => {
-        if (!valid) return
-        const nextSetIndex = workSetIndexes.find(
-          candidate => candidate > setIndex && !exercise.sets[candidate].completed
-        )
-        if (nextSetIndex !== undefined) {
-          setEditingSetIndex(nextSetIndex === nextWorkSetIndex ? null : nextSetIndex)
-          return
-        }
-        onWorkSetsCompleted()
-      })
-      return
-    }
     void trigger(prefix).then(valid => {
       if (!valid) return
+      if (wasCompleted) {
+        return
+      }
       onSeriesCompleted(exercise.restSeconds)
       const nextSetIndex = workSetIndexes.find(
         candidate => candidate > setIndex && !exercise.sets[candidate].completed
       )
       if (nextSetIndex !== undefined) {
-        setValue(
-          `exercises.${index}.sets.${nextSetIndex}.performedRepetitions`,
-          getValues(`${prefix}.performedRepetitions`),
-          { shouldDirty: true, shouldValidate: true }
-        )
         setEditingSetIndex(null)
         return
       }
@@ -176,7 +163,7 @@ export function SessionExerciseForm({
           />
 
           {selectedSet ? (
-            <div className="space-y-4">
+            <div className="space-y-4" key={selectedSetIndex}>
               <div className="grid min-w-0 gap-3 sm:grid-cols-3">
                 <Field>
                   <FieldLabel htmlFor={`exercises.${index}.sets.${selectedSetIndex}-load`}>

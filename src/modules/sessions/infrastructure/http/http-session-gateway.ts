@@ -4,14 +4,19 @@ import type { SessionGateway } from "../../application/ports/session-gateway"
 import {
   preparedSessionSchema,
   type SessionCommand,
+  sessionDeletionResultSchema,
   sessionSchema,
   suggestionSchema,
 } from "../../domain/session"
 
-async function request(command?: SessionCommand, params = "") {
+async function request(
+  command?: SessionCommand,
+  params = "",
+  method: "GET" | "POST" | "DELETE" = command ? "POST" : "GET"
+) {
   if (!auth.currentUser) throw new Error("Entre novamente para continuar")
   const response = await fetch(`/api/workout-sessions${params}`, {
-    method: command ? "POST" : "GET",
+    method,
     headers: {
       Authorization: `Bearer ${await auth.currentUser.getIdToken()}`,
       "Content-Type": "application/json",
@@ -49,6 +54,11 @@ export const httpSessionGateway: SessionGateway = {
       .parse(
         await request(undefined, cursor ? `?cursor=${encodeURIComponent(cursor)}` : "")
       )
+  },
+  async delete(id) {
+    sessionDeletionResultSchema.parse(
+      await request(undefined, `?id=${encodeURIComponent(id)}`, "DELETE")
+    )
   },
   async prepare(command) {
     return z.object({ draft: preparedSessionSchema }).parse(await request(command)).draft

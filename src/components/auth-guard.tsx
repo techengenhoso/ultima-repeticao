@@ -60,7 +60,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
           <div className="relative mb-8 flex size-20 items-center justify-center">
             <div className="absolute inset-0 animate-ping bg-primary/10" />
 
-            <div className="relative flex size-16 items-center justify-center bg-primary text-primary-foreground shadow-xl shadow-primary/20">
+            <div className="relative flex size-16 items-center justify-center bg-primary text-primary-foreground">
               <DumbbellIcon aria-hidden="true" className="size-7" />
             </div>
           </div>

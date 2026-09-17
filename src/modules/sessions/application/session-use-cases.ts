@@ -51,6 +51,12 @@ export class SessionUseCases {
     return this.repository.list(uid, cursor)
   }
 
+  async remove(uid: string, id: string) {
+    await this.get(uid, id)
+    await this.repository.delete(uid, id)
+    return { deletedId: id }
+  }
+
   async execute(uid: string, command: SessionCommand) {
     if (command.action === "start") return { draft: await this.prepare(uid, command) }
     if (command.action === "finalize")

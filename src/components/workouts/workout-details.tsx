@@ -80,12 +80,12 @@ export function WorkoutDetails() {
                   ]
 
                   return (
-                    <Collapsible defaultOpen key={day.id}>
+                    <Collapsible className="group" defaultOpen key={day.id}>
                       <Card
-                        className="gap-0 border border-border border-l-2 border-l-primary py-0"
+                        className="gap-0 border border-border border-l-2 border-l-primary py-0 shadow-none"
                         size="sm"
                       >
-                        <CardHeader className="border-b bg-muted/40 py-4 [.border-b]:pb-4">
+                        <CardHeader className="border-b bg-muted/40 py-4 [.border-b]:pb-4 group-data-[state=closed]:border-b-0">
                           <CollapsibleTrigger className="group flex w-full items-center gap-3 text-left">
                             <span className="flex size-9 shrink-0 items-center justify-center bg-primary text-sm font-bold text-primary-foreground">
                               {dayIndex + 1}

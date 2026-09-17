@@ -7,16 +7,15 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { FormProvider, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import type { z } from "zod"
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { useUser } from "@/contexts/user-context"
 import {
   type SessionFormValues,
@@ -43,7 +42,7 @@ const confirmationDetails: Record<
   }
 > = {
   completed: {
-    confirmLabel: "Confirmar",
+    confirmLabel: "Concluir treino",
     description:
       "Confira as séries marcadas como concluídas, séries incompletas serão preservadas e não indicarão perda de força",
     title: "Concluir treino",
@@ -57,7 +56,7 @@ const confirmationDetails: Record<
     variant: "red",
   },
   reload: {
-    confirmLabel: "Confirmar",
+    confirmLabel: "Recarregar treino",
     description:
       "As alterações ainda não salvas serão substituídas pela versão do servidor",
     title: "Recarregar treino",
@@ -76,20 +75,19 @@ function SessionConfirmationDialog({
 }) {
   const details = confirmation ? confirmationDetails[confirmation] : null
   return (
-    <AlertDialog onOpenChange={onOpenChange} open={confirmation !== null}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{details?.title}</AlertDialogTitle>
-          <AlertDialogDescription>{details?.description}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Continuar registrando</AlertDialogCancel>
+    <Dialog onOpenChange={onOpenChange} open={confirmation !== null}>
+      <DialogContent>
+        <DialogHeader className="pr-14">
+          <DialogTitle>{details?.title}</DialogTitle>
+          <DialogDescription>{details?.description}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
           <Button onClick={onConfirm} type="button" variant={details?.variant}>
             {details?.confirmLabel}
           </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -120,7 +118,6 @@ function SessionEditor({
   const [activeExerciseIndex, setActiveExerciseIndex] = useState<number | null>(null)
   const [confirmation, setConfirmation] = useState<SessionConfirmation | null>(null)
   const [pending, setPending] = useState(false)
-  const [error, setError] = useState("")
   const [draftError, setDraftError] = useState("")
   const lock = useRef(false)
   const sessionRef = useRef(session)
@@ -138,38 +135,60 @@ function SessionEditor({
       setDraftError("Não foi possível salvar o rascunho neste dispositivo")
     }
   }, [draftToken, exercises, form.formState.isDirty, onDraftUpdated])
+  async function finalizeSession(
+    status: "completed" | "cancelled",
+    values: SessionFormValues
+  ) {
+    if (draftToken)
+      return gateway.mutate({
+        action: "finalize",
+        id: session.id,
+        draftToken,
+        status,
+        exercises: values.exercises,
+      })
+    return gateway.mutate({
+      action: "save",
+      id: session.id,
+      version: session.version,
+      status,
+      exercises: values.exercises,
+    })
+  }
+  function handleFinalizedSession(
+    status: "completed" | "cancelled",
+    saved: WorkoutSession
+  ) {
+    form.reset({ exercises: saved.exercises })
+    if (draftToken) onFinalized()
+    onUpdated(saved)
+    toast.success(status === "completed" ? "Treino concluído" : "Treino cancelado")
+  }
+  function handleFinalizationFailure(failure: unknown) {
+    toast.error(
+      failure instanceof Error
+        ? failure.message
+        : "Não foi possível finalizar, seus registros locais foram mantidos",
+      !draftToken
+        ? {
+            action: {
+              label: "Recarregar versão salva",
+              onClick: reloadSavedSession,
+            },
+          }
+        : undefined
+    )
+  }
   async function save(status: "completed" | "cancelled", values: SessionFormValues) {
     if (lock.current) return
     lock.current = true
     setPending(true)
-    setError("")
     setConfirmation(null)
     try {
-      const saved = draftToken
-        ? await gateway.mutate({
-            action: "finalize",
-            id: session.id,
-            draftToken,
-            status,
-            exercises: values.exercises,
-          })
-        : await gateway.mutate({
-            action: "save",
-            id: session.id,
-            version: session.version,
-            status,
-            exercises: values.exercises,
-          })
-      form.reset({ exercises: saved.exercises })
-      if (draftToken) onFinalized()
-      onUpdated(saved)
-      toast.success(status === "completed" ? "Treino concluído" : "Treino cancelado")
+      const saved = await finalizeSession(status, values)
+      handleFinalizedSession(status, saved)
     } catch (failure) {
-      setError(
-        failure instanceof Error
-          ? failure.message
-          : "Não foi possível finalizar, seus registros locais foram mantidos"
-      )
+      handleFinalizationFailure(failure)
     } finally {
       lock.current = false
       setPending(false)
@@ -201,7 +220,7 @@ function SessionEditor({
         onUpdated(saved)
       })
       .catch(failure =>
-        setError(
+        toast.error(
           failure instanceof Error ? failure.message : "Não foi possível recarregar"
         )
       )
@@ -217,6 +236,15 @@ function SessionEditor({
       return
     }
     void form.handleSubmit(values => save("completed", values))()
+  }
+  function requestCompletion() {
+    void form.handleSubmit(values => {
+      if (values.exercises.every(hasCompletedAllWorkSets)) {
+        void save("completed", values)
+        return
+      }
+      setConfirmation("completed")
+    })()
   }
   const allExercisesCompleted = exercises.every(hasCompletedAllWorkSets)
   return (
@@ -235,22 +263,6 @@ function SessionEditor({
             />
           )}
         </fieldset>
-        {error && (
-          <div className="space-y-2 text-sm text-destructive" role="alert">
-            <p>{error}</p>
-            {!draftToken && (
-              <Button
-                disabled={pending}
-                onClick={() => setConfirmation("reload")}
-                type="button"
-                variant="outline"
-              >
-                Recarregar versão salva
-              </Button>
-            )}
-          </div>
-        )}
-        {pending && <output className="block text-sm">Finalizando treino</output>}
         {activeExerciseIndex === null && (
           <section
             aria-labelledby="finish-workout-title"
@@ -281,9 +293,7 @@ function SessionEditor({
                 <Button
                   className="w-full"
                   disabled={pending}
-                  onClick={() =>
-                    void form.handleSubmit(() => setConfirmation("completed"))()
-                  }
+                  onClick={requestCompletion}
                   type="button"
                 >
                   Concluir treino
@@ -315,11 +325,12 @@ function SessionEditor({
 export function SessionScreen({ id }: { id: string }) {
   const { user } = useUser()
   const [retry, setRetry] = useState(0)
+  const retrySession = useCallback(() => setRetry(value => value + 1), [])
   return (
     <LoadedSession
       id={id}
       key={`${user.uid}:${id}:${retry}`}
-      onRetry={() => setRetry(value => value + 1)}
+      onRetry={retrySession}
       uid={user.uid}
     />
   )
@@ -338,14 +349,19 @@ function LoadedSession({
   const draftStore = useSessionDraftStore()
   const [session, setSession] = useState<WorkoutSession | null>(null)
   const [draftToken, setDraftToken] = useState<string | null>(null)
-  const [restTimer, setRestTimer] = useState({ instance: 0, seconds: 90, signal: 0 })
-  const [error, setError] = useState("")
+  const [restTimer, setRestTimer] = useState({
+    endsAt: null as number | null,
+    seconds: 90,
+  })
+  const [hasLoadError, setHasLoadError] = useState(false)
   useEffect(() => {
     let current = true
     setSession(null)
     setDraftToken(null)
-    setError("")
+    setHasLoadError(false)
     const draft = draftStore.get(uid, id)
+    const restTimerEndsAt = draftStore.getRestTimer(uid, id)
+    if (restTimerEndsAt) setRestTimer(current => ({ ...current, endsAt: restTimerEndsAt }))
     if (draft) {
       setSession(draft.session)
       setDraftToken(draft.draftToken)
@@ -359,15 +375,22 @@ function LoadedSession({
         if (current) setSession(value)
       })
       .catch(failure => {
-        if (current)
-          setError(
-            failure instanceof Error ? failure.message : "Não foi possível carregar"
-          )
+        if (!current) return
+        setHasLoadError(true)
+        toast.error(
+          failure instanceof Error ? failure.message : "Não foi possível carregar",
+          {
+            action: {
+              label: "Tentar novamente",
+              onClick: onRetry,
+            },
+          }
+        )
       })
     return () => {
       current = false
     }
-  }, [draftStore, gateway, id, uid])
+  }, [draftStore, gateway, id, onRetry, uid])
   const updateDraft = useCallback(
     (updated: WorkoutSession) => {
       if (!draftToken) return
@@ -382,18 +405,24 @@ function LoadedSession({
   }, [draftStore, id, uid])
   function prepareRestTimer(seconds?: number) {
     setRestTimer(current => ({
-      instance: current.instance + 1,
       seconds: seconds ?? 90,
-      signal: 0,
+      endsAt: current.endsAt,
     }))
   }
   function startRestTimer(seconds?: number) {
+    const duration = seconds ?? restTimer.seconds
+    const endsAt = Date.now() + duration * 1000
+    draftStore.saveRestTimer(uid, id, endsAt)
     setRestTimer(current => ({
       ...current,
-      seconds: seconds ?? current.seconds,
-      signal: current.signal + 1,
+      seconds: duration,
+      endsAt,
     }))
   }
+  const clearRestTimer = useCallback(() => {
+    draftStore.removeRestTimer(uid, id)
+    setRestTimer(current => ({ ...current, endsAt: null }))
+  }, [draftStore, id, uid])
   return (
     <div className="mx-auto min-w-0 max-w-6xl space-y-5">
       <header className="border-b border-border pb-4">
@@ -413,30 +442,21 @@ function LoadedSession({
             </h1>
           </div>
           {session?.status === "inProgress" && (
-            <RestTimer
-              key={restTimer.instance}
-              seconds={restTimer.seconds}
-              startSignal={restTimer.signal}
-            />
+            <RestTimer endsAt={restTimer.endsAt} onCompleted={clearRestTimer} />
           )}
         </div>
       </header>
-      {error && (
-        <div className="space-y-3" role="alert">
-          <p className="text-sm text-destructive">{error}</p>
-          <Button onClick={onRetry} type="button">
-            Tentar novamente
-          </Button>
-        </div>
-      )}
-      {!session && !error && <output>Carregando treino</output>}
+      {!session && !hasLoadError && <output>Carregando treino</output>}
       {session &&
         (session.status === "inProgress" ? (
           <SessionEditor
             draftToken={draftToken}
             key={session.id}
             onDraftUpdated={updateDraft}
-            onFinalized={removeDraft}
+            onFinalized={() => {
+              clearRestTimer()
+              removeDraft()
+            }}
             onRestPrepared={prepareRestTimer}
             onRestStarted={startRestTimer}
             onUpdated={setSession}
@@ -445,11 +465,6 @@ function LoadedSession({
         ) : (
           <SessionSummary onUpdated={setSession} session={session} />
         ))}
-      {session?.status !== "inProgress" && (
-        <Button asChild size="sm" variant="outline">
-          <Link href="/history">Ir para o histórico</Link>
-        </Button>
-      )}
     </div>
   )
 }

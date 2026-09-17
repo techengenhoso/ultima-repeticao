@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useRef, useState } from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { useUser } from "@/contexts/user-context"
 import { useSessionDraftStore } from "@/modules/sessions/presentation/session-draft-store-context"
@@ -15,16 +16,17 @@ export function StartSessionButton({ planId, dayId }: { planId: string; dayId: s
   const id = useRef<string | null>(null)
   const active = useRef(false)
   const [pending, setPending] = useState(false)
-  const [error, setError] = useState("")
+
   async function start() {
     if (active.current) return
     active.current = true
     setPending(true)
-    setError("")
     id.current ??= crypto.randomUUID()
     try {
       if (draftStore.current(user.uid)) {
-        setError("Há um treino em andamento neste dispositivo, retome ou finalize antes")
+        toast.error(
+          "Há um treino em andamento neste dispositivo, retome ou finalize antes"
+        )
         active.current = false
         setPending(false)
         return
@@ -38,7 +40,7 @@ export function StartSessionButton({ planId, dayId }: { planId: string; dayId: s
       draftStore.save(user.uid, draft)
       router.push(`/workouts/sessions/${encodeURIComponent(draft.session.id)}`)
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : "Não foi possível iniciar")
+      toast.error(failure instanceof Error ? failure.message : "Não foi possível iniciar")
       active.current = false
       setPending(false)
     }
@@ -53,11 +55,6 @@ export function StartSessionButton({ planId, dayId }: { planId: string; dayId: s
       >
         {pending ? "Preparando treino" : "Iniciar este treino"}
       </Button>
-      {error && (
-        <p className="text-sm text-destructive" role="alert">
-          {error}
-        </p>
-      )}
     </div>
   )
 }

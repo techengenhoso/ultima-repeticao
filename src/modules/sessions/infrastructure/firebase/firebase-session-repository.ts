@@ -78,6 +78,10 @@ export class FirebaseSessionRepository implements SessionRepository {
     })
   }
 
+  async delete(uid: string, id: string) {
+    await sessions(uid).doc(id).delete()
+  }
+
   async listCompleted(uid: string) {
     const snapshot = await sessions(uid)
       .where("status", "==", "completed")

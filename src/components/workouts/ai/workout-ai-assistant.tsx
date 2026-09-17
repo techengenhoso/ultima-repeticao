@@ -1,7 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { LoaderCircleIcon, SparklesIcon } from "lucide-react"
+import { LoaderCircleIcon } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import {
   type Control,
@@ -26,7 +26,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { useProfile } from "@/contexts/profile-context"
 import { useWorkout } from "@/contexts/workout-context"
@@ -102,11 +101,15 @@ function submitLabel(pending: boolean, step: number) {
   return step < 2 ? "Continuar" : "Gerar sugestão"
 }
 
-export function WorkoutAiAssistant() {
+interface WorkoutAiAssistantProps {
+  open: boolean
+  onOpenChange(open: boolean): void
+}
+
+export function WorkoutAiAssistant({ open, onOpenChange }: WorkoutAiAssistantProps) {
   const { profile } = useProfile()
-  const { exercises, isLoading, loadingError } = useWorkout()
+  const { exercises } = useWorkout()
   const workoutGenerationUseCases = useWorkoutGenerationUseCases()
-  const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
   const [result, setResult] = useState<AiWorkoutResult | null>(null)
   const [originalInput, setOriginalInput] = useState<AiWorkoutInput | null>(null)
@@ -118,6 +121,7 @@ export function WorkoutAiAssistant() {
   const [generationAttempted, setGenerationAttempted] = useState(false)
   const activeRequest = useRef<AbortController | null>(null)
   const heading = useRef<HTMLHeadingElement>(null)
+  const wasOpen = useRef(false)
   const form = useForm<AiWorkoutInput>({
     mode: "onSubmit",
     reValidateMode: "onChange",
@@ -152,6 +156,15 @@ export function WorkoutAiAssistant() {
     return () => subscription.unsubscribe()
   }, [form.watch])
   useEffect(() => () => activeRequest.current?.abort(), [])
+  useEffect(() => {
+    if (open && !wasOpen.current) {
+      form.reset({
+        ...form.formState.defaultValues,
+        ...profileDefaults(profile),
+      })
+    }
+    wasOpen.current = open
+  }, [form, open, profile])
   useEffect(() => {
     if (open && (result || step >= 0)) heading.current?.focus()
   }, [open, step, result])
@@ -200,7 +213,7 @@ export function WorkoutAiAssistant() {
   }
 
   function discard() {
-    setOpen(false)
+    onOpenChange(false)
     setDiscarding(false)
     setResult(null)
     setOriginalInput(null)
@@ -220,23 +233,11 @@ export function WorkoutAiAssistant() {
     <>
       <Dialog
         onOpenChange={value => {
-          if (value) {
-            form.reset({
-              ...form.formState.defaultValues,
-              ...profileDefaults(profile),
-            })
-            setOpen(true)
-          } else requestClose()
+          if (value) onOpenChange(true)
+          else requestClose()
         }}
         open={open}
       >
-        <DialogTrigger asChild>
-          <Button disabled={isLoading || loadingError} type="button" variant="outline">
-            <SparklesIcon />
-            Nova ficha com IA
-          </Button>
-        </DialogTrigger>
-
         <DialogContent
           className={`flex max-h-[calc(100dvh-2rem)] min-w-0 flex-col gap-4 overflow-hidden p-4 sm:max-w-4xl sm:p-6 ${dialogHeightByStep[step]}`}
           showCloseButton={!pending}
