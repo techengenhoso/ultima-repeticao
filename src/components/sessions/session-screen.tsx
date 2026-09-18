@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowLeftIcon } from "lucide-react"
 import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { FormProvider, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
@@ -347,6 +348,8 @@ function LoadedSession({
 }) {
   const gateway = useSessionGateway()
   const draftStore = useSessionDraftStore()
+  const pathname = usePathname()
+  const router = useRouter()
   const [session, setSession] = useState<WorkoutSession | null>(null)
   const [draftToken, setDraftToken] = useState<string | null>(null)
   const [restTimer, setRestTimer] = useState({
@@ -423,13 +426,24 @@ function LoadedSession({
     draftStore.removeRestTimer(uid, id)
     setRestTimer(current => ({ ...current, endsAt: null }))
   }, [draftStore, id, uid])
+  useEffect(() => {
+    if (!session) return
+    const isWorkoutSession = pathname.startsWith("/workouts/sessions/")
+    const isHistorySession = pathname.startsWith("/history/sessions/")
+    const shouldShowInHistory = session.status !== "inProgress" && isWorkoutSession
+    const shouldShowInWorkouts = session.status === "inProgress" && isHistorySession
+    if (shouldShowInHistory || shouldShowInWorkouts) {
+      const section = session.status === "inProgress" ? "workouts" : "history"
+      router.replace(`/${section}/sessions/${encodeURIComponent(session.id)}`)
+    }
+  }, [pathname, router, session])
   return (
     <div className="mx-auto min-w-0 max-w-6xl space-y-5">
       <header className="border-b border-border pb-4">
         <Button asChild className="-ml-3" size="sm" variant="ghost">
-          <Link href="/workouts">
+          <Link href={session?.status === "inProgress" ? "/workouts" : "/history"}>
             <ArrowLeftIcon aria-hidden="true" />
-            Treinos
+            {session?.status === "inProgress" ? "Treinos" : "Histórico"}
           </Link>
         </Button>
         <div className="mt-3 flex flex-wrap items-end justify-between gap-3">

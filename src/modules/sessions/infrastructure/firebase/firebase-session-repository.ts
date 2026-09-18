@@ -34,7 +34,7 @@ export class FirebaseSessionRepository implements SessionRepository {
   }
 
   async list(uid: string, cursor?: string) {
-    let query = sessions(uid).orderBy("startedAt", "desc").limit(20)
+    let query = sessions(uid).orderBy("startedAt", "desc").limit(7)
     if (cursor) {
       const page = await sessions(uid).doc(cursor).get()
       if (!page.exists) throw new Error("Página de histórico inválida")
@@ -43,7 +43,7 @@ export class FirebaseSessionRepository implements SessionRepository {
     const snapshot = await query.get()
     return {
       sessions: snapshot.docs.map(item => decodeFirebaseSession(item.id, item.data())),
-      nextCursor: snapshot.size === 20 ? (snapshot.docs.at(-1)?.id ?? null) : null,
+      nextCursor: snapshot.size === 7 ? (snapshot.docs.at(-1)?.id ?? null) : null,
     }
   }
 

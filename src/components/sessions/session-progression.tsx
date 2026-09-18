@@ -223,7 +223,7 @@ export function SessionProgression({
               A decisão deve ser registrada na{" "}
               <Link
                 className="underline"
-                href={`/workouts/sessions/${encodeURIComponent(latestSessionId)}`}
+                href={`/history/sessions/${encodeURIComponent(latestSessionId)}`}
               >
                 treino concluído mais recente
               </Link>

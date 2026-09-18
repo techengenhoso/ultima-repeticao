@@ -106,7 +106,7 @@ export function SessionSummary({
                 className="min-w-0 space-y-4 border bg-card p-4 sm:p-5"
                 key={`${exercise.exerciseReference.source}:${exercise.exerciseReference.exerciseId}:${index}`}
               >
-                <header className="border-b pb-4">
+                <header>
                   <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                     <p className="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
                       Exercício {String(index + 1).padStart(2, "0")}
@@ -183,14 +183,13 @@ export function SessionSummary({
                   </p>
                 )}
                 {isCompleted && isExerciseCompleted && (
-                  <div className="flex border-t pt-4">
+                  <div className="flex">
                     <Button
-                      aria-label={`Abrir evolução e próxima carga de ${exercise.exerciseSnapshot.name}`}
-                      className="ml-auto"
+                      className="w-full sm:ml-auto sm:w-auto"
                       onClick={() => setSelected(index)}
                       size="sm"
                       type="button"
-                      variant="blue"
+                      variant="default"
                     >
                       <TrendingUpIcon aria-hidden="true" />
                       Ver evolução e carga
