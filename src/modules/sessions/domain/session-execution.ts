@@ -122,7 +122,6 @@ export function initialExercise(
     exerciseSnapshot: snapshot,
     targetSets: target.sets,
     targetRepetitions: target.targetRepetitions,
-    ...(target.targetRir !== undefined ? { targetRir: target.targetRir } : {}),
     ...(target.restSeconds !== undefined ? { restSeconds: target.restSeconds } : {}),
     initialLoad: target.initialLoad,
     painReported: false,
@@ -148,7 +147,9 @@ export function initialExercise(
   const referenceLoad =
     latest?.decision?.load ??
     latest?.sets.filter(set => set.completed && !set.warmup).at(-1)?.load
-  const targetRepetitions = parseRepetitions(target.targetRepetitions)?.min ?? 0
+  const minimumRepetitions = parseRepetitions(target.targetRepetitions)?.min ?? 0
+  const targetRepetitions =
+    latest?.decision?.suggestion.suggestedRepetitions ?? minimumRepetitions
   return {
     ...initial,
     ...(latest?.decision?.settings || latest?.incrementSettings
@@ -158,10 +159,7 @@ export function initialExercise(
     sets: Array.from({ length: target.sets }, (_, index) => ({
       setNumber: index + 1,
       targetRepetitions: target.targetRepetitions,
-      performedRepetitions:
-        latest?.sets.find(
-          set => !set.warmup && set.completed && set.setNumber === index + 1
-        )?.performedRepetitions ?? targetRepetitions,
+      performedRepetitions: targetRepetitions,
       load: referenceLoad ?? target.initialLoad,
       completed: false,
       warmup: false,
@@ -171,7 +169,7 @@ export function initialExercise(
 
 export type SessionExerciseTarget = Pick<
   SessionExercise,
-  "exerciseReference" | "targetRepetitions" | "targetRir" | "restSeconds" | "initialLoad"
+  "exerciseReference" | "targetRepetitions" | "restSeconds" | "initialLoad"
 > & { sets: number }
 export type ExerciseSnapshot = SessionExercise["exerciseSnapshot"]
 export type SessionPlanDay = {

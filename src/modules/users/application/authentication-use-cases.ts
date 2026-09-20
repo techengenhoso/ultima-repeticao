@@ -9,7 +9,7 @@ export interface AuthenticationUseCases {
   signUp(fullName: string, email: string, password: string): Promise<void>
   requestPasswordReset(email: string): Promise<void>
   signOut(): Promise<void>
-  deleteAccount(confirmation: string): Promise<void>
+  deleteAccount(user: AuthenticatedUser, password: string): Promise<void>
   updateUser(user: AuthenticatedUser, data: UserEditable): Promise<void>
   changePassword(
     user: AuthenticatedUser,
@@ -28,7 +28,15 @@ export function createAuthenticationUseCases(
     signUp: (fullName, email, password) => gateway.signUp(fullName, email, password),
     requestPasswordReset: email => gateway.sendPasswordReset(email),
     signOut: () => gateway.signOut(),
-    deleteAccount: confirmation => gateway.deleteAccount(confirmation),
+    async deleteAccount(user, password) {
+      if (!user.email)
+        throw new AuthenticationUseCaseError(
+          "Não foi possível identificar o endereço de e-mail"
+        )
+      if (!user.supportsPassword)
+        throw new AuthenticationUseCaseError("Esta conta não utiliza senha para entrar")
+      await gateway.deleteAccount(user, password)
+    },
     updateUser: (user, data) => gateway.updateProfile(user, data),
     async changePassword(user, currentPassword, newPassword) {
       if (!user.email)

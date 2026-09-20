@@ -53,7 +53,6 @@ export interface WorkoutGenerationUseCases {
     repetitions: string
     initialLoad: number
     restSeconds?: number
-    targetRir?: number
   }
 }
 
@@ -86,7 +85,6 @@ export function createWorkoutGenerationUseCases(): WorkoutGenerationUseCases {
         repetitions: rules.repetitions[0],
         initialLoad: Number.NaN,
         restSeconds: rules.restSeconds.min,
-        targetRir: rules.targetRir.max,
       }
     },
     async generate(input, library, signal) {

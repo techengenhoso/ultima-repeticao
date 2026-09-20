@@ -1,10 +1,7 @@
 import "server-only"
 import type { ExerciseLibraryReader } from "@/modules/exercises/application/ports/exercise-library-reader"
 import { getAdminFirestore } from "@/modules/shared/infrastructure/firebase-admin"
-import {
-  legacyWorkoutDaySchema,
-  workoutDaySchema,
-} from "@/modules/workouts/domain/schemas"
+import { workoutDaySchema } from "@/modules/workouts/domain/schemas"
 import type {
   SessionExerciseLibrary,
   SessionPlanReader,
@@ -24,8 +21,7 @@ export class FirebaseSessionPlanReader implements SessionPlanReader {
     const source = Array.isArray(raw?.days)
       ? raw.days.find((day: { id?: string }) => day.id === workoutDayId)
       : undefined
-    const legacyDay = legacyWorkoutDaySchema.safeParse(source)
-    const day = workoutDaySchema.safeParse(legacyDay.success ? legacyDay.data : null)
+    const day = workoutDaySchema.safeParse(source)
     const name = raw?.name
     if (!day.success || typeof name !== "string") return null
     return {
@@ -37,7 +33,6 @@ export class FirebaseSessionPlanReader implements SessionPlanReader {
           exerciseReference: item.exerciseReference,
           sets: item.sets,
           targetRepetitions: item.repetitions,
-          ...(item.targetRir !== undefined ? { targetRir: item.targetRir } : {}),
           ...(item.restSeconds !== undefined ? { restSeconds: item.restSeconds } : {}),
           initialLoad: item.initialLoad,
         })),

@@ -60,7 +60,7 @@ async function executeSession(request: Request, uid: string) {
   if (!command.success)
     throw new SessionUseCaseError(
       422,
-      "Revise cargas, repetições, RIR e séries informadas"
+      "Revise cargas, repetições, avaliações e séries informadas"
     )
   return NextResponse.json(await sessionUseCases.execute(uid, command.data), { headers })
 }

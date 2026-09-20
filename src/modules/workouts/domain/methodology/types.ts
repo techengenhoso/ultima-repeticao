@@ -62,7 +62,6 @@ export type ExerciseRules = {
   sets: Range
   repetitions: string[]
   restSeconds: Range
-  targetRir: Range
 }
 
 export type WorkoutPrescription = {

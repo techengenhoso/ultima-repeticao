@@ -77,10 +77,6 @@ export function WorkoutExerciseDetails({ exercise, exercisesByReference, index }
                   : `${exercise.restSeconds} s`
               }
             />
-            <WorkoutExerciseMetric
-              label="RIR desejado"
-              value={exercise.targetRir?.toString() ?? "Não informado"}
-            />
           </div>
         </CollapsibleContent>
       </article>

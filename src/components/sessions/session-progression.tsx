@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
-import { useForm } from "react-hook-form"
+import { type UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
@@ -11,9 +11,11 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { exerciseHistory } from "@/modules/sessions/domain/progression"
 import {
+  effortRatingLabel,
   incrementSchema,
   type LoadSuggestion,
   loadSchema,
+  type SessionExercise,
   type WorkoutSession,
 } from "@/modules/sessions/domain/session"
 import { useSessionGateway } from "@/modules/sessions/presentation/session-gateway-context"
@@ -22,9 +24,127 @@ const settingsFormSchema = incrementSchema.extend({ customLoad: loadSchema })
 type SettingsForm = z.infer<typeof settingsFormSchema>
 const labels = {
   increase: "Aumento sugerido",
+  increaseRepetitions: "Mais repetições sugeridas",
   maintain: "Manutenção sugerida",
   decrease: "Redução sugerida",
   insufficientData: "Dados insuficientes para progredir",
+}
+
+function SuggestionResult({
+  canDecide,
+  exercise,
+  form,
+  history,
+  index,
+  onDecide,
+  pending,
+  sessionStartedAt,
+  suggestion,
+}: {
+  canDecide: boolean
+  exercise: SessionExercise
+  form: UseFormReturn<z.input<typeof settingsFormSchema>, unknown, SettingsForm>
+  history: WorkoutSession[]
+  index: number
+  onDecide: (choice: "accept" | "maintain" | "custom") => void
+  pending: boolean
+  sessionStartedAt: number
+  suggestion: LoadSuggestion
+}) {
+  const latestSessionId = exerciseHistory(history, exercise)[0]?.session.id
+  const suggestionUnavailable =
+    suggestion.action === "insufficientData" || suggestion.suggestedLoad === undefined
+
+  return (
+    <div aria-live="polite" className="space-y-3 border p-3">
+      <h3 className="font-semibold">{labels[suggestion.action]}</h3>
+      {!canDecide && latestSessionId && (
+        <p className="text-sm">
+          A decisão deve ser registrada na{" "}
+          <Link
+            className="underline"
+            href={`/history/sessions/${encodeURIComponent(latestSessionId)}`}
+          >
+            treino concluído mais recente
+          </Link>
+        </p>
+      )}
+      {suggestion.action === "increaseRepetitions" ? (
+        <p className="text-sm">
+          Próximo treino: {exercise.targetSets} séries de {suggestion.suggestedRepetitions}{" "}
+          repetições com {suggestion.currentLoad} kg
+        </p>
+      ) : (
+        <p className="text-sm">
+          Carga atual:{" "}
+          {suggestion.basedOnSessionIds.length
+            ? `${suggestion.currentLoad} kg`
+            : "A definir"}{" "}
+          · Sugestão:{" "}
+          {suggestion.suggestedLoad !== undefined
+            ? `${suggestion.suggestedLoad} kg`
+            : "A definir"}
+        </p>
+      )}
+      <p className="text-sm">{suggestion.reason}</p>
+      <p className="text-xs text-muted-foreground">
+        Confiança {suggestion.confidence === "low" ? "menor" : "normal"} · Nenhuma carga
+        será alterada sem sua escolha
+      </p>
+      <ul className="space-y-1 text-xs text-muted-foreground">
+        {suggestion.basedOnSessionIds.map(id => (
+          <li key={id}>
+            Dados de{" "}
+            {new Date(
+              history.find(item => item.id === id)?.startedAt ?? sessionStartedAt
+            ).toLocaleString("pt-BR")}{" "}
+            · Treino <span className="break-all">{id}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+        <Button
+          disabled={
+            pending || !canDecide || suggestionUnavailable || exercise.painReported
+          }
+          onClick={() => onDecide("accept")}
+          type="button"
+        >
+          Usar no próximo treino
+        </Button>
+        <Button
+          disabled={pending || !canDecide}
+          onClick={() => onDecide("maintain")}
+          type="button"
+          variant="outline"
+        >
+          Manter carga atual
+        </Button>
+      </div>
+      <Field>
+        <FieldLabel htmlFor={`custom-load-${index}`}>Ou informe outra carga</FieldLabel>
+        <Input
+          disabled={pending || !canDecide}
+          id={`custom-load-${index}`}
+          inputMode="decimal"
+          max={1000}
+          min={0}
+          step={0.01}
+          type="number"
+          {...form.register("customLoad", { valueAsNumber: true })}
+        />
+        <FieldError errors={[form.formState.errors.customLoad]} />
+      </Field>
+      <Button
+        disabled={pending || !canDecide}
+        onClick={() => onDecide("custom")}
+        type="button"
+        variant="outline"
+      >
+        Confirmar minha carga
+      </Button>
+    </div>
+  )
 }
 
 export function SessionProgression({
@@ -147,8 +267,7 @@ export function SessionProgression({
   }
   const history = result ? exerciseHistory(result.history, exercise) : []
   const suggestion = result?.suggestion
-  const latestSessionId = history[0]?.session.id
-  const canDecide = !latestSessionId || latestSessionId === session.id
+  const canDecide = !history[0] || history[0].session.id === session.id
   return (
     <div className="space-y-4 border-t pt-4">
       <form
@@ -216,96 +335,17 @@ export function SessionProgression({
         </p>
       )}
       {suggestion && (
-        <div aria-live="polite" className="space-y-3 border p-3">
-          <h3 className="font-semibold">{labels[suggestion.action]}</h3>
-          {!canDecide && latestSessionId && (
-            <p className="text-sm">
-              A decisão deve ser registrada na{" "}
-              <Link
-                className="underline"
-                href={`/history/sessions/${encodeURIComponent(latestSessionId)}`}
-              >
-                treino concluído mais recente
-              </Link>
-            </p>
-          )}
-          <p className="text-sm">
-            Carga atual:{" "}
-            {suggestion.basedOnSessionIds.length
-              ? `${suggestion.currentLoad} kg`
-              : "A definir"}{" "}
-            · Sugestão:{" "}
-            {suggestion.suggestedLoad !== undefined
-              ? `${suggestion.suggestedLoad} kg`
-              : "A definir"}
-          </p>
-          <p className="text-sm">{suggestion.reason}</p>
-          <p className="text-xs text-muted-foreground">
-            Confiança {suggestion.confidence === "low" ? "menor" : "normal"} · Nenhuma
-            carga será alterada sem sua escolha
-          </p>
-          <ul className="space-y-1 text-xs text-muted-foreground">
-            {suggestion.basedOnSessionIds.map(id => (
-              <li key={id}>
-                Dados de{" "}
-                {new Date(
-                  result?.history.find(item => item.id === id)?.startedAt ??
-                    session.startedAt
-                ).toLocaleString("pt-BR")}{" "}
-                · Treino <span className="break-all">{id}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <Button
-              disabled={
-                pending ||
-                !canDecide ||
-                suggestion.action === "insufficientData" ||
-                suggestion.suggestedLoad === undefined ||
-                exercise.painReported
-              }
-              onClick={() => void form.handleSubmit(values => decide("accept", values))()}
-              type="button"
-            >
-              Aceitar sugestão
-            </Button>
-            <Button
-              disabled={pending || !canDecide}
-              onClick={() =>
-                void form.handleSubmit(values => decide("maintain", values))()
-              }
-              type="button"
-              variant="outline"
-            >
-              Manter carga atual
-            </Button>
-          </div>
-          <Field>
-            <FieldLabel htmlFor={`custom-load-${index}`}>
-              Ou informe outra carga
-            </FieldLabel>
-            <Input
-              disabled={pending || !canDecide}
-              id={`custom-load-${index}`}
-              inputMode="decimal"
-              max={1000}
-              min={0}
-              step={0.01}
-              type="number"
-              {...form.register("customLoad", { valueAsNumber: true })}
-            />
-            <FieldError errors={[form.formState.errors.customLoad]} />
-          </Field>
-          <Button
-            disabled={pending || !canDecide}
-            onClick={() => void form.handleSubmit(values => decide("custom", values))()}
-            type="button"
-            variant="outline"
-          >
-            Confirmar minha carga
-          </Button>
-        </div>
+        <SuggestionResult
+          canDecide={canDecide}
+          exercise={exercise}
+          form={form}
+          history={result?.history ?? []}
+          index={index}
+          onDecide={choice => void form.handleSubmit(values => decide(choice, values))()}
+          pending={pending}
+          sessionStartedAt={session.startedAt}
+          suggestion={suggestion}
+        />
       )}
       <ExerciseHistoryList history={history} />
     </div>
@@ -348,8 +388,8 @@ function ExerciseHistoryList({
         </p>
       )}
       <p className="text-xs text-muted-foreground">
-        Aquecimentos não entram no melhor desempenho · Compare também repetições, RIR e
-        técnica
+        Aquecimentos não entram no melhor desempenho · Compare também repetições, avaliação
+        e técnica
       </p>
       <ol className="space-y-3">
         {history.map(item => (
@@ -367,7 +407,7 @@ function ExerciseHistoryList({
                 <p key={set.setNumber}>
                   Série {set.setNumber}:{" "}
                   {set.completed
-                    ? `${set.load} kg × ${set.performedRepetitions} · RIR ${set.perceivedRir ?? "não informado"}`
+                    ? `${set.load} kg × ${set.performedRepetitions} · ${set.effortRating ? effortRatingLabel[set.effortRating] : "Não avaliada"}`
                     : "Incompleta"}
                 </p>
               ))}

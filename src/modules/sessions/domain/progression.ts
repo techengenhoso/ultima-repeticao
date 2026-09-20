@@ -1,5 +1,6 @@
 import { parseRepetitions } from "@/modules/workouts/domain/repetitions"
 import {
+  type EffortRating,
   type IncrementSettings,
   type LoadSuggestion,
   referenceKey,
@@ -19,12 +20,19 @@ export function exerciseHistory(sessions: WorkoutSession[], exercise: SessionExe
       return items.length === 1 ? [{ session, exercise: items[0] }] : []
     })
 }
+
 type HistoryEntry = ReturnType<typeof exerciseHistory>[number]
 const workSets = (exercise: SessionExercise) => exercise.sets.filter(set => !set.warmup)
+const effortRank: Record<EffortRating, number> = {
+  veryHard: 0,
+  hard: 1,
+  adequate: 2,
+  easy: 3,
+  veryEasy: 4,
+}
 const comparable = (a: SessionExercise, b: SessionExercise) =>
-  a.targetSets === b.targetSets &&
-  a.targetRepetitions === b.targetRepetitions &&
-  a.targetRir === b.targetRir
+  a.targetSets === b.targetSets && a.targetRepetitions === b.targetRepetitions
+
 function dataProblem(exercise: SessionExercise, latest?: HistoryEntry) {
   if (exercise.painReported || latest?.exercise.painReported)
     return "Dor relatada: não há sugestão de progressão, interrompa o exercício em caso de dor aguda e procure orientação profissional"
@@ -39,30 +47,7 @@ function dataProblem(exercise: SessionExercise, latest?: HistoryEntry) {
     return "As cargas variaram entre as séries, a última carga registrada serve apenas como referência"
   return null
 }
-function belowTarget(
-  exercise: SessionExercise,
-  target: SessionExercise,
-  currentLoad: number,
-  minimum: number
-) {
-  const sets = workSets(exercise)
-  if (
-    !comparable(exercise, target) ||
-    exercise.painReported ||
-    sets.length !== target.targetSets ||
-    !sets.every(set => set.completed && set.load === currentLoad)
-  )
-    return false
-  return (
-    sets.filter(set => set.performedRepetitions < minimum).length >= 2 ||
-    sets.some(
-      set =>
-        set.perceivedRir !== undefined &&
-        target.targetRir !== undefined &&
-        set.perceivedRir < target.targetRir
-    )
-  )
-}
+
 function adjustedLoad(
   base: LoadSuggestion,
   increase: boolean,
@@ -73,6 +58,7 @@ function adjustedLoad(
     return {
       ...base,
       action: "insufficientData",
+      suggestedRepetitions: undefined,
       reason:
         "Carga zero registrada: informe uma carga executável antes de sugerir incrementos em quilogramas",
     }
@@ -104,6 +90,7 @@ function adjustedLoad(
     reason: `${base.reason} · Arredondamento em múltiplos de ${step} kg, confirme a disponibilidade no equipamento`,
   }
 }
+
 export function suggestLoad(
   exercise: SessionExercise,
   sessions: WorkoutSession[],
@@ -120,60 +107,83 @@ export function suggestLoad(
     reason: "",
   }
   const problem = dataProblem(exercise, latest)
-  if (problem) return { ...base, reason: problem }
+  if (problem || !latest)
+    return {
+      ...base,
+      reason: problem ?? "Sem desempenho concluído para avaliar a progressão",
+    }
   const range = parseRepetitions(exercise.targetRepetitions)
   if (!range) return { ...base, reason: "Faixa de repetições indisponível" }
-  return evaluateLoadSuggestion(exercise, history, settings, base, range)
+  return evaluateLoadSuggestion(latest.exercise, settings, base, range)
 }
 
 function evaluateLoadSuggestion(
   exercise: SessionExercise,
-  history: HistoryEntry[],
   settings: IncrementSettings,
   base: LoadSuggestion,
   range: { min: number; max: number }
 ): LoadSuggestion {
-  const latest = history[0]
-  const currentSets = workSets(latest.exercise)
-  const hasRir =
-    exercise.targetRir !== undefined &&
-    currentSets.every(set => set.perceivedRir !== undefined)
-  const confidence = hasRir ? "normal" : "low"
-  const note = hasRir
-    ? ""
-    : " · Confiança menor: RIR ausente, avaliação baseada em repetições e carga"
-  const increase =
-    currentSets.every(set => set.performedRepetitions >= range.max) &&
-    currentSets.every(
-      set =>
-        set.perceivedRir === undefined ||
-        exercise.targetRir === undefined ||
-        set.perceivedRir >= exercise.targetRir
-    )
-  const below = belowTarget(latest.exercise, exercise, base.currentLoad, range.min)
-  const previous = history[1]
-  const decrease =
-    below &&
-    previous &&
-    belowTarget(previous.exercise, exercise, base.currentLoad, range.min)
-  if (!increase && !decrease)
+  const currentSets = workSets(exercise)
+  if (!currentSets.every(set => set.effortRating !== undefined))
     return {
       ...base,
-      confidence,
       action: "maintain",
       suggestedLoad: base.currentLoad,
-      reason: `${below ? "Um treino abaixo da meta não justifica reduzir a carga, repita e observe a recuperação" : "Mantenha a carga e busque completar a faixa de repetições"}${note}`,
+      confidence: "low",
+      reason:
+        "Avalie todas as séries para receber uma sugestão baseada na dificuldade percebida",
     }
-  return adjustedLoad(
-    {
-      ...base,
-      confidence,
-      basedOnSessionIds: decrease
-        ? [latest.session.id, previous.session.id]
-        : base.basedOnSessionIds,
-      reason: `${increase ? "Todas as séries atingiram o limite superior sem RIR informado abaixo da meta" : "Dois treinos completos na mesma carga ficaram abaixo das metas, considere uma redução conservadora"}${note}`,
-    },
-    increase,
-    settings
+
+  const leastEasy = Math.min(
+    ...currentSets.map(set => effortRank[set.effortRating as EffortRating])
   )
+  const lowestRepetitions = Math.min(...currentSets.map(set => set.performedRepetitions))
+
+  if (lowestRepetitions < range.min)
+    return {
+      ...base,
+      action: "maintain",
+      suggestedLoad: base.currentLoad,
+      confidence: "normal",
+      reason: `Mantenha a carga e busque concluir pelo menos ${range.min} repetições em todas as séries`,
+    }
+
+  if (lowestRepetitions < range.max && leastEasy >= effortRank.easy) {
+    const increment = leastEasy === effortRank.veryEasy ? 2 : 1
+    const suggestedRepetitions = Math.min(lowestRepetitions + increment, range.max)
+    return {
+      ...base,
+      action: "increaseRepetitions",
+      suggestedLoad: base.currentLoad,
+      suggestedRepetitions,
+      confidence: "normal",
+      reason: `Todas as séries foram avaliadas como ${leastEasy === effortRank.veryEasy ? "muito fáceis" : "fáceis ou muito fáceis"}: faça ${suggestedRepetitions} repetições em cada série no próximo treino`,
+    }
+  }
+
+  if (
+    currentSets.every(set => set.performedRepetitions >= range.max) &&
+    leastEasy >= effortRank.adequate
+  )
+    return adjustedLoad(
+      {
+        ...base,
+        confidence: "normal",
+        suggestedRepetitions: range.min,
+        reason: `Todas as séries chegaram ao limite de ${range.max} repetições: aumente a carga e recomece com ${range.min} repetições`,
+      },
+      true,
+      settings
+    )
+
+  return {
+    ...base,
+    action: "maintain",
+    suggestedLoad: base.currentLoad,
+    confidence: "normal",
+    reason:
+      leastEasy <= effortRank.hard
+        ? "A dificuldade foi alta: mantenha a carga e as repetições no próximo treino"
+        : "Mantenha a carga e avance quando todas as séries ficarem fáceis",
+  }
 }

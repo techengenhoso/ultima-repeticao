@@ -1,11 +1,12 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { LoaderCircleIcon } from "lucide-react"
+import { LoaderCircleIcon, LockKeyholeIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
+import { PasswordField } from "@/components/password-field"
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -24,19 +25,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { useUser } from "@/contexts/user-context"
 import {
   type AccountDeletionInput,
-  accountDeletionConfirmation,
   accountDeletionSchema,
 } from "@/modules/users/domain/account-deletion"
+import { useAuthenticationUseCases } from "@/modules/users/presentation/authentication-use-cases-context"
 
 export function AccountActions() {
   const router = useRouter()
   const { deleteAccountUser, signOutUser } = useUser()
+  const authentication = useAuthenticationUseCases()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
+
   const {
     handleSubmit,
     register,
@@ -59,14 +61,15 @@ export function AccountActions() {
 
   async function handleDeleteAccount(input: AccountDeletionInput) {
     try {
-      await deleteAccountUser(input.confirmation)
+      await deleteAccountUser(input.password)
       toast.success("Conta excluída permanentemente")
       router.replace("/sign-in")
     } catch (error) {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível excluir sua conta. Tente novamente"
+        authentication.publicError(
+          error,
+          "Não foi possível excluir sua conta. Tente novamente"
+        )
       )
     }
   }
@@ -107,7 +110,7 @@ export function AccountActions() {
 
           <AlertDialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
             <AlertDialogHeader>
-              <AlertDialogTitle>Excluir conta</AlertDialogTitle>
+              <AlertDialogTitle>Exclusão permanente</AlertDialogTitle>
 
               <AlertDialogDescription>
                 Todos os seus dados como perfil, exercícios, fichas, treinos, avaliações
@@ -116,23 +119,16 @@ export function AccountActions() {
             </AlertDialogHeader>
 
             <form className="grid gap-5" onSubmit={handleSubmit(handleDeleteAccount)}>
-              <Input
-                aria-describedby={
-                  errors.confirmation ? "account-deletion-error" : undefined
-                }
-                aria-invalid={Boolean(errors.confirmation)}
-                autoComplete="off"
+              <PasswordField
+                autoComplete="current-password"
                 disabled={isSubmitting}
-                id="account-deletion"
-                placeholder={`digite ${accountDeletionConfirmation} e clique em confirmar`}
-                {...register("confirmation")}
+                error={errors.password}
+                icon={<LockKeyholeIcon aria-hidden="true" />}
+                id="account-deletion-password"
+                label="Digite sua senha atual para confirmar"
+                placeholder="Senha atual"
+                {...register("password")}
               />
-
-              {errors.confirmation && (
-                <p className="text-sm text-destructive" id="account-deletion-error">
-                  {errors.confirmation.message}
-                </p>
-              )}
 
               <AlertDialogFooter className="gap-3">
                 <AlertDialogCancel disabled={isSubmitting}>Cancelar</AlertDialogCancel>

@@ -28,30 +28,29 @@ import {
   metricLabel,
 } from "@/modules/body-assessments/presentation/fields"
 
-const choices: Metric[] = [
-  { group: "bodyIndex", key: "weight" },
-  { group: "bodyIndex", key: "bodyFatPercentage" },
-  { group: "bodyIndex", key: "muscleMass" },
-  { group: "bodyIndex", key: "leanBodyMass" },
-  ...assessmentFields
-    .filter(field => field.group !== "bodyIndex")
-    .map(field => ({ group: field.group, key: field.key })),
-]
+const choices: Metric[] = assessmentFields
+  .map(field => ({ group: field.group, key: field.key }))
+  .sort((first, second) => metricLabel(first).localeCompare(metricLabel(second), "pt-BR"))
+
 const chartDate = (value: string) => {
   const [year, month, day] = value.split("-")
   return `${day}/${month}/${year?.slice(-2)}`
 }
+
 const fullDate = (value: string) =>
   new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeZone: "UTC" })
     .format(new Date(`${value}T00:00:00Z`))
     .replaceAll(".", "")
+
 export function BodyAssessmentChart({ assessments }: { assessments: BodyAssessment[] }) {
   const [selected, setSelected] = useState<Metric | null>(null)
   const data = selected ? metricHistory(assessments, selected).slice(-5) : []
   const field = selected ? fieldFor(selected.group, selected.key) : undefined
+
   const config = {
     value: { label: field?.label, color: "var(--chart-1)" },
   } satisfies ChartConfig
+
   return (
     <Card>
       <CardHeader>

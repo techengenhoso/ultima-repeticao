@@ -12,7 +12,22 @@ export const loadSchema = z
   .min(0)
   .max(1000)
   .multipleOf(0.01)
-export const rirSchema = z.number().int().min(0).max(5)
+export const effortRatingValues = [
+  "veryHard",
+  "hard",
+  "adequate",
+  "easy",
+  "veryEasy",
+] as const
+export const effortRatingSchema = z.enum(effortRatingValues)
+export type EffortRating = z.infer<typeof effortRatingSchema>
+export const effortRatingLabel: Record<EffortRating, string> = {
+  veryHard: "Muito difícil",
+  hard: "Difícil",
+  adequate: "Adequado",
+  easy: "Fácil",
+  veryEasy: "Muito fácil",
+}
 export const referenceSchema = z
   .object({ source: z.enum(["default", "custom"]), exerciseId: documentIdSchema })
   .strict()
@@ -28,7 +43,7 @@ export const completedSetSchema = z
       .min(0)
       .max(100),
     load: loadSchema,
-    perceivedRir: rirSchema.optional(),
+    effortRating: effortRatingSchema.optional(),
     completed: z.boolean(),
     warmup: z.boolean().default(false),
   })
@@ -43,9 +58,16 @@ export const incrementSchema = z
   .strict()
 export const suggestionSchema = z
   .object({
-    action: z.enum(["increase", "maintain", "decrease", "insufficientData"]),
+    action: z.enum([
+      "increase",
+      "increaseRepetitions",
+      "maintain",
+      "decrease",
+      "insufficientData",
+    ]),
     currentLoad: loadSchema,
     suggestedLoad: loadSchema.optional(),
+    suggestedRepetitions: z.number().int().min(1).max(100).optional(),
     reason: z.string().max(1000),
     basedOnSessionIds: z.array(documentIdSchema).max(20),
     confidence: z.enum(["low", "normal"]),
@@ -68,7 +90,6 @@ export const sessionExerciseSchema = z
       .strict(),
     targetSets: z.number().int().min(1).max(20),
     targetRepetitions: repetitionsSchema,
-    targetRir: rirSchema.optional(),
     restSeconds: z.number().min(30).max(600).optional(),
     initialLoad: loadSchema,
     referenceLoad: loadSchema.optional(),

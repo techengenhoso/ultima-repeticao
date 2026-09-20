@@ -47,6 +47,14 @@ function useUserState() {
     [authentication, user]
   )
 
+  const deleteAccountUser = useCallback(
+    async (password: string) => {
+      if (!user) throw new Error("Usuário não autenticado")
+      await authentication.deleteAccount(user, password)
+    },
+    [authentication, user]
+  )
+
   if (isLoading || !user) return null
 
   return {
@@ -54,7 +62,7 @@ function useUserState() {
     saveUser,
     changePasswordUser,
     signOutUser: authentication.signOut,
-    deleteAccountUser: authentication.deleteAccount,
+    deleteAccountUser,
   }
 }
 

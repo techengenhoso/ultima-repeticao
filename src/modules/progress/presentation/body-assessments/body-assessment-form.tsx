@@ -33,7 +33,7 @@ type FormValues = {
   values: Record<string, Record<string, string>>
 }
 const number = (value: string) =>
-  value.trim() === "" ? null : Number(value.replace(",", "."))
+  value.trim() === "" ? undefined : Number(value.replace(",", "."))
 const fieldValue = (values: FormValues, group: AssessmentGroup, key: string) =>
   values.values[group]?.[key] ?? ""
 const fieldsFor = (group: AssessmentGroup) =>
@@ -59,12 +59,12 @@ const inputFrom = (values: FormValues): BodyAssessmentInput => {
     Object.fromEntries(
       assessmentFields
         .filter(field => field.group === group)
-        .map(field => [
-          field.key,
-          field.text
-            ? fieldValue(values, group, field.key).trim() || null
-            : number(fieldValue(values, group, field.key)),
-        ])
+        .flatMap(field => {
+          const value = field.text
+            ? fieldValue(values, group, field.key).trim() || undefined
+            : number(fieldValue(values, group, field.key))
+          return value === undefined ? [] : [[field.key, value]]
+        })
     )
   return {
     assessmentDate: parseBrazilianDate(values.assessmentDate) ?? "",

@@ -36,12 +36,6 @@ export const workoutExerciseSchema = z.object({
     .min(5, "Descanse pelo menos 5 segundos")
     .max(1800, "Descanse no máximo 30 minutos")
     .optional(),
-  targetRir: z
-    .number({ error: "Campo obrigatório" })
-    .int("Informe um número inteiro")
-    .min(0, "Quantidade minima é 0")
-    .max(5, "Hora de aumentar a carga")
-    .optional(),
   initialLoad: z
     .number({ error: "Informe a carga" })
     .min(0, "A carga não pode ser negativa")
@@ -58,19 +52,6 @@ export const workoutDaySchema = z.object({
     .array(workoutExerciseSchema)
     .min(1, "Adicione pelo menos um exercício")
     .max(30, "Cada dia pode ter no máximo 30 exercícios"),
-})
-
-export const legacyWorkoutDaySchema = workoutDaySchema.extend({
-  exercises: z.array(
-    workoutExerciseSchema.extend({
-      repetitions: z
-        .union([z.number().int().min(1), z.string().min(1).max(30)])
-        .transform(String),
-      initialLoad: workoutExerciseSchema.shape.initialLoad.default(0),
-      restSeconds: workoutExerciseSchema.shape.restSeconds.default(90),
-      targetRir: workoutExerciseSchema.shape.targetRir.default(2),
-    })
-  ),
 })
 
 const workoutFields = z

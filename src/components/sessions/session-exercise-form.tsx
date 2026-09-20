@@ -1,12 +1,35 @@
 "use client"
 
-import { ArrowLeftIcon, CheckIcon } from "lucide-react"
+import {
+  AngryIcon,
+  ArrowLeftIcon,
+  CheckIcon,
+  FrownIcon,
+  LaughIcon,
+  MehIcon,
+  SmileIcon,
+} from "lucide-react"
 import { useState } from "react"
 import { useFormContext, useWatch } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import type { SessionFormValues } from "@/modules/sessions/domain/session"
+import {
+  type EffortRating,
+  effortRatingLabel,
+  type SessionFormValues,
+} from "@/modules/sessions/domain/session"
+
+const effortOptions = [
+  { value: "veryHard", Icon: AngryIcon },
+  { value: "hard", Icon: FrownIcon },
+  { value: "adequate", Icon: MehIcon },
+  { value: "easy", Icon: SmileIcon },
+  { value: "veryEasy", Icon: LaughIcon },
+] as const satisfies ReadonlyArray<{
+  value: EffortRating
+  Icon: typeof AngryIcon
+}>
 
 function WorkSetNavigator({
   editingSetIndex,
@@ -46,24 +69,6 @@ function WorkSetNavigator({
         )
       })}
     </fieldset>
-  )
-}
-
-function RirFeedback({
-  perceivedRir,
-  targetRir,
-}: {
-  perceivedRir?: number
-  targetRir?: number
-}) {
-  if (perceivedRir === undefined || targetRir === undefined) return null
-
-  return (
-    <p className="text-sm text-muted-foreground">
-      {perceivedRir < targetRir
-        ? "Esforço acima do desejado: RIR menor que a meta"
-        : "RIR igual ou acima da meta"}
-    </p>
   )
 }
 
@@ -164,7 +169,7 @@ export function SessionExerciseForm({
 
           {selectedSet ? (
             <div className="space-y-4" key={selectedSetIndex}>
-              <div className="grid min-w-0 gap-3 sm:grid-cols-3">
+              <div className="grid min-w-0 gap-3 sm:grid-cols-2">
                 <Field>
                   <FieldLabel htmlFor={`exercises.${index}.sets.${selectedSetIndex}-load`}>
                     Carga
@@ -204,32 +209,47 @@ export function SessionExerciseForm({
                   />
                   <FieldError errors={[selectedSetErrors?.performedRepetitions]} />
                 </Field>
-                <Field>
-                  <FieldLabel htmlFor={`exercises.${index}.sets.${selectedSetIndex}-rir`}>
-                    RIR percebido
-                  </FieldLabel>
-                  <Input
-                    id={`exercises.${index}.sets.${selectedSetIndex}-rir`}
-                    inputMode="numeric"
-                    max={5}
-                    min={0}
-                    placeholder="Opcional"
-                    step={1}
-                    type="number"
-                    {...register(
-                      `exercises.${index}.sets.${selectedSetIndex}.perceivedRir`,
-                      {
-                        setValueAs: value => (value === "" ? undefined : Number(value)),
-                      }
-                    )}
-                  />
-                  <FieldError errors={[selectedSetErrors?.perceivedRir]} />
-                </Field>
               </div>
-              <RirFeedback
-                perceivedRir={selectedSet.perceivedRir}
-                targetRir={exercise.targetRir}
-              />
+              <Field>
+                <FieldLabel>Como foi esta série?</FieldLabel>
+                <fieldset className="grid grid-cols-5 gap-1.5 sm:gap-2">
+                  <legend className="sr-only">Avaliação da dificuldade da série</legend>
+                  {effortOptions.map(({ value, Icon }) => {
+                    const selected = selectedSet.effortRating === value
+                    const label = effortRatingLabel[value]
+                    const id = `exercises.${index}.sets.${selectedSetIndex}-effort-${value}`
+                    return (
+                      <div className="min-w-0" key={value}>
+                        <input
+                          checked={selected}
+                          className="peer sr-only"
+                          id={id}
+                          name={`exercises.${index}.sets.${selectedSetIndex}.effortRating`}
+                          onChange={() =>
+                            setValue(
+                              `exercises.${index}.sets.${selectedSetIndex}.effortRating`,
+                              value,
+                              { shouldDirty: true, shouldValidate: true }
+                            )
+                          }
+                          type="radio"
+                          value={value}
+                        />
+                        <label
+                          className="flex min-h-20 cursor-pointer flex-col items-center justify-center gap-1 border px-1 py-2 text-center text-[0.65rem] leading-3 whitespace-normal outline-none peer-focus-visible:border-ring peer-focus-visible:ring-2 peer-focus-visible:ring-ring/50 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground sm:text-xs"
+                          htmlFor={id}
+                        >
+                          <Icon aria-hidden="true" className="size-5 shrink-0" />
+                          <span>{label}</span>
+                        </label>
+                      </div>
+                    )
+                  })}
+                </fieldset>
+                <FieldDescription>
+                  Escolha a percepção mais próxima do esforço ao terminar a série
+                </FieldDescription>
+              </Field>
               <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-start">
                 <Button
                   aria-pressed={selectedSet.completed}
@@ -243,8 +263,8 @@ export function SessionExerciseForm({
                 </Button>
 
                 <FieldDescription className="sm:order-1">
-                  <strong>RIR percebido</strong> é a estimativa de quantas repetições ainda
-                  seriam possíveis ao fim da série
+                  A próxima meta considera a avaliação mais difícil entre as séries
+                  concluídas
                 </FieldDescription>
               </div>
             </div>

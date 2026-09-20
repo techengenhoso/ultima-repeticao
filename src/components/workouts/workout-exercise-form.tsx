@@ -226,39 +226,29 @@ export function WorkoutExerciseForm({
                 errors={[errors.days?.[dayIndex]?.exercises?.[exerciseIndex]?.initialLoad]}
               />
             </Field>
-            {(
-              [
-                { name: "restSeconds", label: "Descanso" },
-                { name: "targetRir", label: "RIR desejado" },
-              ] as const
-            ).map(metric => (
-              <Field key={metric.name}>
-                <FieldLabel htmlFor={`${metric.name}-${dayIndex}-${exerciseIndex}`}>
-                  {metric.label}
-                </FieldLabel>
-                <Input
-                  id={`${metric.name}-${dayIndex}-${exerciseIndex}`}
-                  inputMode="numeric"
-                  placeholder={review ? "Obrigatório" : "Opcional"}
-                  step={metric.name === "targetRir" ? 1 : "any"}
-                  type="number"
-                  {...register(
-                    `days.${dayIndex}.exercises.${exerciseIndex}.${metric.name}`,
-                    {
-                      setValueAs: value => (value === "" ? undefined : Number(value)),
-                    }
-                  )}
+            <Field>
+              <FieldLabel htmlFor={`restSeconds-${dayIndex}-${exerciseIndex}`}>
+                Descanso
+              </FieldLabel>
+              <Input
+                id={`restSeconds-${dayIndex}-${exerciseIndex}`}
+                inputMode="numeric"
+                placeholder={review ? "Obrigatório" : "Opcional"}
+                step="any"
+                type="number"
+                {...register(`days.${dayIndex}.exercises.${exerciseIndex}.restSeconds`, {
+                  setValueAs: value => (value === "" ? undefined : Number(value)),
+                })}
+              />
+              {!hasReviewError("restSeconds") && (
+                <FieldError
+                  errors={[
+                    errors.days?.[dayIndex]?.exercises?.[exerciseIndex]?.restSeconds,
+                  ]}
                 />
-                {!hasReviewError(metric.name) && (
-                  <FieldError
-                    errors={[
-                      errors.days?.[dayIndex]?.exercises?.[exerciseIndex]?.[metric.name],
-                    ]}
-                  />
-                )}
-                <WorkoutReviewMessages path={[...path, metric.name]} />
-              </Field>
-            ))}
+              )}
+              <WorkoutReviewMessages path={[...path, "restSeconds"]} />
+            </Field>
           </div>
         </CollapsibleContent>
       </article>

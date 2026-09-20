@@ -82,7 +82,7 @@ service cloud.firestore {
         function validExercise(item) {
           return item.keys().hasOnly([
               'id', 'order', 'exerciseReference', 'exerciseSnapshot', 'sets',
-              'repetitions', 'initialLoad', 'restSeconds', 'targetRir'
+              'repetitions', 'initialLoad', 'restSeconds'
             ])
             && item.id is string && item.id.size() > 0
             && item.order is int && item.order >= 0 && item.order < 30
@@ -104,9 +104,7 @@ service cloud.firestore {
             && (!('initialLoad' in item) || (item.initialLoad is number
               && item.initialLoad >= 0 && item.initialLoad <= 1000))
             && (!('restSeconds' in item) || (item.restSeconds is number
-              && item.restSeconds >= 30 && item.restSeconds <= 600))
-            && (!('targetRir' in item) || (item.targetRir is int
-              && item.targetRir >= 0 && item.targetRir <= 5));
+              && item.restSeconds >= 30 && item.restSeconds <= 600));
         }
 
         function validDay(day) {

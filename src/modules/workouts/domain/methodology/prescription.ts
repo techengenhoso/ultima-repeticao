@@ -11,39 +11,37 @@ import {
 const rules = (
   sets: [number, number],
   repetitions: string,
-  rest: [number, number],
-  rir: [number, number]
+  rest: [number, number]
 ): ExerciseRules => ({
   sets: { min: sets[0], max: sets[1] },
   repetitions: [repetitions],
   restSeconds: { min: Math.min(rest[0], 60), max: Math.min(rest[1], 60) },
-  targetRir: { min: rir[0], max: rir[1] },
 })
 const goalRules: Record<
   Goal,
   { compound: ExerciseRules; isolation: ExerciseRules; guidance: string[] }
 > = {
   hypertrophy: {
-    compound: rules([3, 4], "6-12", [90, 180], [1, 3]),
-    isolation: rules([2, 4], "10-20", [60, 120], [1, 3]),
+    compound: rules([3, 4], "6-12", [90, 180]),
+    isolation: rules([2, 4], "10-20", [60, 120]),
     guidance: ["Começar pelo volume conservador e priorizar boa execução"],
   },
   strength: {
-    compound: rules([3, 5], "3-6", [180, 300], [1, 3]),
-    isolation: rules([2, 4], "6-12", [90, 180], [1, 3]),
+    compound: rules([3, 5], "3-6", [180, 300]),
+    isolation: rules([2, 4], "6-12", [90, 180]),
     guidance: ["Priorizar exercícios compostos como movimentos principais"],
   },
   weightLoss: {
-    compound: rules([2, 4], "6-15", [60, 150], [2, 4]),
-    isolation: rules([2, 4], "10-20", [60, 150], [2, 4]),
+    compound: rules([2, 4], "6-15", [60, 150]),
+    isolation: rules([2, 4], "10-20", [60, 150]),
     guidance: [
       "Manter fundamentos de força e hipertrofia sem transformar o treino em circuito",
       "Não prescrever dieta ou déficit calórico",
     ],
   },
   conditioning: {
-    compound: rules([2, 3], "8-20", [45, 120], [2, 4]),
-    isolation: rules([2, 3], "8-20", [45, 120], [2, 4]),
+    compound: rules([2, 3], "8-20", [45, 120]),
+    isolation: rules([2, 3], "8-20", [45, 120]),
     guidance: [
       "Priorizar movimentos globais",
       "Evitar movimentos tecnicamente complexos sob fadiga",
@@ -51,8 +49,8 @@ const goalRules: Record<
     ],
   },
   qualityOfLife: {
-    compound: rules([1, 3], "8-15", [60, 120], [2, 4]),
-    isolation: rules([1, 3], "8-15", [60, 120], [2, 4]),
+    compound: rules([1, 3], "8-15", [60, 120]),
+    isolation: rules([1, 3], "8-15", [60, 120]),
     guidance: [
       "Priorizar segurança, simplicidade e aderência",
       "Cobrir agachar, dobrar o quadril, empurrar, puxar e estabilizar sem complexidade desnecessária",

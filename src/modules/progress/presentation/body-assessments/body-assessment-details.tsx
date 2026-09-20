@@ -8,7 +8,7 @@ export function BodyAssessmentDetails({ item }: { item: BodyAssessment }) {
       ...group,
       fields: assessmentFields.filter(
         field =>
-          field.group === group.key && item[field.group][field.key as never] !== null
+          field.group === group.key && item[field.group][field.key as never] !== undefined
       ),
     }))
     .filter(group => group.fields.length)

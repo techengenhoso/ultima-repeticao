@@ -25,18 +25,16 @@ A biblioteca atual tem `movementPattern` textual, mas não classificação confi
 - Uma prioridade eleva o alvo em duas séries dentro do teto. Exclusões zeram mínimo, alvo e máximo. Sobreposição entre prioridade e exclusão é inválida
 - Divisões são sugestões, não regras rígidas de seleção de grupos por dia. Há calendário semanal sugerido para avaliação da recuperação. Sete dias disponíveis representam seis sessões e um dia de recuperação, sem criar um dia vazio incompatível com o modelo atual
 - Três dias consideram experiência e duração. Orientações complementares consideram objetivo e prioridades. Dois estímulos por grupo são preferenciais: frequência menor gera aviso
-- Estímulo intenso é definido operacionalmente como pelo menos três séries com RIR até três para o mesmo grupo; o validador rejeita esses estímulos em dias consecutivos, inclusive na passagem de semana
+- Estímulo intenso é definido operacionalmente como pelo menos três séries diretas para o mesmo grupo; o validador rejeita esses estímulos em dias consecutivos, inclusive na passagem de semana
 - Duração é aproximada: cinco minutos iniciais, quatro segundos por repetição no limite superior, descanso entre séries e um minuto entre exercícios. Não é uma garantia fisiológica ou medição real
 - Limite de exercícios considera duração, descanso dos compostos e experiência. Entradas incompatíveis com o volume conservador recebem `feasibilityWarnings`; o consumidor deve revisar as condições antes de gerar. Os limites não são relaxados silenciosamente
 - Erros impedem aprovação metodológica; frequência e alvo conservador não atingidos geram avisos. O formulário manual continua usando os limites gerais do domínio, sem exigir um objetivo que ainda não coleta
 
-## Compatibilidade
+## Formato atual
 
-O formato de `users/{uid}/workoutPlans/{id}` permanece com dias e exercícios embutidos. `restSeconds` é opcional, entre 30 e 600; `targetRir` é opcional, inteiro entre 0 e 5. `initialLoad` continua aceitando zero.
+O formato de `users/{uid}/workoutPlans/{id}` mantém dias e exercícios embutidos. `restSeconds` é opcional, entre 30 e 600, e `initialLoad` aceita zero.
 
-O schema de escrita não aplica padrões. Na leitura, documentos sem os campos recebem descanso de 90 segundos e RIR 2 em memória; carga ausente continua recebendo zero. Esses valores são padrões de compatibilidade, não uma prescrição por objetivo. Valores existentes são preservados. Não há escrita ao consultar documentos.
-
-Repetições passam a texto, aceitando quantidade única ou faixa crescente de 1 a 100 (`12`, `8-12`, `8–12`). Números antigos são convertidos para texto na leitura. Textos antigos de até 30 caracteres continuam legíveis; se não representarem uma faixa válida, a edição pede correção antes de salvar. Somente o salvamento explícito persiste o formato normalizado. Nenhuma migração em lote é necessária para esses campos.
+Repetições são texto e aceitam uma quantidade única ou uma faixa crescente de 1 a 100 (`12`, `8-12`, `8–12`).
 
 ## Pendência do Firestore
 

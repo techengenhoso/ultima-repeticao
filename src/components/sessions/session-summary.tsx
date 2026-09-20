@@ -1,6 +1,6 @@
 "use client"
 
-import { CheckIcon, CircleAlertIcon, TrendingUpIcon } from "lucide-react"
+import { CheckIcon, CircleAlertIcon } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
-import type { WorkoutSession } from "@/modules/sessions/domain/session"
+import { effortRatingLabel, type WorkoutSession } from "@/modules/sessions/domain/session"
 import { SessionProgression } from "./session-progression"
 
 export function SessionSummary({
@@ -130,9 +130,6 @@ export function SessionSummary({
                       {exercise.targetSets} séries de {exercise.targetRepetitions}{" "}
                       repetições
                     </span>
-                    {exercise.targetRir !== undefined && (
-                      <span>RIR alvo {exercise.targetRir}</span>
-                    )}
                   </div>
                 </header>
                 <Progress
@@ -165,7 +162,7 @@ export function SessionSummary({
                       </span>
                       <span className="min-w-0 text-muted-foreground sm:ml-auto sm:text-right">
                         {set.completed
-                          ? `${set.load} kg × ${set.performedRepetitions} repetições · RIR ${set.perceivedRir ?? "não informado"}`
+                          ? `${set.load} kg × ${set.performedRepetitions} repetições · ${set.effortRating ? effortRatingLabel[set.effortRating] : "Não avaliada"}`
                           : "Não concluída"}
                       </span>
                     </li>
@@ -178,10 +175,14 @@ export function SessionSummary({
                 )}
                 {exercise.decision && (
                   <p className="border bg-muted/30 px-3 py-2 text-sm">
-                    Próxima carga escolhida: {exercise.decision.load} kg ·{" "}
+                    Próxima carga registrada: {exercise.decision.load} kg
+                    {exercise.decision.suggestion.suggestedRepetitions !== undefined &&
+                      ` · ${exercise.decision.suggestion.suggestedRepetitions} repetições`}
+                    {" · "}
                     {new Date(exercise.decision.decidedAt).toLocaleString("pt-BR")}
                   </p>
                 )}
+
                 {isCompleted && isExerciseCompleted && (
                   <div className="flex">
                     <Button
@@ -191,8 +192,7 @@ export function SessionSummary({
                       type="button"
                       variant="default"
                     >
-                      <TrendingUpIcon aria-hidden="true" />
-                      Ver evolução e carga
+                      Ver evolução e sugestão
                     </Button>
                   </div>
                 )}

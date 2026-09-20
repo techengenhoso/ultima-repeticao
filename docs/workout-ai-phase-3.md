@@ -4,7 +4,7 @@
 
 ## Entrega
 
-A sugestão gerada agora abre uma revisão editável, ainda em memória. O usuário pode alterar nome e descrição, renomear e reordenar dias, reordenar, adicionar, substituir e remover exercícios, além de ajustar séries, repetições, descanso e RIR. A carga aparece como **A definir** e permanece representada por zero no formato já existente. Não foi implementada progressão de carga nem a Fase 4.
+A sugestão gerada agora abre uma revisão editável, ainda em memória. O usuário pode alterar nome e descrição, renomear e reordenar dias, reordenar, adicionar, substituir e remover exercícios, além de ajustar séries, repetições e descanso. A carga aparece como **A definir** e permanece representada por zero no formato já existente. Não foi implementada progressão de carga nem a Fase 4.
 
 A revisão reutiliza `WorkoutDayForm`, `WorkoutExerciseForm` e `WorkoutExerciseSelector`, os mesmos componentes do formulário manual. O contexto opcional de revisão acrescenta validação e mantém a edição manual disponível. A quantidade de dias permanece vinculada à prescrição original.
 

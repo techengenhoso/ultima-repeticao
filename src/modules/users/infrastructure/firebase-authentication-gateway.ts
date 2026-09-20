@@ -45,17 +45,19 @@ export const firebaseAuthenticationGateway: AuthenticationGateway = {
   signOut() {
     return signOut(auth)
   },
-  async deleteAccount(confirmation) {
+  async deleteAccount(user, password) {
     const current = auth.currentUser
-    if (!current) throw new Error("Usuário não autenticado")
+    if (!current || current.uid !== user.uid || !current.email)
+      throw new Error("E-mail do usuário não encontrado")
+
+    const credential = EmailAuthProvider.credential(current.email, password)
+    await reauthenticateWithCredential(current, credential)
 
     const response = await fetch("/api/account", {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${await current.getIdToken()}`,
-        "Content-Type": "application/json",
+        Authorization: `Bearer ${await current.getIdToken(true)}`,
       },
-      body: JSON.stringify({ confirmation }),
       cache: "no-store",
       signal: AbortSignal.timeout(45000),
     })

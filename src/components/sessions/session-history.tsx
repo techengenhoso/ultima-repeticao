@@ -5,16 +5,17 @@ import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { PageHeader } from "@/components/page-header"
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import {
   Pagination,
   PaginationContent,
@@ -104,6 +105,7 @@ function UserSessionHistory({ title }: { title: string }) {
     },
     [gateway]
   )
+
   useEffect(() => {
     mounted.current = true
     void loadPage(0)
@@ -141,34 +143,30 @@ function UserSessionHistory({ title }: { title: string }) {
         className="space-y-4"
         id="history-list"
       >
+        <h2 className="sr-only" id="history-list-title">
+          Treinos registrados
+        </h2>
+
         {hasLoaded && sessions.length > 0 && (
-          <Table className="table-fixed">
-            <colgroup className="justify-between">
-              <col className="" />
-              <col className="" />
-              <col className="hidden lg:table-column" />
-              <col className="hidden sm:table-column" />
-              <col className="" />
-            </colgroup>
+          <Table className="table w-full">
+            <TableHeader className="table-header-group border-y bg-muted/40">
+              <TableRow className="table-row">
+                <TableHead className="table-cell text-center">Treino</TableHead>
 
-            <TableHeader className="border-y bg-muted/40 [&_tr]:border-0">
-              <TableRow className="h-12">
-                <TableHead className="text-center">Treino</TableHead>
+                <TableHead className="table-cell text-center">Data</TableHead>
 
-                <TableHead className="text-center">Data</TableHead>
+                <TableHead className="hidden lg:table-cell text-center">Status</TableHead>
 
-                <TableHead className="text-center hidden lg:table-cell">Status</TableHead>
+                <TableHead className="hidden sm:table-cell text-center">Séries</TableHead>
 
-                <TableHead className="text-center hidden sm:table-cell">Séries</TableHead>
-
-                <TableHead className="text-center">Ações</TableHead>
+                <TableHead className="table-cell text-center">Ações</TableHead>
               </TableRow>
             </TableHeader>
 
-            <TableBody>
+            <TableBody className="table-row-group">
               {sessions.map(session => (
-                <TableRow key={session.id}>
-                  <TableCell className="text-center whitespace-normal">
+                <TableRow className="table-row" key={session.id}>
+                  <TableCell className="table-cell text-center whitespace-normal">
                     <p className="font-medium">{session.workoutPlanName}</p>
 
                     <p className="mt-1 text-xs text-muted-foreground">
@@ -176,22 +174,22 @@ function UserSessionHistory({ title }: { title: string }) {
                     </p>
                   </TableCell>
 
-                  <TableCell className="text-center text-muted-foreground">
+                  <TableCell className="table-cell text-center text-muted-foreground">
                     {formatSessionDate(session)}
                   </TableCell>
 
-                  <TableCell className="text-center hidden lg:table-cell">
+                  <TableCell className="hidden lg:table-cell text-center">
                     <span className="inline-flex rounded-full bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
                       {sessionStatusLabel(session.status)}
                     </span>
                   </TableCell>
 
-                  <TableCell className="text-center hidden tabular-nums sm:table-cell">
+                  <TableCell className="hidden sm:table-cell text-center tabular-nums">
                     {completedWorkSets(session)}
                   </TableCell>
 
-                  <TableCell className="text-center">
-                    <div className="flex justify-end gap-2">
+                  <TableCell className="table-cell text-center">
+                    <div className="flex justify-center gap-2">
                       <Button
                         asChild
                         className="xl:w-auto xl:px-4"
@@ -231,19 +229,21 @@ function UserSessionHistory({ title }: { title: string }) {
           </Table>
         )}
 
-        {pending && (
-          <output className="text-sm text-muted-foreground">Carregando histórico</output>
+        {!pending && hasLoaded && sessions.length === 0 && (
+          <Empty className="border">
+            <EmptyHeader>
+              <EmptyTitle>Seu histórico está vazio</EmptyTitle>
+
+              <EmptyDescription>
+                Inicie um dia nos detalhes de uma ficha para registrar seu primeiro treino
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         )}
       </section>
 
-      {!pending && hasLoaded && sessions.length === 0 && (
-        <p className="text-sm text-muted-foreground">
-          Nenhum treino registrado · Inicie um dia pelos detalhes da sua ficha
-        </p>
-      )}
-
       {hasLoaded && (page > 0 || cursor) && (
-        <Pagination aria-label="Paginação do histórico">
+        <Pagination>
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
@@ -282,30 +282,44 @@ function UserSessionHistory({ title }: { title: string }) {
         </Pagination>
       )}
 
-      <AlertDialog
+      {pending && (
+        <output className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <LoaderCircleIcon className="size-4 animate-spin" />
+
+          {hasLoaded
+            ? "Atualizando histórico de treinos"
+            : "Carregando histórico de treinos"}
+        </output>
+      )}
+
+      <Dialog
         onOpenChange={open => !open && !isDeleting && setDeleting(null)}
         open={!!deleting}
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir treino</AlertDialogTitle>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Excluir treino</DialogTitle>
 
-            <AlertDialogDescription>
+            <DialogDescription>
               O treino “{deleting?.workoutPlanName} · {deleting?.workoutDayName}” será
               excluído permanentemente. Esta ação não poderá ser desfeita
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </DialogDescription>
+          </DialogHeader>
 
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button disabled={isDeleting} variant="outline">
+                Cancelar
+              </Button>
+            </DialogClose>
 
             <Button disabled={isDeleting} onClick={confirmDelete} variant="destructive">
               {isDeleting && <LoaderCircleIcon className="animate-spin" />}
               {isDeleting ? "Excluindo" : "Excluir"}
             </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

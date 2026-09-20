@@ -46,7 +46,6 @@ function makeExercise(
     sets,
     repetitions: rules.repetitions[0],
     restSeconds: rules.restSeconds.min,
-    targetRir: rules.targetRir.max,
     initialLoad: Number.NaN,
   }
 }

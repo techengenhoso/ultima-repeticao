@@ -45,7 +45,7 @@ export function performanceForExercise(sessions: WorkoutSession[], key: string) 
                 0
               ),
               best,
-              target: `${exercise.targetSets} séries · ${exercise.targetRepetitions}${exercise.targetRir === undefined ? "" : ` · RIR ${exercise.targetRir}`}`,
+              target: `${exercise.targetSets} séries · ${exercise.targetRepetitions}`,
             },
           ]
         })

@@ -19,7 +19,6 @@ export interface WorkoutExercise {
   repetitions: string
   initialLoad: number
   restSeconds?: number
-  targetRir?: number
 }
 
 export interface WorkoutDay {

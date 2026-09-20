@@ -65,8 +65,8 @@ export function validateExercisePrescription(
   path: Path = []
 ) {
   const issues: MethodologyIssue[] = []
-  const labels = { sets: "séries", restSeconds: "descanso", targetRir: "RIR" }
-  for (const field of ["sets", "restSeconds", "targetRir"] as const) {
+  const labels = { sets: "séries", restSeconds: "descanso" }
+  for (const field of ["sets", "restSeconds"] as const) {
     const value = exercise[field]
     if (
       value === undefined ||
@@ -228,17 +228,6 @@ function validateSession(
   return issues
 }
 
-function intenseVolume(day: WorkoutDay) {
-  return calculateWeeklyVolume([
-    {
-      ...day,
-      exercises: day.exercises.filter(
-        exercise => exercise.targetRir !== undefined && exercise.targetRir <= 3
-      ),
-    },
-  ])
-}
-
 export function validateRecovery(days: WorkoutDay[], prescription: WorkoutPrescription) {
   const issues: MethodologyIssue[] = []
   const ordered = days
@@ -251,8 +240,8 @@ export function validateRecovery(days: WorkoutDay[], prescription: WorkoutPrescr
     )
     const next = ordered[nextIndex]?.day
     if (!next) return
-    const currentVolume = intenseVolume(day)
-    const nextVolume = intenseVolume(next)
+    const currentVolume = calculateWeeklyVolume([day])
+    const nextVolume = calculateWeeklyVolume([next])
     for (const group of muscleGroupValues)
       if (currentVolume[group] >= 3 && nextVolume[group] >= 3)
         issues.push(

@@ -1,77 +1,78 @@
 import { z } from "zod"
 
-const nullableNumber = z
+const measurementNumber = z
   .number({ error: "Informe um número válido" })
   .finite("Informe um número válido")
   .min(0, "Informe um número igual ou maior que zero")
   .max(100000, "Informe um número dentro do limite permitido")
   .multipleOf(0.01, "Use no máximo duas casas decimais")
-  .nullable()
-const nullableInteger = z
+const measurementInteger = z
   .number({ error: "Informe um número inteiro válido" })
   .finite("Informe um número inteiro válido")
   .int("Informe um número inteiro")
   .min(0, "Informe um número igual ou maior que zero")
   .max(100000, "Informe um número dentro do limite permitido")
-  .nullable()
-const nullableText = z.string().trim().max(100).nullable()
+const measurementText = z.string().trim().max(100)
 
 export const bodyIndexSchema = z
   .object({
-    weight: nullableNumber,
-    bmi: nullableNumber,
-    bodyFatPercentage: nullableNumber,
-    muscleRatePercentage: nullableNumber,
-    leanBodyMass: nullableNumber,
-    subcutaneousFatPercentage: nullableNumber,
-    visceralFat: nullableNumber,
-    bodyWaterPercentage: nullableNumber,
-    skeletalMusclePercentage: nullableNumber,
-    muscleMass: nullableNumber,
-    boneMass: nullableNumber,
-    proteinPercentage: nullableNumber,
-    dailyCalories: nullableInteger,
-    bodyAge: nullableInteger,
-    fatMass: nullableNumber,
-    waterWeight: nullableNumber,
-    proteinMass: nullableNumber,
-    idealBodyWeight: nullableNumber,
-    obesityLevel: nullableText,
-    bodyType: nullableText,
+    weight: measurementNumber,
+    bmi: measurementNumber,
+    bodyFatPercentage: measurementNumber,
+    muscleRatePercentage: measurementNumber,
+    leanBodyMass: measurementNumber,
+    subcutaneousFatPercentage: measurementNumber,
+    visceralFat: measurementNumber,
+    bodyWaterPercentage: measurementNumber,
+    skeletalMusclePercentage: measurementNumber,
+    muscleMass: measurementNumber,
+    boneMass: measurementNumber,
+    proteinPercentage: measurementNumber,
+    dailyCalories: measurementInteger,
+    bodyAge: measurementInteger,
+    fatMass: measurementNumber,
+    waterWeight: measurementNumber,
+    proteinMass: measurementNumber,
+    idealBodyWeight: measurementNumber,
+    obesityLevel: measurementText,
+    bodyType: measurementText,
   })
+  .partial()
   .strict()
 
 export const circumferencesSchema = z
   .object({
-    chest: nullableNumber,
-    contractedArmLeft: nullableNumber,
-    contractedArmRight: nullableNumber,
-    hip: nullableNumber,
-    relaxedArmLeft: nullableNumber,
-    relaxedArmRight: nullableNumber,
-    abdomen: nullableNumber,
-    waist: nullableNumber,
-    forearmLeft: nullableNumber,
-    forearmRight: nullableNumber,
-    thighLeft: nullableNumber,
-    thighRight: nullableNumber,
-    scapular: nullableNumber,
-    calfLeft: nullableNumber,
-    calfRight: nullableNumber,
+    chest: measurementNumber,
+    contractedArmLeft: measurementNumber,
+    contractedArmRight: measurementNumber,
+    hip: measurementNumber,
+    relaxedArmLeft: measurementNumber,
+    relaxedArmRight: measurementNumber,
+    abdomen: measurementNumber,
+    waist: measurementNumber,
+    forearmLeft: measurementNumber,
+    forearmRight: measurementNumber,
+    thighLeft: measurementNumber,
+    thighRight: measurementNumber,
+    scapular: measurementNumber,
+    calfLeft: measurementNumber,
+    calfRight: measurementNumber,
   })
+  .partial()
   .strict()
 
 export const skinfoldsSchema = z
   .object({
-    triceps: nullableNumber,
-    subscapular: nullableNumber,
-    midAxillary: nullableNumber,
-    abdominal: nullableNumber,
-    thigh: nullableNumber,
-    calf: nullableNumber,
-    biceps: nullableNumber,
-    suprailiac: nullableNumber,
+    triceps: measurementNumber,
+    subscapular: measurementNumber,
+    midAxillary: measurementNumber,
+    abdominal: measurementNumber,
+    thigh: measurementNumber,
+    calf: measurementNumber,
+    biceps: measurementNumber,
+    suprailiac: measurementNumber,
   })
+  .partial()
   .strict()
 
 export const assessmentInputSchema = z
@@ -106,7 +107,7 @@ export const assessmentInputSchema = z
     if (
       !Object.values(value.bodyIndex)
         .concat(Object.values(value.circumferences), Object.values(value.skinfolds))
-        .some(item => item !== null)
+        .some(item => item !== undefined)
     )
       context.addIssue({ code: "custom", message: "Informe ao menos uma medição" })
   })
