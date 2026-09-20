@@ -92,7 +92,7 @@ export function AccountActions() {
           disabled={isSigningOut || isSubmitting}
           onClick={handleSignOut}
           size="lg"
-          variant="outline"
+          variant="secondary"
         >
           {isSigningOut ? "Saindo" : "Sair da conta"}
         </Button>
@@ -131,7 +131,9 @@ export function AccountActions() {
               />
 
               <AlertDialogFooter className="gap-3">
-                <AlertDialogCancel disabled={isSubmitting}>Cancelar</AlertDialogCancel>
+                <AlertDialogCancel disabled={isSubmitting} variant="secondary">
+                  Cancelar
+                </AlertDialogCancel>
 
                 <Button disabled={isSubmitting} type="submit" variant="destructive">
                   {isSubmitting && <LoaderCircleIcon className="animate-spin" />}

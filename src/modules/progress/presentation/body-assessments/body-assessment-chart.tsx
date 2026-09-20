@@ -33,8 +33,8 @@ const choices: Metric[] = assessmentFields
   .sort((first, second) => metricLabel(first).localeCompare(metricLabel(second), "pt-BR"))
 
 const chartDate = (value: string) => {
-  const [year, month, day] = value.split("-")
-  return `${day}/${month}/${year?.slice(-2)}`
+  const [, month, day] = value.split("-")
+  return `${day}/${month}`
 }
 
 const fullDate = (value: string) =>
@@ -55,7 +55,9 @@ export function BodyAssessmentChart({ assessments }: { assessments: BodyAssessme
     <Card>
       <CardHeader>
         <CardTitle>Gráfico corporal</CardTitle>
-        <CardDescription>Escolha uma métrica para analisar</CardDescription>
+        <CardDescription className="col-span-full col-start-1 row-start-2 sm:col-span-1">
+          Escolha uma métrica para analisar
+        </CardDescription>
         <CardAction className="col-span-full col-start-1 row-span-1 row-start-3 w-full sm:col-span-1 sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:w-64">
           <SelectField
             aria-label="Métrica do gráfico"

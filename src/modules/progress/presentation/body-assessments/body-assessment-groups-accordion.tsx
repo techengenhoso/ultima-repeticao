@@ -36,7 +36,7 @@ export function BodyAssessmentGroupsAccordion({
     >
       {groups.map((group, index) => (
         <AccordionItem
-          className="border data-[state=open]:border-l-2 data-[state=open]:border-l-primary"
+          className="border border-l-2 border-l-primary"
           key={group.key}
           value={group.key}
         >

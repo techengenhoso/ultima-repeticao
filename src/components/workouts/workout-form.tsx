@@ -98,7 +98,7 @@ export function WorkoutForm({
         className="flex min-h-0 min-w-0 flex-1 flex-col"
         onSubmit={handleSubmit(handleValidSubmit)}
       >
-        <div className="no-scrollbar max-h-[65vh] min-w-0 space-y-6 overflow-x-hidden overflow-y-auto pb-5">
+        <div className="max-h-[65vh] min-w-0 space-y-6 overflow-x-hidden overflow-y-auto pb-5">
           <div className="grid gap-5 md:grid-cols-2">
             <TextField
               error={formState.errors.name}
@@ -113,7 +113,6 @@ export function WorkoutForm({
               icon={<AlignLeftIcon aria-hidden="true" />}
               id="description"
               label="Descrição"
-              maxLength={500}
               placeholder="Observações da ficha"
               {...register("description")}
             />

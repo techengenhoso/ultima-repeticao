@@ -139,7 +139,6 @@ export function WorkoutAiReview({
               icon={<AlignLeftIcon />}
               id="ai-plan-description"
               label="Descrição"
-              maxLength={500}
               {...form.register("description")}
             />
             <WorkoutReviewMessages path={["description"]} />

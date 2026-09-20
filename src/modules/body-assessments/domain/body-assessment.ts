@@ -13,6 +13,14 @@ const measurementInteger = z
   .min(0, "Informe um número igual ou maior que zero")
   .max(100000, "Informe um número dentro do limite permitido")
 const measurementText = z.string().trim().max(100)
+const obesityLevelInput = measurementText.max(
+  10,
+  "O nível de obesidade deve ter no máximo 10 caracteres"
+)
+const bodyTypeInput = measurementText.max(
+  15,
+  "O tipo de corpo deve ter no máximo 15 caracteres"
+)
 
 export const bodyIndexSchema = z
   .object({
@@ -39,6 +47,11 @@ export const bodyIndexSchema = z
   })
   .partial()
   .strict()
+
+const bodyIndexInputSchema = bodyIndexSchema.extend({
+  obesityLevel: obesityLevelInput.optional(),
+  bodyType: bodyTypeInput.optional(),
+})
 
 export const circumferencesSchema = z
   .object({
@@ -75,7 +88,7 @@ export const skinfoldsSchema = z
   .partial()
   .strict()
 
-export const assessmentInputSchema = z
+const assessmentSchema = z
   .object({
     assessmentDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     bodyIndex: bodyIndexSchema,
@@ -83,6 +96,9 @@ export const assessmentInputSchema = z
     skinfolds: skinfoldsSchema,
   })
   .strict()
+
+export const assessmentInputSchema = assessmentSchema
+  .extend({ bodyIndex: bodyIndexInputSchema })
   .superRefine((value, context) => {
     const [year, month, day] = value.assessmentDate.split("-").map(Number)
     const date = new Date(Date.UTC(year, month - 1, day))
@@ -112,7 +128,7 @@ export const assessmentInputSchema = z
       context.addIssue({ code: "custom", message: "Informe ao menos uma medição" })
   })
 
-export const bodyAssessmentSchema = assessmentInputSchema.extend({
+export const bodyAssessmentSchema = assessmentSchema.extend({
   id: z.string().min(1).max(150),
 })
 export const bodyAssessmentListSchema = z.object({

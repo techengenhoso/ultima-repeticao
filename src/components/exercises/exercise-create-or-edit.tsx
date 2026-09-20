@@ -22,7 +22,7 @@ export function ExerciseCreateOrEdit() {
       onOpenChange={open => !open && onClose(undefined)}
       open={exercise !== undefined}
     >
-      <DialogContent className="no-scrollbar max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-xl">
+      <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{exercise ? "Editar exercício" : "Novo exercício"}</DialogTitle>
           <DialogDescription>Preencha os dados do seu exercício</DialogDescription>

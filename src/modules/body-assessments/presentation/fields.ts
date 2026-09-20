@@ -13,6 +13,7 @@ export type FieldDefinition = {
 }
 
 const integerFields = new Set(["dailyCalories", "bodyAge"])
+const textFields = new Set(["obesityLevel", "bodyType"])
 
 const placeholders: Record<string, string> = {
   weight: "Ex: 99,20",
@@ -34,7 +35,7 @@ const placeholders: Record<string, string> = {
   proteinMass: "Ex: 16,60",
   idealBodyWeight: "Ex: 84,50",
   obesityLevel: "Ex: Alto",
-  bodyType: "Ex: Ligeira obesidade",
+  bodyType: "Ex: Lig. obeso",
   chest: "Ex: 101,00",
   hip: "Ex: 106,50",
   abdomen: "Ex: 89,50",
@@ -71,6 +72,7 @@ const fields = (
     ...(unit ? { unit } : {}),
     ...(placeholders[key] ? { placeholder: placeholders[key] } : {}),
     ...(integerFields.has(key) ? { integer: true } : {}),
+    ...(textFields.has(key) ? { text: true } : {}),
   }))
 
 export const assessmentFields: FieldDefinition[] = [
@@ -95,9 +97,7 @@ export const assessmentFields: FieldDefinition[] = [
     ["idealBodyWeight", "Peso corporal ideal", "kg"],
     ["obesityLevel", "Nível de obesidade"],
     ["bodyType", "Tipo de corpo"],
-  ]).map(item =>
-    item.key === "obesityLevel" || item.key === "bodyType" ? { ...item, text: true } : item
-  ),
+  ]),
   ...fields("circumferences", [
     ["contractedArmLeft", "Braço contraído esquerdo", "cm"],
     ["contractedArmRight", "Braço contraído direito", "cm"],

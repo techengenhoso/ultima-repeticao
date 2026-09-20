@@ -27,11 +27,11 @@ export function BodyAssessmentDetails({ item }: { item: BodyAssessment }) {
           <dl className="grid gap-3 sm:grid-cols-2">
             {group?.fields.map(field => (
               <div
-                className="flex justify-between gap-3 border bg-background px-3 py-2"
+                className="flex items-center justify-between gap-3 border bg-background px-3 py-2"
                 key={field.key}
               >
-                <dt className="text-muted-foreground">{field.label}</dt>
-                <dd className="text-right font-medium">
+                <dt className="min-w-0 text-muted-foreground">{field.label}</dt>
+                <dd className="shrink-0 whitespace-nowrap text-right font-medium">
                   {String(item[field.group][field.key as never])} {field.unit}
                 </dd>
               </div>

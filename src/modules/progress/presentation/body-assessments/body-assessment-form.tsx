@@ -14,6 +14,7 @@ import {
   parseBrazilianDate,
 } from "@/lib/date"
 import { dateSchema } from "@/lib/schemas-zod"
+import { cn } from "@/lib/utils"
 import {
   assessmentInputSchema,
   type BodyAssessment,
@@ -26,6 +27,7 @@ import {
   groups,
 } from "@/modules/body-assessments/presentation/fields"
 import { useProgressUseCases } from "../progress-use-cases-context"
+import { useScrollPadding } from "../use-scroll-padding"
 import { BodyAssessmentGroupsAccordion } from "./body-assessment-groups-accordion"
 
 type FormValues = {
@@ -80,11 +82,20 @@ const schema = z
   })
   .superRefine((values, context) => {
     const parsed = assessmentInputSchema.safeParse(inputFrom(values))
-    if (!parsed.success)
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0]
+      const path =
+        issue?.path[0] === "assessmentDate"
+          ? issue.path
+          : issue?.path.length
+            ? ["values", ...issue.path]
+            : ["root"]
       context.addIssue({
         code: "custom",
-        message: parsed.error.issues[0]?.message ?? "Revise os dados informados",
+        message: issue?.message ?? "Revise os dados informados",
+        path,
       })
+    }
   })
 
 export function BodyAssessmentForm({
@@ -107,6 +118,7 @@ export function BodyAssessmentForm({
   })
   const [saving, setSaving] = useState(false)
   const [failure, setFailure] = useState("")
+  const { hasVerticalOverflow, ref: scrollRef } = useScrollPadding()
   const visibleGroups = group ? [group] : groups.map(value => value.key)
   useEffect(() => form.reset(emptyValues(item)), [form, item])
   useEffect(
@@ -148,7 +160,13 @@ export function BodyAssessmentForm({
 
   return (
     <form className="space-y-5" onSubmit={form.handleSubmit(submit)}>
-      <div className="no-scrollbar max-h-[calc(100dvh-15rem)] overflow-y-auto overscroll-contain">
+      <div
+        className={cn(
+          "max-h-[calc(100dvh-15rem)] overflow-y-auto overscroll-contain",
+          hasVerticalOverflow && "pr-3"
+        )}
+        ref={scrollRef}
+      >
         <fieldset className="grid content-start gap-5 sm:grid-cols-2" disabled={saving}>
           <div className="sm:col-span-2">
             <TextField
@@ -184,13 +202,13 @@ export function BodyAssessmentForm({
           />
         </fieldset>
       </div>
-      {failure && (
+      {(failure || form.formState.errors.root?.message) && (
         <p className="text-sm text-destructive" role="alert">
-          {failure}
+          {failure || form.formState.errors.root?.message}
         </p>
       )}
       <DialogFooter className="border-t pt-4">
-        <Button disabled={saving} onClick={onCancel} type="button" variant="outline">
+        <Button disabled={saving} onClick={onCancel} type="button" variant="secondary">
           Cancelar
         </Button>
         <Button disabled={saving} type="submit">

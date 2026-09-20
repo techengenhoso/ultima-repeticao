@@ -27,6 +27,7 @@ import {
   groups,
 } from "@/modules/body-assessments/presentation/fields"
 import { useProgressUseCases } from "../progress-use-cases-context"
+import { useScrollPadding } from "../use-scroll-padding"
 import { BodyAssessmentChart } from "./body-assessment-chart"
 import { BodyAssessmentDetails } from "./body-assessment-details"
 import { BodyAssessmentForm } from "./body-assessment-form"
@@ -37,6 +38,9 @@ const formatDate = (value: string) =>
   new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeZone: "UTC" })
     .format(new Date(`${value}T00:00:00Z`))
     .replaceAll(".", "")
+
+const preventDialogDismissal = (event: { preventDefault: () => void }) =>
+  event.preventDefault()
 
 export function BodyAssessmentsSection() {
   const progressUseCases = useProgressUseCases()
@@ -53,6 +57,7 @@ export function BodyAssessmentsSection() {
   const [confirmingClose, setConfirmingClose] = useState<"creating" | "editing" | null>(
     null
   )
+  const { hasVerticalOverflow, ref: detailsScrollRef } = useScrollPadding()
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -115,20 +120,29 @@ export function BodyAssessmentsSection() {
       <div className="flex flex-wrap justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold">Avaliação corporal</h2>
+
           <p className="text-sm text-muted-foreground">
             Registre medidas e acompanhe suas variações
           </p>
         </div>
+
         <Button onClick={() => setChoosingType(true)}>Nova avaliação</Button>
       </div>
+
       <Dialog onOpenChange={setChoosingType} open={choosingType}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent
+          className="px-6 py-8 sm:max-w-xl"
+          onEscapeKeyDown={preventDialogDismissal}
+          onPointerDownOutside={preventDialogDismissal}
+        >
           <DialogHeader>
             <DialogTitle>Tipo de avaliação corporal</DialogTitle>
+
             <DialogDescription>
               Escolha o tipo de medida que deseja cadastrar
             </DialogDescription>
           </DialogHeader>
+
           <div className="grid gap-3 sm:grid-cols-3">
             {groups.map(group => (
               <Button
@@ -139,7 +153,7 @@ export function BodyAssessmentsSection() {
                   setCreatingGroup(group.key)
                 }}
                 type="button"
-                variant="outline"
+                variant="secondary"
               >
                 {group.label}
               </Button>
@@ -147,6 +161,7 @@ export function BodyAssessmentsSection() {
           </div>
         </DialogContent>
       </Dialog>
+
       {creatingGroup && (
         <AssessmentDialog
           description={`Registre a data e as medidas de ${groups.find(group => group.key === creatingGroup)?.label.toLocaleLowerCase("pt-BR")}`}
@@ -161,6 +176,7 @@ export function BodyAssessmentsSection() {
           />
         </AssessmentDialog>
       )}
+
       {editing && (
         <AssessmentDialog
           description="Atualize a data e as medidas disponíveis para esta avaliação"
@@ -175,12 +191,14 @@ export function BodyAssessmentsSection() {
           />
         </AssessmentDialog>
       )}
+
       {loading ? (
         <Skeletons cards={4} />
       ) : error ? (
         <div role="alert">
-          <p className="text-destructive">{error}</p>
-          <Button className="mt-2" onClick={() => void load()} variant="outline">
+          <p className="text-destructive">{error} Tivemos um erro</p>
+
+          <Button className="mt-2" onClick={() => void load()} variant="secondary">
             Tentar novamente
           </Button>
         </div>
@@ -194,9 +212,10 @@ export function BodyAssessmentsSection() {
       ) : (
         <>
           <BodyAssessmentIndicators assessments={items} />
+
           <BodyAssessmentChart assessments={items} />
-          <section className="space-y-3" id="assessment-history">
-            <h2 className="text-xl font-bold">Histórico de avaliações</h2>
+
+          <section id="assessment-history">
             <BodyAssessmentHistory
               items={items}
               onDelete={setDeleting}
@@ -206,40 +225,55 @@ export function BodyAssessmentsSection() {
           </section>
         </>
       )}
+
       <Dialog onOpenChange={open => !open && setViewing(null)} open={Boolean(viewing)}>
-        <DialogContent className="flex max-h-[calc(100dvh-2rem)] min-w-0 flex-col gap-4 overflow-hidden p-4 sm:max-w-xl sm:p-6">
+        <DialogContent
+          className="flex max-h-[calc(100dvh-2rem)] min-w-0 flex-col gap-4 overflow-hidden px-4 py-8 sm:max-w-xl sm:px-6 sm:py-8"
+          onEscapeKeyDown={preventDialogDismissal}
+          onPointerDownOutside={preventDialogDismissal}
+        >
           <DialogHeader>
             <DialogTitle>
               Avaliação de {viewing && formatDate(viewing.assessmentDate)}
             </DialogTitle>
+
             <DialogDescription>
               Medidas registradas nesta avaliação corporal
             </DialogDescription>
           </DialogHeader>
-          <div className="min-h-0 overflow-y-auto overscroll-contain scrollbar-none [&::-webkit-scrollbar]:hidden">
+
+          <div
+            className={`min-h-0 overflow-y-auto overscroll-contain${hasVerticalOverflow ? " pr-3" : ""}`}
+            ref={detailsScrollRef}
+          >
             {viewing && <BodyAssessmentDetails item={viewing} />}
           </div>
         </DialogContent>
       </Dialog>
+
       <AlertDialog
         onOpenChange={open => !open && setDeleting(null)}
         open={Boolean(deleting)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir avaliação?</AlertDialogTitle>
+            <AlertDialogTitle>Exclusão permanente</AlertDialogTitle>
+
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita
+              Esta ação vai excluir a avaliação corporal de forma permanentemente
             </AlertDialogDescription>
           </AlertDialogHeader>
+
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel variant="secondary">Cancelar</AlertDialogCancel>
+
             <AlertDialogAction onClick={() => void remove()} variant="destructive">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
       <AlertDialog
         onOpenChange={open => !open && setConfirmingClose(null)}
         open={Boolean(confirmingClose)}
@@ -247,13 +281,16 @@ export function BodyAssessmentsSection() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Descartar alterações</AlertDialogTitle>
+
             <AlertDialogDescription>
               Os dados preenchidos nesta avaliação não serão salvos. Esta ação não poderá
               ser desfeita
             </AlertDialogDescription>
           </AlertDialogHeader>
+
           <AlertDialogFooter>
             <AlertDialogCancel>Continuar editando</AlertDialogCancel>
+
             <Button onClick={discardChanges} variant="destructive">
               Descartar
             </Button>
@@ -263,6 +300,7 @@ export function BodyAssessmentsSection() {
     </div>
   )
 }
+
 function AssessmentDialog({
   children,
   description,
@@ -276,11 +314,16 @@ function AssessmentDialog({
 }) {
   return (
     <Dialog onOpenChange={open => !open && onOpenChange()} open>
-      <DialogContent className="flex max-h-[calc(100dvh-2rem)] min-w-0 flex-col gap-4 overflow-hidden p-4 sm:max-w-xl sm:p-6">
+      <DialogContent
+        className="flex max-h-[calc(100dvh-2rem)] min-w-0 flex-col gap-4 overflow-hidden px-4 py-8 sm:max-w-xl sm:px-6 sm:py-8"
+        onEscapeKeyDown={preventDialogDismissal}
+        onPointerDownOutside={preventDialogDismissal}
+      >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
+
         {children}
       </DialogContent>
     </Dialog>

@@ -1,9 +1,15 @@
 "use client"
 
-import { PencilIcon, Trash2Icon } from "lucide-react"
+import { EyeIcon, PencilIcon, Trash2Icon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   Pagination,
   PaginationContent,
@@ -37,27 +43,30 @@ export function BodyAssessmentHistory({
   if (!items.length)
     return <p className="text-sm text-muted-foreground">Nenhuma avaliação cadastrada</p>
   return (
-    <div className="grid gap-3">
-      {visible.map(item => (
-        <Card className="py-3" key={item.id} size="sm">
-          <CardHeader>
-            <CardTitle className="text-base normal-case tracking-normal">
-              {formatDate(item.assessmentDate)}
-            </CardTitle>
-            <CardDescription>Criação da avaliação</CardDescription>
-            <div
-              className="col-start-2 row-span-2 row-start-1 self-center justify-self-end"
-              data-slot="card-action"
-            >
-              <div className="flex gap-1">
+    <Card>
+      <CardHeader>
+        <CardTitle>Histórico de avaliações</CardTitle>
+        <CardDescription>Consulte e gerencie suas avaliações anteriores</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <div className="divide-y divide-border border-y border-border">
+          {visible.map(item => (
+            <div className="flex items-center justify-between gap-4 py-4" key={item.id}>
+              <div>
+                <p className="font-medium">{formatDate(item.assessmentDate)}</p>
+                <p className="mt-1 text-sm text-muted-foreground">Criação da avaliação</p>
+              </div>
+              <div className="flex shrink-0 gap-1">
                 <Button
                   aria-label="Visualizar avaliação"
+                  className="size-9 px-0 sm:w-auto sm:px-4"
                   onClick={() => onView(item)}
                   size="sm"
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                 >
-                  Detalhes
+                  <EyeIcon aria-hidden="true" className="sm:hidden" />
+                  <span className="hidden sm:inline">Detalhes</span>
                 </Button>
                 <Button
                   aria-label="Editar avaliação"
@@ -79,49 +88,49 @@ export function BodyAssessmentHistory({
                 </Button>
               </div>
             </div>
-          </CardHeader>
-        </Card>
-      ))}
-      <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              aria-disabled={current === 1}
-              href="#assessment-history"
-              onClick={event => {
-                event.preventDefault()
-                setPage(value => Math.max(1, value - 1))
-              }}
-              text="Anterior"
-            />
-          </PaginationItem>
-          {Array.from({ length: pageCount }, (_, index) => index + 1).map(item => (
-            <PaginationItem key={item}>
-              <PaginationLink
+          ))}
+        </div>
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                aria-disabled={current === 1}
                 href="#assessment-history"
-                isActive={item === current}
                 onClick={event => {
                   event.preventDefault()
-                  setPage(item)
+                  setPage(value => Math.max(1, value - 1))
                 }}
-              >
-                {item}
-              </PaginationLink>
+                text="Anterior"
+              />
             </PaginationItem>
-          ))}
-          <PaginationItem>
-            <PaginationNext
-              aria-disabled={current === pageCount}
-              href="#assessment-history"
-              onClick={event => {
-                event.preventDefault()
-                setPage(value => Math.min(pageCount, value + 1))
-              }}
-              text="Próxima"
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
-    </div>
+            {Array.from({ length: pageCount }, (_, index) => index + 1).map(item => (
+              <PaginationItem key={item}>
+                <PaginationLink
+                  href="#assessment-history"
+                  isActive={item === current}
+                  onClick={event => {
+                    event.preventDefault()
+                    setPage(item)
+                  }}
+                >
+                  {item}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                aria-disabled={current === pageCount}
+                href="#assessment-history"
+                onClick={event => {
+                  event.preventDefault()
+                  setPage(value => Math.min(pageCount, value + 1))
+                }}
+                text="Próxima"
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </CardContent>
+    </Card>
   )
 }

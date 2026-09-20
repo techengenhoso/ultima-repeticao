@@ -252,7 +252,7 @@ export function WorkoutAiAssistant({ open, onOpenChange }: WorkoutAiAssistantPro
             </DialogDescription>
           </DialogHeader>
 
-          <div className="min-h-0 w-full min-w-0 overflow-x-hidden overflow-y-auto overscroll-contain scrollbar-none [&::-webkit-scrollbar]:hidden">
+          <div className="min-h-0 w-full min-w-0 overflow-x-hidden overflow-y-auto overscroll-contain">
             {result && originalInput ? (
               <WorkoutAiReview
                 busy={pending}

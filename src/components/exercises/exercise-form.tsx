@@ -111,7 +111,7 @@ export function ExerciseForm({ exercise, onCancel, onSubmit }: Props) {
 
   return (
     <form className="flex flex-col min-h-0" onSubmit={handleSubmit(handleValidSubmit)}>
-      <div className="no-scrollbar max-h-[65vh] space-y-5 overflow-y-auto pb-5">
+      <div className="max-h-[65vh] space-y-5 overflow-y-auto pb-5">
         <TextField
           autoComplete="name"
           error={errors.name}

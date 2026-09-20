@@ -18,6 +18,7 @@ const metrics: Metric[] = [
   { group: "bodyIndex", key: "bodyFatPercentage" },
   { group: "bodyIndex", key: "muscleRatePercentage" },
 ]
+
 export function BodyAssessmentIndicators({
   assessments,
 }: {

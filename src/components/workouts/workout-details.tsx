@@ -57,7 +57,7 @@ export function WorkoutDetails() {
           </DialogDescription>
         </DialogHeader>
         {workout && (
-          <div className="no-scrollbar min-h-0 space-y-6 overflow-y-auto">
+          <div className="min-h-0 space-y-6 overflow-y-auto">
             <div className="space-y-4">
               {[...workout.days]
                 .sort((a, b) => a.order - b.order)

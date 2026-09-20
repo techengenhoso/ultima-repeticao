@@ -52,7 +52,6 @@ export function WorkoutAiBasics() {
           icon={<DumbbellIcon />}
           id="ai-name"
           label="Nome da ficha"
-          maxLength={100}
           placeholder="Ex: Treino de hipertrofia"
           {...register("name")}
         />
