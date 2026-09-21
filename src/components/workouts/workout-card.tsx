@@ -87,7 +87,7 @@ export function WorkoutCard({
           onClick={() => onDetails(workout)}
           size="sm"
           type="button"
-          variant="outline"
+          variant="secondary"
         >
           Detalhes
         </Button>

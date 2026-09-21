@@ -1,5 +1,5 @@
-import { muscles } from "@/lib/options-select"
-import type { ExerciseInput, Muscle } from "./exercise"
+import { difficulties, muscleGroups, muscles } from "@/lib/options-select"
+import type { ExerciseDifficulty, ExerciseInput, Muscle, MuscleGroup } from "./exercise"
 
 export function normalizeExerciseName(value: string) {
   return value
@@ -12,10 +12,54 @@ export function normalizeExerciseName(value: string) {
 
 const muscleValueByStoredValue = new Map<string, Muscle>(
   muscles.flatMap(muscle => [
-    [muscle.value.toLocaleLowerCase("pt-BR"), muscle.value],
-    [muscle.label.toLocaleLowerCase("pt-BR"), muscle.value],
+    [normalizeStoredValue(muscle.value), muscle.value],
+    [normalizeStoredValue(muscle.label), muscle.value],
   ])
 )
+
+const muscleGroupValueByStoredValue = new Map<string, MuscleGroup>(
+  muscleGroups.flatMap(group => [
+    [normalizeStoredValue(group.value), group.value],
+    [normalizeStoredValue(group.label), group.value],
+  ])
+)
+
+const difficultyValueByStoredValue = new Map<string, ExerciseDifficulty>(
+  difficulties.flatMap(difficulty => [
+    [normalizeStoredValue(difficulty.value), difficulty.value],
+    [normalizeStoredValue(difficulty.label), difficulty.value],
+  ])
+)
+
+const legacyMuscleGroupValueByStoredValue = new Map<string, MuscleGroup>([
+  ["full_body", "fullBody"],
+  ["lower_back", "lowerBack"],
+])
+
+const legacyDifficultyValueByStoredValue = new Map<string, ExerciseDifficulty>([
+  ["beginner", "easy"],
+  ["intermediate", "moderate"],
+  ["advanced", "hard"],
+])
+
+function normalizeStoredValue(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLocaleLowerCase("pt-BR")
+}
+
+function optionValue<T>(value: unknown, options: Map<string, T>) {
+  return typeof value === "string" ? options.get(normalizeStoredValue(value)) : undefined
+}
+
+function exerciseDifficultyValue(value: unknown) {
+  return (
+    optionValue(value, difficultyValueByStoredValue) ??
+    optionValue(value, legacyDifficultyValueByStoredValue)
+  )
+}
 
 function muscleList(value: unknown) {
   const items = Array.isArray(value)
@@ -25,25 +69,22 @@ function muscleList(value: unknown) {
       : []
   return items.flatMap(item => {
     if (typeof item !== "string") return []
-    const muscle = muscleValueByStoredValue.get(item.trim().toLocaleLowerCase("pt-BR"))
+    const muscle = muscleValueByStoredValue.get(normalizeStoredValue(item))
     return muscle ? [muscle] : []
   })
 }
 
 export function normalizeExerciseFields(data: Record<string, unknown>): ExerciseInput {
-  const legacyDifficulties = {
-    beginner: "easy",
-    intermediate: "moderate",
-    advanced: "hard",
-  } as const
-  const difficulty =
-    data.difficulty ?? legacyDifficulties[data.level as keyof typeof legacyDifficulties]
+  const muscleGroup =
+    optionValue(data.muscleGroup, muscleGroupValueByStoredValue) ??
+    optionValue(data.muscleGroup, legacyMuscleGroupValueByStoredValue)
+  const difficulty = exerciseDifficultyValue(data.difficulty ?? data.level)
   return {
     name: typeof data.name === "string" ? data.name : "Exercício sem nome",
-    muscleGroup: data.muscleGroup as ExerciseInput["muscleGroup"],
+    muscleGroup: muscleGroup ?? (data.muscleGroup as ExerciseInput["muscleGroup"]),
     primaryMuscles: muscleList(data.primaryMuscles ?? data.primaryMuscle),
     secondaryMuscles: muscleList(data.secondaryMuscles),
-    difficulty: difficulty as ExerciseInput["difficulty"],
+    difficulty: difficulty ?? (data.difficulty as ExerciseInput["difficulty"]),
     movementPattern:
       typeof data.movementPattern === "string" ? data.movementPattern : "Não informado",
     startingPosition:

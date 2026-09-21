@@ -29,13 +29,13 @@ service cloud.firestore {
           && data.secondaryMuscles is list && data.secondaryMuscles.size() <= 20
           && data.difficulty in ['easy', 'moderate', 'hard']
           && data.movementPattern is string
-          && data.movementPattern.size() >= 1 && data.movementPattern.size() <= 150
+          && data.movementPattern.size() <= 150
           && data.startingPosition is string
-          && data.startingPosition.size() >= 1 && data.startingPosition.size() <= 1000
+          && data.startingPosition.size() <= 1000
           && data.movementExecution is string
-          && data.movementExecution.size() >= 1 && data.movementExecution.size() <= 1000
+          && data.movementExecution.size() <= 1000
           && data.importantCautions is string
-          && data.importantCautions.size() >= 1 && data.importantCautions.size() <= 1000;
+          && data.importantCautions.size() <= 1000;
       }
 
       match /exercises/{exerciseId} {

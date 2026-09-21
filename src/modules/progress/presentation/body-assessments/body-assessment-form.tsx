@@ -8,6 +8,7 @@ import { z } from "zod"
 import { TextField } from "@/components/text-field"
 import { Button } from "@/components/ui/button"
 import { DialogFooter } from "@/components/ui/dialog"
+import { useScrollPadding } from "@/hooks/use-scroll-padding"
 import {
   formatBrazilianDateInput,
   formatIsoDateToBrazilian,
@@ -27,7 +28,6 @@ import {
   groups,
 } from "@/modules/body-assessments/presentation/fields"
 import { useProgressUseCases } from "../progress-use-cases-context"
-import { useScrollPadding } from "../use-scroll-padding"
 import { BodyAssessmentGroupsAccordion } from "./body-assessment-groups-accordion"
 
 type FormValues = {

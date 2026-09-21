@@ -31,6 +31,7 @@ function useExerciseState() {
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
   const [filters, setFilters] = useState<ExerciseFilters>(emptyExerciseFilters)
+  const [page, setPage] = useState(1)
   const [formExercise, setFormExercise] = useState<Exercise | null | undefined>()
   const [details, setDetails] = useState<Exercise | null>(null)
   const [deleting, setDeleting] = useState<CustomExercise | null>(null)
@@ -101,6 +102,11 @@ function useExerciseState() {
     if (await saveExercise(formExercise, values)) setFormExercise(undefined)
   }
 
+  function handleSetFilters(nextFilters: ExerciseFilters) {
+    setFilters(nextFilters)
+    setPage(1)
+  }
+
   async function confirmDelete() {
     if (deleting && (await removeExercise(deleting))) setDeleting(null)
   }
@@ -114,10 +120,12 @@ function useExerciseState() {
     handleSaveExercise,
     isDeleting,
     isLoading,
+    page,
     setDeleting,
     setDetails,
-    setFilters,
+    setFilters: handleSetFilters,
     setFormExercise,
+    setPage,
   }
 }
 

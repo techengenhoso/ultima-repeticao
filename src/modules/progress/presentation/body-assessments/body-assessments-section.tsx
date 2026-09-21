@@ -21,13 +21,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
+import { useScrollPadding } from "@/hooks/use-scroll-padding"
 import type { BodyAssessment } from "@/modules/body-assessments/domain/body-assessment"
 import {
   type AssessmentGroup,
   groups,
 } from "@/modules/body-assessments/presentation/fields"
 import { useProgressUseCases } from "../progress-use-cases-context"
-import { useScrollPadding } from "../use-scroll-padding"
 import { BodyAssessmentChart } from "./body-assessment-chart"
 import { BodyAssessmentDetails } from "./body-assessment-details"
 import { BodyAssessmentForm } from "./body-assessment-form"
@@ -193,7 +193,7 @@ export function BodyAssessmentsSection() {
       )}
 
       {loading ? (
-        <Skeletons cards={4} />
+        <Skeletons />
       ) : error ? (
         <div role="alert">
           <p className="text-destructive">{error} Tivemos um erro</p>

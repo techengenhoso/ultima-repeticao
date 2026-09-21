@@ -1,15 +1,20 @@
 import { Card, CardContent, CardHeader } from "./ui/card"
 import { Skeleton } from "./ui/skeleton"
 
-interface Props {
-  cards?: number
-}
+const responsiveCards = [
+  { className: "flex", key: "1" },
+  { className: "hidden sm:flex", key: "2" },
+  { className: "hidden lg:flex", key: "3" },
+  { className: "hidden lg:flex", key: "4" },
+  { className: "hidden lg:flex", key: "5" },
+  { className: "hidden lg:flex", key: "6" },
+]
 
-export function Skeletons({ cards = 6 }: Props) {
+export function Skeletons() {
   return (
     <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-      {Array.from({ length: cards }, (_, index) => index).map(item => (
-        <Card className="gap-5 py-6" key={item}>
+      {responsiveCards.map(({ className, key }) => (
+        <Card className={`gap-5 py-6 ${className}`} key={key}>
           <CardHeader className="gap-3">
             <div className="flex items-start justify-between gap-3">
               <Skeleton className="h-6 w-2/5" />

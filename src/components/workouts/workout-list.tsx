@@ -29,7 +29,7 @@ export function WorkoutList() {
     setFormWorkout,
   } = useWorkout()
 
-  if (isLoading) return <Skeletons cards={2} />
+  if (isLoading) return <Skeletons />
 
   if (loadingError)
     return (

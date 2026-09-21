@@ -92,7 +92,7 @@ export function WorkoutsFilter() {
             type="button"
             variant="secondary"
           >
-            Limpar filtros
+            Limpar
           </Button>
 
           <WorkoutCreateChoice />
