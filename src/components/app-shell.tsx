@@ -49,7 +49,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             <SupportDialog />
 
-            <Button asChild className="min-w-0 flex-1 shrink px-2" variant="outline">
+            <Button asChild className="min-w-0 flex-1 shrink px-2" variant="secondary">
               <Link href="/profile">
                 <UserIcon aria-hidden="true" />
                 Perfil
@@ -85,7 +85,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               asChild
               className="md:hidden"
               size="icon"
-              variant="outline"
+              variant="secondary"
             >
               <Link href="/profile">
                 <UserIcon />

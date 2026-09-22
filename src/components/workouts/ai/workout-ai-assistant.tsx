@@ -337,9 +337,9 @@ export function WorkoutAiAssistant({ open, onOpenChange }: WorkoutAiAssistantPro
                         step ? setStep(current => current - 1) : requestClose()
                       }
                       type="button"
-                      variant="outline"
+                      variant="secondary"
                     >
-                      {step ? "Voltar" : "Fechar"}
+                      {step ? "Voltar" : "Cancelar"}
                     </Button>
                     <Button disabled={submitDisabled} type="submit">
                       {submitLabel(pending, step)}
@@ -369,7 +369,7 @@ export function WorkoutAiAssistant({ open, onOpenChange }: WorkoutAiAssistantPro
           </AlertDialogHeader>
 
           <AlertDialogFooter>
-            <AlertDialogCancel>Continuar editando</AlertDialogCancel>
+            <AlertDialogCancel variant="secondary">Continuar editando</AlertDialogCancel>
 
             <Button onClick={discard} type="button" variant="destructive">
               Descartar

@@ -48,7 +48,7 @@ export function SupportDialog({ className }: { className?: string }) {
         </p>
 
         <DialogFooter className="w-full sm:justify-stretch sm:*:flex-1">
-          <Button asChild variant="outline">
+          <Button asChild variant="secondary">
             <a
               href={`mailto:${supportEmail}?subject=${encodeURIComponent(supportEmailSubject)}`}
             >

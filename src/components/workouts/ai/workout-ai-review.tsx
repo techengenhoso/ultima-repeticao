@@ -76,6 +76,9 @@ export function WorkoutAiReview({
   const errors = review.issues.filter(item => item.severity === "error")
   const warnings = review.issues.filter(item => item.severity === "warning")
   const days = useFieldArray({ control: form.control, name: "days" })
+  const [openDayId, setOpenDayId] = useState<string | null>(
+    () => days.fields[0]?.id ?? null
+  )
   const [target, setTarget] = useState<{
     dayIndex: number
     exerciseIndex?: number
@@ -191,10 +194,12 @@ export function WorkoutAiReview({
                 canRemove={false}
                 exercisesByReference={library}
                 index={index}
+                isOpen={openDayId === day.id}
                 key={day.id}
                 onAddExercise={() => setTarget({ dayIndex: index })}
                 onDown={() => days.move(index, index + 1)}
                 onDuplicate={() => undefined}
+                onOpenChange={open => setOpenDayId(open ? day.id : null)}
                 onRemove={() => undefined}
                 onReplaceExercise={exerciseIndex =>
                   setTarget({ dayIndex: index, exerciseIndex })
@@ -301,7 +306,7 @@ export function WorkoutAiReview({
               </ul>
             )}
             <AlertDialogFooter>
-              <AlertDialogCancel>Continuar editando</AlertDialogCancel>
+              <AlertDialogCancel variant="secondary">Continuar editando</AlertDialogCancel>
               <Button
                 onClick={() => {
                   if (confirmation === "warnings") void save(true)

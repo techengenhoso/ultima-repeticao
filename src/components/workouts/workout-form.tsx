@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { DialogFooter } from "@/components/ui/dialog"
 import { FieldError } from "@/components/ui/field"
+import { useScrollPadding } from "@/hooks/use-scroll-padding"
 import type { Exercise, MuscleGroup } from "@/modules/exercises/domain/exercise"
 import { workoutFormSchema } from "@/modules/workouts/domain/schemas"
 import type {
@@ -72,6 +73,8 @@ export function WorkoutForm({
     control,
     name: "days",
   })
+  const [openDayId, setOpenDayId] = useState<string | null>(() => fields[0]?.id ?? null)
+  const dayIdsKey = fields.map(field => field.id).join(",")
 
   const [selectionTarget, setSelectionTarget] = useState<{
     dayIndex: number
@@ -79,11 +82,14 @@ export function WorkoutForm({
   } | null>(null)
 
   const [removingDayIndex, setRemovingDayIndex] = useState<number | null>(null)
-  const [isDiscarding, setIsDiscarding] = useState(false)
+  const { hasVerticalOverflow, ref: scrollRef } = useScrollPadding()
 
-  const handleCancel = () => {
-    setIsDiscarding(true)
-  }
+  useEffect(() => {
+    const dayIds = dayIdsKey ? dayIdsKey.split(",") : []
+    setOpenDayId(current =>
+      current && dayIds.includes(current) ? current : (dayIds[0] ?? null)
+    )
+  }, [dayIdsKey])
 
   async function handleValidSubmit(values: WorkoutFormValues) {
     await onSubmit({
@@ -92,13 +98,38 @@ export function WorkoutForm({
     })
   }
 
+  function addWorkoutDay() {
+    const day = { ...createEmptyWorkoutDay(), order: fields.length }
+    append(day)
+    setOpenDayId(day.id)
+  }
+
+  function duplicateWorkoutDay(index: number) {
+    const day = getValues(`days.${index}`)
+    const duplicate = {
+      ...day,
+      id: crypto.randomUUID(),
+      name: `${day.name} — Cópia`,
+      order: fields.length,
+      exercises: day.exercises.map(item => ({
+        ...item,
+        id: crypto.randomUUID(),
+      })),
+    }
+    append(duplicate)
+    setOpenDayId(duplicate.id)
+  }
+
   return (
     <FormProvider {...form}>
       <form
         className="flex min-h-0 min-w-0 flex-1 flex-col"
         onSubmit={handleSubmit(handleValidSubmit)}
       >
-        <div className="max-h-[65vh] min-w-0 space-y-6 overflow-x-hidden overflow-y-auto pb-5">
+        <div
+          className={`max-h-[65vh] min-w-0 space-y-6 overflow-x-hidden overflow-y-auto pb-5${hasVerticalOverflow ? " pr-3" : ""}`}
+          ref={scrollRef}
+        >
           <div className="grid gap-5 md:grid-cols-2">
             <TextField
               error={formState.errors.name}
@@ -122,9 +153,7 @@ export function WorkoutForm({
               <h3 className="text-lg font-bold">Dias de treino</h3>
               <Button
                 disabled={fields.length >= 14}
-                onClick={() =>
-                  append({ ...createEmptyWorkoutDay(), order: fields.length })
-                }
+                onClick={addWorkoutDay}
                 size="sm"
                 type="button"
               >
@@ -136,22 +165,12 @@ export function WorkoutForm({
                 canRemove={fields.length > 1}
                 exercisesByReference={exercisesByReference}
                 index={index}
+                isOpen={openDayId === field.id}
                 key={field.id}
                 onAddExercise={() => setSelectionTarget({ dayIndex: index })}
                 onDown={() => move(index, index + 1)}
-                onDuplicate={() => {
-                  const day = getValues(`days.${index}`)
-                  append({
-                    ...day,
-                    id: crypto.randomUUID(),
-                    name: `${day.name} — Cópia`,
-                    order: fields.length,
-                    exercises: day.exercises.map(item => ({
-                      ...item,
-                      id: crypto.randomUUID(),
-                    })),
-                  })
-                }}
+                onDuplicate={() => duplicateWorkoutDay(index)}
+                onOpenChange={open => setOpenDayId(open ? field.id : null)}
                 onRemove={() => setRemovingDayIndex(index)}
                 onReplaceExercise={exerciseIndex =>
                   setSelectionTarget({ dayIndex: index, exerciseIndex })
@@ -166,9 +185,9 @@ export function WorkoutForm({
         <DialogFooter className="border-t pt-5">
           <Button
             disabled={formState.isSubmitting}
-            onClick={handleCancel}
+            onClick={onCancel}
             type="button"
-            variant="outline"
+            variant="secondary"
           >
             Cancelar
           </Button>
@@ -201,7 +220,8 @@ export function WorkoutForm({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel variant="secondary">Cancelar</AlertDialogCancel>
+
             <Button
               onClick={() => {
                 if (removingDayIndex !== null) remove(removingDayIndex)
@@ -210,23 +230,6 @@ export function WorkoutForm({
               variant="destructive"
             >
               Excluir
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      <AlertDialog onOpenChange={setIsDiscarding} open={isDiscarding}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Descartar alterações</AlertDialogTitle>
-            <AlertDialogDescription>
-              Os dados preenchidos nesta ficha não serão salvos. Esta ação não poderá ser
-              desfeita
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Continuar editando</AlertDialogCancel>
-            <Button onClick={onCancel} variant="destructive">
-              Descartar
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

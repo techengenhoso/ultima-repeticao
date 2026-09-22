@@ -289,7 +289,7 @@ export function BodyAssessmentsSection() {
           </AlertDialogHeader>
 
           <AlertDialogFooter>
-            <AlertDialogCancel>Continuar editando</AlertDialogCancel>
+            <AlertDialogCancel variant="secondary">Continuar editando</AlertDialogCancel>
 
             <Button onClick={discardChanges} variant="destructive">
               Descartar

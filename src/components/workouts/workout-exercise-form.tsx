@@ -161,7 +161,7 @@ export function WorkoutExerciseForm({
           <div className="px-4 pt-2">
             <WorkoutReviewMessages path={path} />
           </div>
-          <div className="grid min-w-0 gap-4 p-4 sm:grid-cols-3 *:min-w-0">
+          <div className="grid min-w-0 gap-4 p-4 sm:grid-cols-2 *:min-w-0">
             <Field>
               <FieldLabel htmlFor={`sets-${dayIndex}-${exerciseIndex}`}>Séries</FieldLabel>
 

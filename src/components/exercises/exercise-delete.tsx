@@ -37,7 +37,9 @@ export function ExerciseDelete() {
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel disabled={isDeleting} variant="secondary">
+            Cancelar
+          </AlertDialogCancel>
 
           <Button disabled={isDeleting} onClick={onConfirm} variant="destructive">
             {isDeleting && <LoaderCircleIcon className="animate-spin" />}

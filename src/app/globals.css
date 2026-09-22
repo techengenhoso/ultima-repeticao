@@ -130,6 +130,6 @@
   }
 
   html {
-    @apply bg-muted/30 font-sans;
+    @apply overflow-y-scroll bg-muted/30 font-sans;
   }
 }

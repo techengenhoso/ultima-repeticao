@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { useScrollPadding } from "@/hooks/use-scroll-padding"
 import { difficulties, muscleGroups, muscles, origins } from "@/lib/options-select"
 import {
   type Exercise,
@@ -63,6 +64,7 @@ export function WorkoutExerciseSelector({
   const { getValues, setValue } = useFormContext<WorkoutFormValues>()
   const [filters, setFilters] = useState<ExerciseFilters>(emptyExerciseFilters)
   const [selectedReferences, setSelectedReferences] = useState<string[]>([])
+  const { hasVerticalOverflow, ref: scrollRef } = useScrollPadding()
 
   const results = useMemo(() => filterExercises(exercises, filters), [exercises, filters])
   const exercisesByReference = useMemo(
@@ -248,7 +250,10 @@ export function WorkoutExerciseSelector({
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <div
+          className={`min-h-0 flex-1 overflow-y-auto${hasVerticalOverflow ? " pr-3" : ""}`}
+          ref={scrollRef}
+        >
           <div className="space-y-2">
             {results.map(exercise => {
               const reference = referenceOf(exercise)

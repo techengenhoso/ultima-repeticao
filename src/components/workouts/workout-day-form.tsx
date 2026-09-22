@@ -9,7 +9,7 @@ import {
   DumbbellIcon,
   Trash2Icon,
 } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo } from "react"
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form"
 import { MultiSelectField } from "@/components/multi-select-field"
 import { TextField } from "@/components/text-field"
@@ -30,28 +30,31 @@ import { WorkoutExerciseForm } from "./workout-exercise-form"
 export function WorkoutDayForm({
   exercisesByReference,
   index,
+  isOpen,
   total,
   canRemove,
   onAddExercise,
   onDown,
   onDuplicate,
+  onOpenChange,
   onRemove,
   onReplaceExercise,
   onUp,
 }: {
   exercisesByReference: Map<string, Exercise>
   index: number
+  isOpen: boolean
   total: number
   canRemove: boolean
   onAddExercise: () => void
   onDown: () => void
   onDuplicate: () => void
+  onOpenChange: (open: boolean) => void
   onRemove: () => void
   onReplaceExercise: (exerciseIndex: number) => void
   onUp: () => void
 }) {
   const review = useWorkoutReview()
-  const [isOpen, setIsOpen] = useState(true)
   const {
     control,
     getValues,
@@ -110,7 +113,7 @@ export function WorkoutDayForm({
   }, [automaticMuscleGroups, getValues, index, setValue])
 
   return (
-    <Collapsible onOpenChange={setIsOpen} open={isOpen}>
+    <Collapsible onOpenChange={onOpenChange} open={isOpen}>
       <Card
         className="min-w-0 gap-0 border border-border border-l-primary py-0 shadow-none ring-0"
         size="sm"
@@ -273,7 +276,7 @@ export function WorkoutDayForm({
                 onClick={onAddExercise}
                 size="sm"
                 type="button"
-                variant="outline"
+                variant="secondary"
               >
                 Adicionar exercício
               </Button>

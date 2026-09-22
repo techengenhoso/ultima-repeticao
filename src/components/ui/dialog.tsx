@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "radix-ui"
+import { RemoveScroll } from "react-remove-scroll"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -34,10 +35,11 @@ function DialogClose({
 function DialogOverlay({
   className,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
+}: React.ComponentProps<"div">) {
   return (
-    <DialogPrimitive.Overlay
+    <div
       data-slot="dialog-overlay"
+      data-state="open"
       className={cn(
         "fixed inset-0 isolate z-50 bg-black/20 duration-100 supports-backdrop-filter:backdrop-blur-sm data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className
@@ -51,41 +53,70 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  onCloseButtonClick,
+  onEscapeKeyDown,
+  onInteractOutside,
+  onPointerDownOutside,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
+  onCloseButtonClick?: () => void
   showCloseButton?: boolean
 }) {
   return (
     <DialogPortal>
-      <DialogOverlay />
-      <DialogPrimitive.Content
-        data-slot="dialog-content"
-        className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-none bg-popover p-6 text-sm text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
-          showCloseButton && "[&>[data-slot=dialog-header]]:pr-16",
-          className
-        )}
-        {...props}
-      >
-        {children}
-        <div
-          className="pointer-events-none absolute inset-0"
-          data-slot="combobox-portal"
-        />
-        {showCloseButton && (
-          <DialogPrimitive.Close data-slot="dialog-close" asChild>
+      <RemoveScroll allowPinchZoom removeScrollBar={false}>
+        <DialogOverlay />
+        <DialogPrimitive.Content
+          data-slot="dialog-content"
+          className={cn(
+            "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-none bg-popover p-6 text-sm text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+            showCloseButton && "[&>[data-slot=dialog-header]]:pr-16",
+            className
+          )}
+          onEscapeKeyDown={event => {
+            onEscapeKeyDown?.(event)
+            event.preventDefault()
+          }}
+          onInteractOutside={event => {
+            onInteractOutside?.(event)
+            event.preventDefault()
+          }}
+          onPointerDownOutside={event => {
+            onPointerDownOutside?.(event)
+            event.preventDefault()
+          }}
+          {...props}
+        >
+          {children}
+          <div
+            className="pointer-events-none absolute inset-0"
+            data-slot="combobox-portal"
+          />
+          {showCloseButton && onCloseButtonClick ? (
             <Button
-              variant="ghost"
+              aria-label="Fechar"
               className="absolute top-5 right-5 bg-secondary"
+              onClick={onCloseButtonClick}
               size="icon-sm"
+              variant="ghost"
             >
-              <XIcon
-              />
-              <span className="sr-only">Close</span>
+              <XIcon />
+              <span className="sr-only">Fechar</span>
             </Button>
-          </DialogPrimitive.Close>
-        )}
-      </DialogPrimitive.Content>
+          ) : showCloseButton ? (
+            <DialogPrimitive.Close data-slot="dialog-close" asChild>
+              <Button
+                variant="ghost"
+                className="absolute top-5 right-5 bg-secondary"
+                size="icon-sm"
+              >
+                <XIcon />
+                <span className="sr-only">Close</span>
+              </Button>
+            </DialogPrimitive.Close>
+          ) : null}
+        </DialogPrimitive.Content>
+      </RemoveScroll>
     </DialogPortal>
   )
 }
