@@ -1,10 +1,9 @@
 "use client"
 
-import * as React from "react"
+import { cn } from "cn"
 import { OTPInput, OTPInputContext } from "input-otp"
-
-import { cn } from "@/lib/utils"
 import { MinusIcon } from "lucide-react"
+import * as React from "react"
 
 function InputOTP({
   className,
@@ -15,13 +14,13 @@ function InputOTP({
 }) {
   return (
     <OTPInput
-      data-slot="input-otp"
+      className={cn("disabled:cursor-not-allowed", className)}
       containerClassName={cn(
         "cn-input-otp flex items-center has-disabled:opacity-50",
         containerClassName
       )}
+      data-slot="input-otp"
       spellCheck={false}
-      className={cn("disabled:cursor-not-allowed", className)}
       {...props}
     />
   )
@@ -30,11 +29,11 @@ function InputOTP({
 function InputOTPGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      data-slot="input-otp-group"
       className={cn(
         "flex items-center gap-1 rounded-none has-aria-invalid:border-b-destructive dark:has-aria-invalid:border-b-destructive/50",
         className
       )}
+      data-slot="input-otp-group"
       {...props}
     />
   )
@@ -52,12 +51,12 @@ function InputOTPSlot({
 
   return (
     <div
-      data-slot="input-otp-slot"
-      data-active={isActive}
       className={cn(
         "relative flex size-10 items-center justify-center border border-transparent border-b-input bg-transparent text-sm transition-[color,border-color] outline-none first:rounded-none last:rounded-none aria-invalid:border-b-destructive data-[active=true]:z-10 data-[active=true]:border-b-ring dark:aria-invalid:border-b-destructive/50",
         className
       )}
+      data-active={isActive}
+      data-slot="input-otp-slot"
       {...props}
     >
       {char}
@@ -73,13 +72,12 @@ function InputOTPSlot({
 function InputOTPSeparator({ ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      data-slot="input-otp-separator"
       className="flex items-center [&_svg:not([class*='size-'])]:size-3.5"
+      data-slot="input-otp-separator"
       role="separator"
       {...props}
     >
-      <MinusIcon
-      />
+      <MinusIcon />
     </div>
   )
 }

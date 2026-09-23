@@ -1,11 +1,12 @@
+import { cn } from "cn"
 import type { Metadata } from "next"
 import { Roboto } from "next/font/google"
 import { AuthGuard } from "@/components/auth-guard"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
-import { cn } from "@/lib/utils"
 import { ApplicationProviders } from "./application-providers"
 import "./globals.css"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
 const robotoSans = Roboto({
   variable: "--font-roboto-sans",
@@ -36,8 +37,10 @@ export default function RootLayout({
             disableTransitionOnChange
             enableSystem
           >
-            <AuthGuard>{children}</AuthGuard>
-            <Toaster position="top-right" />
+            <TooltipProvider>
+              <AuthGuard>{children}</AuthGuard>
+              <Toaster position="top-right" />
+            </TooltipProvider>
           </ThemeProvider>
         </ApplicationProviders>
       </body>

@@ -13,7 +13,7 @@ export type MethodologyIssue = {
   actual?: number
   expected?: Range
 }
-// Metadados fornecidos pelo chamador, nunca inferidos pelo nome ou pela IA.
+
 export type ExerciseClassification = ReadonlyMap<string, ExerciseKind>
 type Path = MethodologyIssue["path"]
 const within = (value: number, range: Range) =>

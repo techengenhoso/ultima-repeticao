@@ -1,6 +1,7 @@
 "use client"
 
 import { Combobox as ComboboxPrimitive } from "@base-ui/react"
+import { cn } from "cn"
 import { CheckIcon, ChevronDownIcon, XIcon } from "lucide-react"
 import * as React from "react"
 import { Button } from "@/components/ui/button"
@@ -10,13 +11,8 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group"
-import { cn } from "@/lib/utils"
 
 const Combobox = ComboboxPrimitive.Root
-
-function ComboboxInputGroup({ ...props }: ComboboxPrimitive.InputGroup.Props) {
-  return <ComboboxPrimitive.InputGroup render={<InputGroup />} {...props} />
-}
 
 function ComboboxValue({ ...props }: ComboboxPrimitive.Value.Props) {
   return <ComboboxPrimitive.Value data-slot="combobox-value" {...props} />
@@ -96,22 +92,19 @@ function ComboboxContent({
   align = "start",
   alignOffset = 0,
   anchor,
-  container,
   ...props
 }: ComboboxPrimitive.Popup.Props &
   Pick<
     ComboboxPrimitive.Positioner.Props,
     "side" | "align" | "sideOffset" | "alignOffset" | "anchor"
-  > & {
-    container?: ComboboxPrimitive.Portal.Props["container"]
-  }) {
+  >) {
   return (
-    <ComboboxPrimitive.Portal container={container}>
+    <ComboboxPrimitive.Portal>
       <ComboboxPrimitive.Positioner
         align={align}
         alignOffset={alignOffset}
         anchor={anchor}
-        className="pointer-events-auto isolate z-50 !fixed"
+        className="isolate z-50"
         side={side}
         sideOffset={sideOffset}
       >
@@ -133,7 +126,7 @@ function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
   return (
     <ComboboxPrimitive.List
       className={cn(
-        "max-h-[min(calc(--spacing(72)---spacing(9)),calc(var(--available-height)---spacing(9)))] scroll-py-1.5 overflow-y-auto overscroll-contain p-1.5 data-empty:p-0",
+        "no-scrollbar max-h-[min(calc(--spacing(72)---spacing(9)),calc(var(--available-height)---spacing(9)))] scroll-py-1.5 overflow-y-auto overscroll-contain p-1.5 data-empty:p-0",
         className
       )}
       data-slot="combobox-list"
@@ -278,7 +271,6 @@ function useComboboxAnchor() {
 
 export {
   Combobox,
-  ComboboxInputGroup,
   ComboboxInput,
   ComboboxContent,
   ComboboxList,

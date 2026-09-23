@@ -162,7 +162,7 @@ export function ExerciseList() {
                     <TableHead className="hidden text-center lg:table-cell">
                       Dificuldade
                     </TableHead>
-                    <TableHead className="w-[140px] text-center">Ações</TableHead>
+                    <TableHead className="w-36 text-center">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
 

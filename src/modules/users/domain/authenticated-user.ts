@@ -1,4 +1,3 @@
-/** Identidade que a interface pode consumir sem conhecer o provedor de autenticação. */
 export interface AuthenticatedUser {
   uid: string
   email: string | null

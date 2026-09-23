@@ -1,14 +1,13 @@
-import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "cn"
 import { Slot } from "radix-ui"
-
-import { cn } from "@/lib/utils"
+import * as React from "react"
 
 function BubbleGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      data-slot="bubble-group"
       className={cn("flex min-w-0 flex-col gap-2", className)}
+      data-slot="bubble-group"
       {...props}
     />
   )
@@ -52,10 +51,10 @@ function Bubble({
   }) {
   return (
     <div
+      className={cn(bubbleVariants({ variant }), className)}
+      data-align={align}
       data-slot="bubble"
       data-variant={variant}
-      data-align={align}
-      className={cn(bubbleVariants({ variant }), className)}
       {...props}
     />
   )
@@ -72,11 +71,11 @@ function BubbleContent({
 
   return (
     <Comp
-      data-slot="bubble-content"
       className={cn(
         "w-fit max-w-full min-w-0 overflow-hidden rounded-none border border-transparent px-4 py-3 text-sm leading-relaxed wrap-break-word group-data-[align=end]/bubble:self-end [button]:text-left [button,a]:transition-colors [button,a]:outline-none [button,a]:focus-visible:border-ring [button,a]:focus-visible:ring-2 [button,a]:focus-visible:ring-ring/30",
         className
       )}
+      data-slot="bubble-content"
       {...props}
     />
   )
@@ -113,10 +112,10 @@ function BubbleReactions({
 }) {
   return (
     <div
-      data-slot="bubble-reactions"
+      className={cn(bubbleReactionsVariants({ side, align }), className)}
       data-align={align}
       data-side={side}
-      className={cn(bubbleReactionsVariants({ side, align }), className)}
+      data-slot="bubble-reactions"
       {...props}
     />
   )

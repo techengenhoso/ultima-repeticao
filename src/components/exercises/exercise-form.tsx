@@ -1,6 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import { cn } from "cn"
 import {
   ActivityIcon,
   BicepsFlexedIcon,
@@ -25,7 +26,6 @@ import {
   secondaryMusclesSchema,
   textSchema,
 } from "@/lib/schemas-zod"
-import { cn } from "@/lib/utils"
 import type { Exercise, ExerciseInput } from "@/modules/exercises/domain/exercise"
 import { normalizeExerciseFields } from "@/modules/exercises/domain/normalization"
 import { LongTextField } from "../long-text-field"

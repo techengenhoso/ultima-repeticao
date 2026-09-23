@@ -1,7 +1,6 @@
 import { normalizeExerciseName } from "@/modules/exercises/domain/normalization"
 import type { ExerciseKind } from "@/modules/workouts/domain/methodology/types"
 
-// Tabela explícita de padrões dinâmicos conhecidos; sem inferência pelo nome/equipamento.
 const compoundPatterns = [
   "Agachar",
   "Agachar com base ampla",

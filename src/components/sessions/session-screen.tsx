@@ -39,7 +39,7 @@ const confirmationDetails: Record<
     confirmLabel: string
     description: string
     title: string
-    variant: "default" | "red"
+    variant: "default" | "destructive"
   }
 > = {
   completed: {
@@ -54,7 +54,7 @@ const confirmationDetails: Record<
     description:
       "O treino ficará no histórico como cancelado e não será usado na progressão, alterações ainda não salvas serão descartadas",
     title: "Cancelar treino",
-    variant: "red",
+    variant: "destructive",
   },
   reload: {
     confirmLabel: "Recarregar treino",
@@ -305,7 +305,7 @@ function SessionEditor({
                   disabled={pending}
                   onClick={() => setConfirmation("cancelled")}
                   type="button"
-                  variant="red"
+                  variant="secondary"
                 >
                   Cancelar treino
                 </Button>

@@ -107,7 +107,7 @@ export function PersonalInformation() {
             autoComplete="name"
             disabled={isLoading || isSubmitting}
             error={errors.fullName}
-            icon={<UserIcon aria-hidden="true" />}
+            icon={<UserIcon />}
             id="fullName"
             label="Nome completo"
             placeholder="Digite seu nome completo"

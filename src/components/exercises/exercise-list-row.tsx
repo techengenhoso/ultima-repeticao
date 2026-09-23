@@ -43,7 +43,7 @@ export function ExerciseListRow({ exercise, onDelete, onDetails, onEdit }: Props
         </div>
       </TableCell>
 
-      <TableCell className="w-[140px]">
+      <TableCell className="w-36">
         <div className="flex justify-center gap-1">
           <Button
             aria-label={`Ver detalhes de ${exercise.name}`}
@@ -60,7 +60,7 @@ export function ExerciseListRow({ exercise, onDelete, onDetails, onEdit }: Props
             onClick={() => onEdit(exercise)}
             size="icon-sm"
             type="button"
-            variant="blue"
+            variant="secondary"
           >
             <PencilIcon />
           </Button>

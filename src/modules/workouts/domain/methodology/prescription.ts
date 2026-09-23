@@ -36,7 +36,7 @@ const goalRules: Record<
     isolation: rules([2, 4], "10-20", [60, 150]),
     guidance: [
       "Manter fundamentos de força e hipertrofia sem transformar o treino em circuito",
-      "Não prescrever dieta ou déficit calórico",
+      "Não prescrever dieta ou deficit calórico",
     ],
   },
   conditioning: {

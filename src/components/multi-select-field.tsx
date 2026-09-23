@@ -1,6 +1,7 @@
 "use client"
 
-import { type ReactNode, useCallback, useState } from "react"
+import { Combobox as ComboboxPrimitive } from "@base-ui/react"
+import { type ReactNode } from "react"
 import {
   Combobox,
   ComboboxChip,
@@ -8,14 +9,13 @@ import {
   ComboboxChipsInput,
   ComboboxContent,
   ComboboxEmpty,
-  ComboboxInputGroup,
   ComboboxItem,
   ComboboxList,
   ComboboxTrigger,
   useComboboxAnchor,
 } from "@/components/ui/combobox"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
-import { InputGroupAddon } from "@/components/ui/input-group"
+import { InputGroup, InputGroupAddon } from "@/components/ui/input-group"
 
 interface Option {
   label: string
@@ -35,6 +35,10 @@ interface Props {
   onChange: (value: string[]) => void
 }
 
+function MultiSelectInputGroup({ ...props }: ComboboxPrimitive.InputGroup.Props) {
+  return <ComboboxPrimitive.InputGroup render={<InputGroup />} {...props} />
+}
+
 export function MultiSelectField({
   id,
   label,
@@ -48,19 +52,7 @@ export function MultiSelectField({
   onChange,
 }: Props) {
   const anchor = useComboboxAnchor()
-  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null)
   const selectedOptions = options.filter(option => value.includes(option.value))
-  const setAnchor = useCallback(
-    (node: HTMLDivElement | null) => {
-      anchor.current = node
-      setPortalContainer(
-        node
-          ?.closest<HTMLElement>("[data-slot=dialog-content]")
-          ?.querySelector<HTMLElement>("[data-slot=combobox-portal]") ?? null
-      )
-    },
-    [anchor]
-  )
 
   return (
     <Field>
@@ -73,7 +65,7 @@ export function MultiSelectField({
         onValueChange={selected => onChange(selected.map(option => option.value))}
         value={selectedOptions}
       >
-        <ComboboxInputGroup className="h-auto min-h-11" ref={setAnchor}>
+        <MultiSelectInputGroup className="h-auto min-h-11" ref={anchor}>
           <InputGroupAddon>{icon}</InputGroupAddon>
 
           <ComboboxChips className="order-2 h-full min-w-0 flex-1 border-0 px-3 py-1.5 focus-within:border-0 has-data-[slot=combobox-chip]:px-3">
@@ -92,9 +84,9 @@ export function MultiSelectField({
           <InputGroupAddon align="inline-end" className="h-11 self-start pr-3">
             <ComboboxTrigger disabled={disabled} />
           </InputGroupAddon>
-        </ComboboxInputGroup>
+        </MultiSelectInputGroup>
 
-        <ComboboxContent anchor={anchor} container={portalContainer}>
+        <ComboboxContent anchor={anchor}>
           <ComboboxEmpty>Nenhuma opção encontrada</ComboboxEmpty>
 
           <ComboboxList>

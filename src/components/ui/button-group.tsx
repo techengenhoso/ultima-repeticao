@@ -1,7 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "cn"
 import { Slot } from "radix-ui"
-
-import { cn } from "@/lib/utils"
 import { Separator } from "@/components/ui/separator"
 
 const buttonGroupVariants = cva(
@@ -28,10 +27,10 @@ function ButtonGroup({
 }: React.ComponentProps<"div"> & VariantProps<typeof buttonGroupVariants>) {
   return (
     <div
-      role="group"
-      data-slot="button-group"
-      data-orientation={orientation}
       className={cn(buttonGroupVariants({ orientation }), className)}
+      data-orientation={orientation}
+      data-slot="button-group"
+      role="group"
       {...props}
     />
   )
@@ -64,20 +63,15 @@ function ButtonGroupSeparator({
 }: React.ComponentProps<typeof Separator>) {
   return (
     <Separator
-      data-slot="button-group-separator"
-      orientation={orientation}
       className={cn(
         "relative self-stretch bg-input data-horizontal:mx-px data-horizontal:w-auto data-vertical:my-px data-vertical:h-auto",
         className
       )}
+      data-slot="button-group-separator"
+      orientation={orientation}
       {...props}
     />
   )
 }
 
-export {
-  ButtonGroup,
-  ButtonGroupSeparator,
-  ButtonGroupText,
-  buttonGroupVariants,
-}
+export { ButtonGroup, ButtonGroupSeparator, ButtonGroupText, buttonGroupVariants }

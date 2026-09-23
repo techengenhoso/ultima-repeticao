@@ -1,8 +1,7 @@
-import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "cn"
 import { Slot } from "radix-ui"
-
-import { cn } from "@/lib/utils"
+import * as React from "react"
 
 const markerVariants = cva(
   "group/marker relative flex min-h-4 w-full items-center gap-2 text-left text-xs tracking-wide text-muted-foreground uppercase [&_svg:not([class*='size-'])]:size-4 [a]:underline [a]:underline-offset-3 [a]:hover:text-foreground",
@@ -31,9 +30,9 @@ function Marker({
 
   return (
     <Comp
+      className={cn(markerVariants({ variant, className }))}
       data-slot="marker"
       data-variant={variant}
-      className={cn(markerVariants({ variant, className }))}
       {...props}
     />
   )
@@ -42,12 +41,9 @@ function Marker({
 function MarkerIcon({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
-      data-slot="marker-icon"
       aria-hidden="true"
-      className={cn(
-        "size-4 shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        className
-      )}
+      className={cn("size-4 shrink-0 [&_svg:not([class*='size-'])]:size-4", className)}
+      data-slot="marker-icon"
       {...props}
     />
   )
@@ -56,11 +52,11 @@ function MarkerIcon({ className, ...props }: React.ComponentProps<"span">) {
 function MarkerContent({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
-      data-slot="marker-content"
       className={cn(
         "min-w-0 wrap-break-word group-data-[variant=separator]/marker:flex-none group-data-[variant=separator]/marker:text-center *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground",
         className
       )}
+      data-slot="marker-content"
       {...props}
     />
   )

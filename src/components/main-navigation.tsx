@@ -1,5 +1,6 @@
 "use client"
 
+import { cn } from "cn"
 import {
   ActivityIcon,
   ClipboardListIcon,
@@ -9,7 +10,6 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
 
 const navigationItems = [
   { href: "/", icon: HomeIcon, label: "Início" },

@@ -19,7 +19,7 @@ const defaultExerciseSeeds: DefaultExerciseSeed[] = [
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
     movementExecution:
-      "Execute o movimento ou sustente a posição sem perder o alinhamento lombopélvico, avançando apenas até onde mantém controle",
+      "Execute o movimento ou sustente a posição sem perder o alinhamento lombo pélvico, avançando apenas até onde mantém controle",
     importantCautions:
       "Evite prender a respiração, arquear a lombar ou compensar com pescoço e ombros; encerre a série ao perder a postura",
   },
@@ -35,7 +35,7 @@ const defaultExerciseSeeds: DefaultExerciseSeed[] = [
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
     movementExecution:
-      "Execute o movimento ou sustente a posição sem perder o alinhamento lombopélvico, avançando apenas até onde mantém controle",
+      "Execute o movimento ou sustente a posição sem perder o alinhamento lombo pélvico, avançando apenas até onde mantém controle",
     importantCautions:
       "Evite prender a respiração, arquear a lombar ou compensar com pescoço e ombros; encerre a série ao perder a postura",
   },
@@ -339,7 +339,7 @@ const defaultExerciseSeeds: DefaultExerciseSeed[] = [
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
     movementExecution:
-      "Execute o movimento ou sustente a posição sem perder o alinhamento lombopélvico, avançando apenas até onde mantém controle",
+      "Execute o movimento ou sustente a posição sem perder o alinhamento lombo pélvico, avançando apenas até onde mantém controle",
     importantCautions:
       "Evite prender a respiração, arquear a lombar ou compensar com pescoço e ombros; encerre a série ao perder a postura",
   },
@@ -563,7 +563,7 @@ const defaultExerciseSeeds: DefaultExerciseSeed[] = [
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
     movementExecution:
-      "Execute o movimento ou sustente a posição sem perder o alinhamento lombopélvico, avançando apenas até onde mantém controle",
+      "Execute o movimento ou sustente a posição sem perder o alinhamento lombo pélvico, avançando apenas até onde mantém controle",
     importantCautions:
       "Evite prender a respiração, arquear a lombar ou compensar com pescoço e ombros; encerre a série ao perder a postura",
   },
@@ -739,7 +739,7 @@ const defaultExerciseSeeds: DefaultExerciseSeed[] = [
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
     movementExecution:
-      "Execute o movimento ou sustente a posição sem perder o alinhamento lombopélvico, avançando apenas até onde mantém controle",
+      "Execute o movimento ou sustente a posição sem perder o alinhamento lombo pélvico, avançando apenas até onde mantém controle",
     importantCautions:
       "Evite prender a respiração, arquear a lombar ou compensar com pescoço e ombros; encerre a série ao perder a postura",
   },
@@ -1155,7 +1155,7 @@ const defaultExerciseSeeds: DefaultExerciseSeed[] = [
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
     movementExecution:
-      "Execute o movimento ou sustente a posição sem perder o alinhamento lombopélvico, avançando apenas até onde mantém controle",
+      "Execute o movimento ou sustente a posição sem perder o alinhamento lombo pélvico, avançando apenas até onde mantém controle",
     importantCautions:
       "Evite prender a respiração, arquear a lombar ou compensar com pescoço e ombros; encerre a série ao perder a postura",
   },
@@ -1347,7 +1347,7 @@ const defaultExerciseSeeds: DefaultExerciseSeed[] = [
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
     movementExecution:
-      "Execute o movimento ou sustente a posição sem perder o alinhamento lombopélvico, avançando apenas até onde mantém controle",
+      "Execute o movimento ou sustente a posição sem perder o alinhamento lombo pélvico, avançando apenas até onde mantém controle",
     importantCautions:
       "Evite prender a respiração, arquear a lombar ou compensar com pescoço e ombros; encerre a série ao perder a postura",
   },
@@ -1475,7 +1475,7 @@ const defaultExerciseSeeds: DefaultExerciseSeed[] = [
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
     movementExecution:
-      "Execute o movimento ou sustente a posição sem perder o alinhamento lombopélvico, avançando apenas até onde mantém controle",
+      "Execute o movimento ou sustente a posição sem perder o alinhamento lombo pélvico, avançando apenas até onde mantém controle",
     importantCautions:
       "Evite prender a respiração, arquear a lombar ou compensar com pescoço e ombros; encerre a série ao perder a postura",
   },
@@ -1491,7 +1491,7 @@ const defaultExerciseSeeds: DefaultExerciseSeed[] = [
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
     movementExecution:
-      "Execute o movimento ou sustente a posição sem perder o alinhamento lombopélvico, avançando apenas até onde mantém controle",
+      "Execute o movimento ou sustente a posição sem perder o alinhamento lombo pélvico, avançando apenas até onde mantém controle",
     importantCautions:
       "Evite prender a respiração, arquear a lombar ou compensar com pescoço e ombros; encerre a série ao perder a postura",
   },
@@ -2003,7 +2003,7 @@ const defaultExerciseSeeds: DefaultExerciseSeed[] = [
     startingPosition:
       "Organize costelas e pelve, contraia o abdome e mantenha a respiração contínua",
     movementExecution:
-      "Execute o movimento ou sustente a posição sem perder o alinhamento lombopélvico, avançando apenas até onde mantém controle",
+      "Execute o movimento ou sustente a posição sem perder o alinhamento lombo pélvico, avançando apenas até onde mantém controle",
     importantCautions:
       "Evite prender a respiração, arquear a lombar ou compensar com pescoço e ombros; encerre a série ao perder a postura",
   },

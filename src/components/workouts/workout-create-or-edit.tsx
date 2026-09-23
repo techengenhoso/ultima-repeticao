@@ -1,5 +1,6 @@
 "use client"
 
+import { XIcon } from "lucide-react"
 import { useState } from "react"
 import {
   AlertDialog,
@@ -45,8 +46,18 @@ export function WorkoutCreateOrEdit() {
       >
         <DialogContent
           className="max-h-[calc(100svh-1rem)] w-[calc(100%-1rem)] max-w-[calc(100%-1rem)] overflow-x-hidden overflow-y-auto p-4 sm:max-w-4xl sm:p-6"
-          onCloseButtonClick={requestDiscard}
+          showCloseButton={false}
         >
+          <Button
+            aria-label="Descartar alterações"
+            className="absolute top-3 right-3"
+            onClick={requestDiscard}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+          >
+            <XIcon aria-hidden="true" />
+          </Button>
           <DialogHeader>
             <DialogTitle>{workout?.id ? "Editar ficha" : "Nova ficha"}</DialogTitle>
             <DialogDescription>

@@ -52,56 +52,58 @@ export function SignInForm() {
   }
 
   return (
-    <FieldGroup noValidate onSubmit={handleSubmit(onSubmit)}>
-      <TextField
-        autoComplete="email"
-        disabled={isLoading || isSubmitting}
-        error={errors.email}
-        icon={<MailIcon />}
-        id="email"
-        label="E-mail"
-        placeholder="voce@exemplo.com.br"
-        type="email"
-        {...register("email")}
-      />
+    <form noValidate onSubmit={handleSubmit(onSubmit)}>
+      <FieldGroup>
+        <TextField
+          autoComplete="email"
+          disabled={isLoading || isSubmitting}
+          error={errors.email}
+          icon={<MailIcon />}
+          id="email"
+          label="E-mail"
+          placeholder="voce@exemplo.com.br"
+          type="email"
+          {...register("email")}
+        />
 
-      <PasswordField
-        autoComplete="current-password"
-        disabled={isLoading || isSubmitting}
-        error={errors.password}
-        icon={<LockKeyholeIcon />}
-        id="password"
-        label="Senha"
-        placeholder="Digite sua senha"
-        {...register("password")}
-      >
-        <Link
-          className="text-xs font-medium text-primary underline-offset-4 hover:underline"
-          href="/forgot-password"
+        <PasswordField
+          autoComplete="current-password"
+          disabled={isLoading || isSubmitting}
+          error={errors.password}
+          icon={<LockKeyholeIcon />}
+          id="password"
+          label="Senha"
+          placeholder="Digite sua senha"
+          {...register("password")}
         >
-          Esqueci minha senha
-        </Link>
-      </PasswordField>
+          <Link
+            className="text-xs font-medium text-primary underline-offset-4 hover:underline"
+            href="/forgot-password"
+          >
+            Esqueci minha senha
+          </Link>
+        </PasswordField>
 
-      {signInError && (
-        <div
-          aria-live="polite"
-          className="border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
-          role="alert"
+        {signInError && (
+          <div
+            aria-live="polite"
+            className="border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
+            role="alert"
+          >
+            {signInError}
+          </div>
+        )}
+
+        <Button
+          className="w-full mt-(--card-spacing)"
+          disabled={isLoading || isSubmitting}
+          size="lg"
+          type="submit"
         >
-          {signInError}
-        </div>
-      )}
-
-      <Button
-        className="w-full mt-(--card-spacing)"
-        disabled={isLoading || isSubmitting}
-        size="lg"
-        type="submit"
-      >
-        {isSubmitting && <LoaderCircleIcon className="animate-spin" />}
-        {isSubmitting ? "Entrando" : "Entrar"}
-      </Button>
-    </FieldGroup>
+          {isSubmitting && <LoaderCircleIcon className="animate-spin" />}
+          {isSubmitting ? "Entrando" : "Entrar"}
+        </Button>
+      </FieldGroup>
+    </form>
   )
 }

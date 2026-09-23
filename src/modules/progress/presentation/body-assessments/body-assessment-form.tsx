@@ -1,6 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import { cn } from "cn"
 import { CalendarIcon, LoaderCircleIcon, RulerIcon, ScaleIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { type FieldPath, useForm } from "react-hook-form"
@@ -15,7 +16,6 @@ import {
   parseBrazilianDate,
 } from "@/lib/date"
 import { dateSchema } from "@/lib/schemas-zod"
-import { cn } from "@/lib/utils"
 import {
   assessmentInputSchema,
   type BodyAssessment,

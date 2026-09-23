@@ -20,7 +20,7 @@ export function ProgressDashboard() {
           variant="line"
         >
           <TabsTrigger
-            className="h-auto flex-none px-0 py-3 text-sm font-medium tracking-normal normal-case after:hidden data-active:!text-primary"
+            className="h-auto flex-none px-0 py-3 text-sm font-medium tracking-normal normal-case after:hidden data-active:text-primary!"
             value="body"
           >
             <ActivityIcon aria-hidden="true" className="size-4" />
@@ -28,7 +28,7 @@ export function ProgressDashboard() {
           </TabsTrigger>
 
           <TabsTrigger
-            className="h-auto flex-none px-0 py-3 text-sm font-medium tracking-normal normal-case after:hidden data-active:!text-primary"
+            className="h-auto flex-none px-0 py-3 text-sm font-medium tracking-normal normal-case after:hidden data-active:text-primary!"
             value="performance"
           >
             <DumbbellIcon aria-hidden="true" className="size-4" />

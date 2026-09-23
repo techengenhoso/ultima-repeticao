@@ -1,9 +1,9 @@
 "use client"
 
+import { cn } from "cn"
 import type { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { cn } from "@/lib/utils"
 import { sessionExerciseSchema } from "@/modules/sessions/domain/session"
 
 type SessionExerciseValue = z.input<typeof sessionExerciseSchema>
@@ -65,7 +65,7 @@ function SessionExerciseCard({
       )}
       onClick={() => onSelect(index)}
       type="button"
-      variant="card"
+      variant="secondary"
     >
       <div className="flex min-w-0 flex-1 flex-col gap-4">
         <div className="flex min-w-0 items-start gap-3">

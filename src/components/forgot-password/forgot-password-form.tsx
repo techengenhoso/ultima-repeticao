@@ -69,39 +69,41 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <FieldGroup noValidate onSubmit={handleSubmit(onSubmit)}>
-      <TextField
-        autoComplete="email"
-        autoFocus
-        disabled={isLoading || isSubmitting}
-        error={errors.email}
-        icon={<MailIcon />}
-        id="email"
-        label="E-mail"
-        placeholder="voce@exemplo.com.br"
-        type="email"
-        {...register("email")}
-      />
+    <form noValidate onSubmit={handleSubmit(onSubmit)}>
+      <FieldGroup>
+        <TextField
+          autoComplete="email"
+          autoFocus
+          disabled={isLoading || isSubmitting}
+          error={errors.email}
+          icon={<MailIcon />}
+          id="email"
+          label="E-mail"
+          placeholder="voce@exemplo.com.br"
+          type="email"
+          {...register("email")}
+        />
 
-      {forgotPasswordError && (
-        <div
-          aria-live="polite"
-          className="border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
-          role="alert"
+        {forgotPasswordError && (
+          <div
+            aria-live="polite"
+            className="border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
+            role="alert"
+          >
+            {forgotPasswordError}
+          </div>
+        )}
+
+        <Button
+          className="w-full mt-(--card-spacing)"
+          disabled={isLoading || isSubmitting}
+          size="lg"
+          type="submit"
         >
-          {forgotPasswordError}
-        </div>
-      )}
-
-      <Button
-        className="w-full mt-(--card-spacing)"
-        disabled={isLoading || isSubmitting}
-        size="lg"
-        type="submit"
-      >
-        {isSubmitting && <LoaderCircleIcon className="animate-spin" />}
-        {isSubmitting ? "Enviando" : "Enviar instruções"}
-      </Button>
-    </FieldGroup>
+          {isSubmitting && <LoaderCircleIcon className="animate-spin" />}
+          {isSubmitting ? "Enviando" : "Enviar instruções"}
+        </Button>
+      </FieldGroup>
+    </form>
   )
 }

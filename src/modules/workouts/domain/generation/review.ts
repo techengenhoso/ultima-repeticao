@@ -7,7 +7,6 @@ import {
 import type { WorkoutFormValues } from "@/modules/workouts/domain/workout"
 import { classifyMovement } from "./movement-classification"
 
-// A ordem visual é a ordem salva; snapshots nunca vêm dos campos editáveis.
 export function reviewWorkout(
   values: WorkoutFormValues,
   prescription: WorkoutPrescription,

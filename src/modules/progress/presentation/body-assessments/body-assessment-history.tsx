@@ -73,7 +73,7 @@ export function BodyAssessmentHistory({
                   onClick={() => onEdit(item)}
                   size="icon-sm"
                   type="button"
-                  variant="blue"
+                  variant="secondary"
                 >
                   <PencilIcon />
                 </Button>

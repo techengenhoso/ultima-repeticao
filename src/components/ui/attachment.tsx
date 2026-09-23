@@ -1,8 +1,7 @@
-import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "cn"
 import { Slot } from "radix-ui"
-
-import { cn } from "@/lib/utils"
+import * as React from "react"
 import { Button } from "@/components/ui/button"
 
 const attachmentVariants = cva(
@@ -35,11 +34,11 @@ function Attachment({
   }) {
   return (
     <div
+      className={cn(attachmentVariants({ size, orientation }), className)}
+      data-orientation={orientation}
+      data-size={size}
       data-slot="attachment"
       data-state={state}
-      data-size={size}
-      data-orientation={orientation}
-      className={cn(attachmentVariants({ size, orientation }), className)}
       {...props}
     />
   )
@@ -68,74 +67,62 @@ function AttachmentMedia({
 }: React.ComponentProps<"div"> & VariantProps<typeof attachmentMediaVariants>) {
   return (
     <div
+      className={cn(attachmentMediaVariants({ variant }), className)}
       data-slot="attachment-media"
       data-variant={variant}
-      className={cn(attachmentMediaVariants({ variant }), className)}
       {...props}
     />
   )
 }
 
-function AttachmentContent({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+function AttachmentContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      data-slot="attachment-content"
       className={cn(
         "max-w-full min-w-0 flex-1 leading-tight group-data-[orientation=vertical]/attachment:px-1",
         className
       )}
+      data-slot="attachment-content"
       {...props}
     />
   )
 }
 
-function AttachmentTitle({
-  className,
-  ...props
-}: React.ComponentProps<"span">) {
+function AttachmentTitle({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
-      data-slot="attachment-title"
       className={cn(
         "block max-w-full min-w-0 truncate font-medium group-data-[state=processing]/attachment:shimmer group-data-[state=uploading]/attachment:shimmer",
         className
       )}
+      data-slot="attachment-title"
       {...props}
     />
   )
 }
 
-function AttachmentDescription({
-  className,
-  ...props
-}: React.ComponentProps<"span">) {
+function AttachmentDescription({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
-      data-slot="attachment-description"
       className={cn(
         "mt-0.5 block min-w-0 truncate text-xs text-muted-foreground group-data-[state=error]/attachment:text-destructive/80",
         "max-w-full",
         className
       )}
+      data-slot="attachment-description"
       {...props}
     />
   )
 }
 
-function AttachmentActions({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+function AttachmentActions({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      data-slot="attachment-actions"
       className={cn(
         "relative z-20 flex shrink-0 items-center group-data-[orientation=vertical]/attachment:absolute group-data-[orientation=vertical]/attachment:top-3 group-data-[orientation=vertical]/attachment:right-3 group-data-[orientation=vertical]/attachment:gap-1",
         className
       )}
+      data-slot="attachment-actions"
       {...props}
     />
   )
@@ -149,10 +136,10 @@ function AttachmentAction({
 }: React.ComponentProps<typeof Button>) {
   return (
     <Button
-      data-slot="attachment-action"
-      variant={variant ?? "ghost"}
-      size={size}
       className={cn(className)}
+      data-slot="attachment-action"
+      size={size}
+      variant={variant ?? "ghost"}
       {...props}
     />
   )
@@ -170,9 +157,9 @@ function AttachmentTrigger({
 
   return (
     <Comp
+      className={cn("absolute inset-0 z-10 outline-none", className)}
       data-slot="attachment-trigger"
       type={asChild ? undefined : (type ?? "button")}
-      className={cn("absolute inset-0 z-10 outline-none", className)}
       {...props}
     />
   )
@@ -181,11 +168,11 @@ function AttachmentTrigger({
 function AttachmentGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      data-slot="attachment-group"
       className={cn(
-        "flex min-w-0 scroll-fade-x snap-x snap-mandatory scroll-px-1 gap-3 overflow-x-auto overscroll-x-contain py-1 *:data-[slot=attachment]:flex-none *:data-[slot=attachment]:snap-start",
+        "flex min-w-0 scroll-fade-x snap-x snap-mandatory scroll-px-1 scrollbar-none gap-3 overflow-x-auto overscroll-x-contain py-1 *:data-[slot=attachment]:flex-none *:data-[slot=attachment]:snap-start",
         className
       )}
+      data-slot="attachment-group"
       {...props}
     />
   )

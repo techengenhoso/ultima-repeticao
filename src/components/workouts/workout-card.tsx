@@ -120,7 +120,7 @@ export function WorkoutCard({
           onClick={() => onEdit(workout)}
           size="icon-sm"
           type="button"
-          variant="blue"
+          variant="secondary"
         >
           <PencilIcon />
         </Button>

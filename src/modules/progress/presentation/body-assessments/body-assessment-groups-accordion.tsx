@@ -1,5 +1,6 @@
 "use client"
 
+import { cn } from "cn"
 import type { ReactNode } from "react"
 import {
   Accordion,
@@ -7,7 +8,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { cn } from "@/lib/utils"
 import type { AssessmentGroup } from "@/modules/body-assessments/presentation/fields"
 
 type AssessmentGroupPanel = {

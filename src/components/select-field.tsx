@@ -1,3 +1,4 @@
+import { cn } from "cn"
 import type { ReactNode } from "react"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
 import { InputGroup, InputGroupAddon } from "@/components/ui/input-group"
@@ -9,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { cn } from "@/lib/utils"
 
 interface Props {
   id: string
