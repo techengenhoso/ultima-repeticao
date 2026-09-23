@@ -26,7 +26,7 @@ function QuestionnaireProgress({
   return (
     <QuestionnairePrimitive.Progress
       className={cn(
-        "min-h-[1lh] w-fit min-w-[14ch] text-xs font-medium tracking-wide text-muted-foreground uppercase tabular-nums",
+        "min-h-[1lh] w-fit min-w-[14ch] text-xs font-medium text-muted-foreground tabular-nums",
         className
       )}
       data-slot="questionnaire-progress"
@@ -55,7 +55,7 @@ function QuestionnaireTitle({
   return (
     <QuestionnairePrimitive.Title
       className={cn(
-        "font-heading text-xs font-semibold tracking-wide text-pretty uppercase [&:not(:has(~[data-slot=questionnaire-description]))]:mb-5",
+        "font-heading text-base font-semibold text-pretty [&:not(:has(~[data-slot=questionnaire-description]))]:mb-5",
         className
       )}
       data-slot="questionnaire-title"
@@ -70,10 +70,7 @@ function QuestionnaireDescription({
 }: React.ComponentProps<typeof QuestionnairePrimitive.Description>) {
   return (
     <QuestionnairePrimitive.Description
-      className={cn(
-        "text-sm tracking-normal text-pretty text-muted-foreground normal-case",
-        className
-      )}
+      className={cn("text-sm text-pretty text-muted-foreground", className)}
       data-slot="questionnaire-description"
       {...props}
     />
@@ -101,7 +98,7 @@ function QuestionnaireChoice({
   return (
     <QuestionnairePrimitive.Choice
       className={cn(
-        "group/questionnaire-choice relative flex min-h-11 cursor-pointer items-start gap-3 rounded-none border border-input bg-transparent px-4 py-4 text-start text-sm transition-colors outline-none select-none hover:bg-muted/50 has-[>input:focus-visible]:ring-2 has-[>input:focus-visible]:ring-ring/30 data-invalid:border-destructive data-checked:border-primary/30 data-checked:bg-primary/5 dark:data-checked:border-primary/20 dark:data-checked:bg-primary/10",
+        "group/questionnaire-choice relative flex min-h-11 cursor-pointer items-start gap-2.5 rounded-3xl border border-input px-4 py-3 text-start text-sm transition-colors outline-none select-none hover:bg-input/40 has-[>input:focus-visible]:border-ring has-[>input:focus-visible]:ring-3 has-[>input:focus-visible]:ring-ring/50 data-invalid:border-destructive data-checked:border-primary/40 data-checked:bg-primary/10",
         "data-disabled:pointer-events-none data-disabled:cursor-not-allowed data-disabled:opacity-50",
         className
       )}
@@ -114,11 +111,11 @@ function QuestionnaireChoice({
       />
       <span
         aria-hidden="true"
-        className="pointer-events-none relative flex size-4.5 shrink-0 translate-y-[--spacing(0.45)] items-center justify-center border border-input group-has-data-[slot=questionnaire-choice-description]/questionnaire-choice:translate-y-0.5 group-data-[type=radio]/questionnaire-choice:rounded-full group-data-checked/questionnaire-choice:border-foreground group-data-[type=checkbox]/questionnaire-choice:group-data-checked/questionnaire-choice:border-primary group-data-[type=checkbox]/questionnaire-choice:group-data-checked/questionnaire-choice:bg-primary group-data-[type=checkbox]/questionnaire-choice:group-data-checked/questionnaire-choice:text-primary-foreground"
+        className="pointer-events-none relative flex size-4 shrink-0 translate-y-[--spacing(0.45)] items-center justify-center rounded-[5px] border border-transparent bg-input/90 group-has-data-[slot=questionnaire-choice-description]/questionnaire-choice:translate-y-0.5 group-data-[type=radio]/questionnaire-choice:rounded-full group-data-checked/questionnaire-choice:border-primary group-data-checked/questionnaire-choice:bg-primary group-data-checked/questionnaire-choice:text-primary-foreground dark:group-data-checked/questionnaire-choice:bg-primary"
         data-slot="questionnaire-choice-indicator"
       >
         <span
-          className="hidden size-2 rounded-full bg-foreground group-data-[type=checkbox]/questionnaire-choice:hidden group-data-checked/questionnaire-choice:block"
+          className="hidden size-2 rounded-full bg-primary-foreground group-data-[type=checkbox]/questionnaire-choice:hidden group-data-checked/questionnaire-choice:block dark:size-2.5"
           data-slot="questionnaire-choice-indicator-dot"
         />
         <CheckIcon
@@ -133,7 +130,7 @@ function QuestionnaireChoice({
         {children}
       </QuestionnairePrimitive.ChoiceLabel>
       <QuestionnairePrimitive.ChoiceShortcut
-        className="pointer-events-none ms-auto hidden size-5 shrink-0 translate-y-[--spacing(0.45)] items-center justify-center rounded-none border border-input bg-background font-mono text-[0.625rem] leading-none font-medium text-muted-foreground group-has-data-[slot=questionnaire-choice-description]/questionnaire-choice:translate-y-0.5 group-data-[shortcut]/questionnaire-choice:inline-flex"
+        className="pointer-events-none ms-auto hidden size-5 shrink-0 translate-y-[--spacing(0.45)] items-center justify-center rounded-full border border-primary/10 bg-background/80 font-mono text-[0.625rem] leading-none font-medium text-muted-foreground group-has-data-[slot=questionnaire-choice-description]/questionnaire-choice:translate-y-0.5 group-data-[shortcut]/questionnaire-choice:inline-flex"
         data-slot="questionnaire-choice-shortcut"
       />
     </QuestionnairePrimitive.Choice>
@@ -164,7 +161,7 @@ function QuestionnaireInput({
     >
       <QuestionnairePrimitive.Input
         className={cn(
-          "h-10 min-h-11 w-full min-w-0 border border-transparent border-b-input bg-transparent px-0 py-1 text-base transition-[color,box-shadow,background-color] outline-none focus-visible:border-b-ring disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-b-destructive sm:min-h-0 md:text-sm dark:aria-invalid:border-b-destructive/50",
+          "h-9 min-h-11 w-full min-w-0 rounded-3xl border border-transparent bg-input/50 px-3 py-1 text-base transition-[color,box-shadow,background-color] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 sm:min-h-0 md:text-sm dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
           "selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground",
           className
         )}
@@ -192,7 +189,7 @@ function QuestionnaireActions({ className, ...props }: React.ComponentProps<"div
   return (
     <div
       className={cn(
-        "grid min-h-11 w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 sm:min-h-10",
+        "grid min-h-11 w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 sm:min-h-9",
         className
       )}
       data-slot="questionnaire-actions"
