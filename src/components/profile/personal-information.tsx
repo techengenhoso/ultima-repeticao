@@ -1,6 +1,9 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import { cn } from "cn"
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
 import {
   CalendarDaysIcon,
   LoaderCircleIcon,
@@ -8,12 +11,13 @@ import {
   UserIcon,
   UsersIcon,
 } from "lucide-react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
-import { SelectField } from "@/components/select-field"
+import { ComboboxField } from "@/components/combobox-field"
 import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
 import {
   Card,
   CardContent,
@@ -21,13 +25,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Field, FieldError, FieldLabel } from "@/components/ui/field"
+import { InputGroup, InputGroupAddon, InputGroupButton } from "@/components/ui/input-group"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useProfile } from "@/contexts/profile-context"
 import { useUser } from "@/contexts/user-context"
-import {
-  formatBrazilianDateInput,
-  formatIsoDateToBrazilian,
-  parseBrazilianDate,
-} from "@/lib/date"
+import { formatIsoDateToBrazilian, parseBrazilianDate } from "@/lib/date"
 import { genders } from "@/lib/options-select"
 import { dateSchema, emailSchema, genderSchema, textSchema } from "@/lib/schemas-zod"
 import { TextField } from "../text-field"
@@ -44,6 +47,8 @@ type PersonalInformationSchema = z.infer<typeof personalInformationSchema>
 export function PersonalInformation() {
   const { user, saveUser } = useUser()
   const { profile, saveProfile } = useProfile()
+  const [isBirthDatePickerOpen, setIsBirthDatePickerOpen] = useState(false)
+  const [birthDatePickerMonth, setBirthDatePickerMonth] = useState<Date>()
 
   const {
     control,
@@ -60,9 +65,6 @@ export function PersonalInformation() {
       gender: profile.gender ?? "",
     },
   })
-
-  // revisar, existe somente aqui até o momento
-  const birthDateField = register("birthDate")
 
   // revisar essa definição dos valores
   useEffect(
@@ -117,38 +119,96 @@ export function PersonalInformation() {
 
           <TextField
             aria-readonly="true"
-            description="O endereço de e-mail não pode ser alterado"
             disabled
             error={errors.email}
             icon={<MailIcon aria-hidden="true" />}
             id="email"
             label="E-mail"
             readOnly
+            tooltip="O endereço de e-mail não pode ser alterado"
             type="email"
             {...register("email")}
           />
 
-          <TextField
-            {...birthDateField}
-            disabled={isLoading || isSubmitting}
-            error={errors.birthDate}
-            icon={<CalendarDaysIcon aria-hidden="true" />}
-            id="birthDate"
-            inputMode="numeric"
-            label="Data de nascimento"
-            onChange={event => {
-              event.target.value = formatBrazilianDateInput(event.target.value)
-              return birthDateField.onChange(event)
+          <Controller
+            control={control}
+            name="birthDate"
+            render={({ field, fieldState }) => {
+              const isoBirthDate = parseBrazilianDate(field.value)
+              const selectedDate = isoBirthDate
+                ? new Date(`${isoBirthDate}T00:00:00`)
+                : undefined
+
+              return (
+                <Field>
+                  <FieldLabel htmlFor="birthDate">Data de nascimento</FieldLabel>
+
+                  <InputGroup data-disabled={isLoading || isSubmitting || undefined}>
+                    <InputGroupAddon>
+                      <CalendarDaysIcon aria-hidden="true" />
+                    </InputGroupAddon>
+
+                    <Popover
+                      onOpenChange={open => {
+                        setIsBirthDatePickerOpen(open)
+                        if (open) setBirthDatePickerMonth(selectedDate ?? new Date())
+                      }}
+                      open={isBirthDatePickerOpen}
+                    >
+                      <PopoverTrigger asChild>
+                        <InputGroupButton
+                          aria-describedby={
+                            fieldState.error ? "birthDate-error" : undefined
+                          }
+                          aria-invalid={Boolean(fieldState.error)}
+                          className={cn(
+                            "h-full flex-1 justify-start rounded-none px-0 pl-1.5 font-normal hover:bg-transparent",
+                            !selectedDate && "text-muted-foreground"
+                          )}
+                          data-slot="input-group-control"
+                          disabled={isLoading || isSubmitting}
+                          id="birthDate"
+                          size="sm"
+                        >
+                          {selectedDate
+                            ? format(selectedDate, "dd 'de' MMMM 'de' yyyy", {
+                                locale: ptBR,
+                              })
+                            : "Selecione sua data de nascimento"}
+                        </InputGroupButton>
+                      </PopoverTrigger>
+
+                      <PopoverContent align="start" className="w-auto p-0">
+                        <Calendar
+                          captionLayout="dropdown"
+                          disabled={{ after: new Date() }}
+                          endMonth={new Date()}
+                          locale={ptBR}
+                          mode="single"
+                          month={birthDatePickerMonth}
+                          onMonthChange={setBirthDatePickerMonth}
+                          onSelect={date => {
+                            field.onChange(date ? format(date, "dd/MM/yyyy") : "")
+                            setIsBirthDatePickerOpen(false)
+                          }}
+                          selected={selectedDate}
+                          startMonth={new Date(1900, 0)}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </InputGroup>
+
+                  <FieldError errors={[fieldState.error]} id="birthDate-error" />
+                </Field>
+              )
             }}
-            placeholder="DD/MM/AAAA"
-            type="text"
           />
 
           <Controller
             control={control}
             name="gender"
             render={({ field, fieldState }) => (
-              <SelectField
+              <ComboboxField
                 disabled={isLoading || isSubmitting}
                 error={fieldState.error}
                 icon={<UsersIcon aria-hidden="true" />}

@@ -130,7 +130,7 @@
   }
 
   html {
-    @apply overflow-y-scroll bg-muted/30 font-sans;
+    @apply bg-muted/30 font-sans;
   }
 
   button:not(:disabled), [role="button"]:not(:disabled) {

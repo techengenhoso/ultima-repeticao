@@ -6,7 +6,7 @@ import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
-import { SelectField } from "@/components/select-field"
+import { ComboboxField } from "@/components/combobox-field"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -82,7 +82,7 @@ export function Focus() {
             control={control}
             name="goal"
             render={({ field, fieldState }) => (
-              <SelectField
+              <ComboboxField
                 disabled={isLoading || isSubmitting}
                 error={fieldState.error}
                 icon={<FlagIcon aria-hidden="true" />}
@@ -99,7 +99,7 @@ export function Focus() {
             control={control}
             name="experience"
             render={({ field, fieldState }) => (
-              <SelectField
+              <ComboboxField
                 disabled={isLoading || isSubmitting}
                 error={fieldState.error}
                 icon={<MedalIcon aria-hidden="true" />}

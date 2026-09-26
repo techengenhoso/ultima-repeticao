@@ -29,18 +29,18 @@ export function BodyAssessmentGroupsAccordion({
 
   return (
     <Accordion
-      className={cn("gap-3", className)}
+      className={cn("gap-3 overflow-visible rounded-none border-0", className)}
       collapsible
       defaultValue={groups[0].key}
       type="single"
     >
       {groups.map((group, index) => (
         <AccordionItem
-          className="border border-l-2 border-l-primary"
+          className="border border-border border-l-2 border-l-primary bg-muted/50"
           key={group.key}
           value={group.key}
         >
-          <AccordionTrigger className="items-center bg-muted/50 px-4 py-3 hover:no-underline">
+          <AccordionTrigger className="items-center bg-muted/40 px-4 py-3 hover:no-underline aria-expanded:border-b-border">
             <span className="flex min-w-0 items-center gap-3">
               <span className="flex size-9 shrink-0 items-center justify-center bg-primary text-sm font-bold text-primary-foreground">
                 {index + 1}
@@ -53,7 +53,7 @@ export function BodyAssessmentGroupsAccordion({
               </span>
             </span>
           </AccordionTrigger>
-          <AccordionContent className="h-auto border-t bg-card px-4 pt-4">
+          <AccordionContent className="h-auto px-4 pt-4">
             {renderContent(group.key)}
           </AccordionContent>
         </AccordionItem>
