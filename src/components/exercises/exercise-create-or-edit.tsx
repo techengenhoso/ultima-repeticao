@@ -26,10 +26,10 @@ export function ExerciseCreateOrEdit() {
       open={exercise !== undefined}
     >
       <DialogContent
-        className="flex max-h-[calc(100dvh-2rem)] min-w-0 flex-col gap-4 overflow-hidden px-4 py-8 sm:max-w-xl sm:px-6 sm:py-8"
+        className="max-h-[calc(100dvh-2rem)] sm:max-w-xl"
         onPointerDownOutside={preventOutsideDismissal}
       >
-        <DialogHeader>
+        <DialogHeader className="pr-12">
           <DialogTitle>{exercise ? "Editar exercício" : "Novo exercício"}</DialogTitle>
           <DialogDescription>Preencha os dados do seu exercício</DialogDescription>
         </DialogHeader>

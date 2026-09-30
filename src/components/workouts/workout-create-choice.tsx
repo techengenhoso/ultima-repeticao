@@ -38,8 +38,8 @@ export function WorkoutCreateChoice() {
           <Button type="button">Nova ficha</Button>
         </DialogTrigger>
 
-        <DialogContent className="w-[calc(100%-2rem)] sm:max-w-lg">
-          <DialogHeader className="pr-10">
+        <DialogContent className="max-h-[calc(100dvh-2rem)] sm:max-w-xl">
+          <DialogHeader className="pr-12">
             <DialogTitle>Como deseja criar sua ficha?</DialogTitle>
 
             <DialogDescription>

@@ -39,13 +39,16 @@ export function performanceForExercise(sessions: WorkoutSession[], key: string) 
           return [
             {
               date: session.completedAt ?? session.startedAt,
+              performedSets: sets,
+              repetitions: sets.reduce((sum, set) => sum + set.performedRepetitions, 0),
+              sessionId: session.id,
+              sets: sets.length,
               load: best.load,
               volume: sets.reduce(
                 (sum, set) => sum + set.load * set.performedRepetitions,
                 0
               ),
               best,
-              target: `${exercise.targetSets} séries · ${exercise.targetRepetitions}`,
             },
           ]
         })
@@ -54,7 +57,17 @@ export function performanceForExercise(sessions: WorkoutSession[], key: string) 
   return {
     rows,
     latest: rows.at(-1),
-    maxLoad: rows.reduce((max, row) => Math.max(max, row.load), 0),
+    best: rows.reduce(
+      (best, row) =>
+        !best ||
+        row.best.load > best.load ||
+        (row.best.load === best.load &&
+          row.best.performedRepetitions > best.performedRepetitions)
+          ? row.best
+          : best,
+      undefined as SessionExercise["sets"][number] | undefined
+    ),
+    maxVolume: rows.reduce((max, row) => Math.max(max, row.volume), 0),
     sessions: rows.length,
   }
 }

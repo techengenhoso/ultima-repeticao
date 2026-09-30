@@ -1,3 +1,10 @@
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemTitle,
+} from "@/components/ui/item"
 import type { BodyAssessment } from "@/modules/body-assessments/domain/body-assessment"
 import { assessmentFields, groups } from "@/modules/body-assessments/presentation/fields"
 import { BodyAssessmentGroupsAccordion } from "./body-assessment-groups-accordion"
@@ -15,7 +22,6 @@ export function BodyAssessmentDetails({ item }: { item: BodyAssessment }) {
 
   return (
     <BodyAssessmentGroupsAccordion
-      className="gap-3"
       groups={filledGroups.map(group => ({
         key: group.key,
         label: group.label,
@@ -23,22 +29,26 @@ export function BodyAssessmentDetails({ item }: { item: BodyAssessment }) {
       }))}
       renderContent={assessmentGroup => {
         const group = filledGroups.find(item => item.key === assessmentGroup)
+
         return (
-          <dl className="grid gap-3 sm:grid-cols-2">
+          <ItemGroup className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {group?.fields.map(field => (
-              <div
-                className="flex items-center justify-between gap-3 border bg-background px-3 py-2"
-                key={field.key}
-              >
-                <dt className="min-w-0 text-muted-foreground">{field.label}</dt>
-                <dd className="shrink-0 whitespace-nowrap text-right font-medium">
-                  {String(item[field.group][field.key as never])} {field.unit}
-                </dd>
-              </div>
+              <Item className="items-start" key={field.key} size="sm" variant="muted">
+                <ItemContent className="min-w-0">
+                  <ItemDescription className="leading-tight">
+                    {field.label}
+                  </ItemDescription>
+
+                  <ItemTitle className="leading-tight whitespace-nowrap">
+                    {String(item[field.group][field.key as never])} {field.unit}
+                  </ItemTitle>
+                </ItemContent>
+              </Item>
             ))}
-          </dl>
+          </ItemGroup>
         )
       }}
+      scrollContent
     />
   )
 }

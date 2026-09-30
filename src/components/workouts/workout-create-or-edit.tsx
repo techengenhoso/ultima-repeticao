@@ -45,7 +45,7 @@ export function WorkoutCreateOrEdit() {
         open={workout !== undefined}
       >
         <DialogContent
-          className="max-h-[calc(100svh-1rem)] w-[calc(100%-1rem)] max-w-[calc(100%-1rem)] overflow-x-hidden overflow-y-auto p-4 sm:max-w-4xl sm:p-6"
+          className="max-h-[calc(100dvh-2rem)] sm:max-w-xl"
           showCloseButton={false}
         >
           <Button

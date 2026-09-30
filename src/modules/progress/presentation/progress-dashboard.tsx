@@ -10,7 +10,7 @@ export function ProgressDashboard() {
   return (
     <div className="space-y-6">
       <PageHeader
-        description="Acompanhe suas avaliações corporais e seu desempenho nos treinos"
+        description="Acompanhe suas avaliações corporais e seu desempenho nos exercícios"
         title="Evolução"
       />
 
@@ -32,7 +32,7 @@ export function ProgressDashboard() {
             value="performance"
           >
             <DumbbellIcon aria-hidden="true" className="size-4" />
-            Desempenho nos treinos
+            Desempenho dos exercícios
           </TabsTrigger>
         </TabsList>
 

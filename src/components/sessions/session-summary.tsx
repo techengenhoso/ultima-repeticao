@@ -202,7 +202,7 @@ export function SessionSummary({
         </div>
       </section>
       <Dialog onOpenChange={open => !open && setSelected(null)} open={selected !== null}>
-        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl">
+        <DialogContent className="max-h-[calc(100dvh-2rem)] sm:max-w-xl">
           <DialogHeader className="pr-12">
             <DialogTitle>Evolução e próxima carga</DialogTitle>
             <DialogDescription>

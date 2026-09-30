@@ -1,40 +1,40 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  type ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { Skeletons } from "@/components/skeleton"
+import { Button } from "@/components/ui/button"
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import type { WorkoutSession } from "@/modules/sessions/domain/session"
 import { useProgressUseCases } from "../progress-use-cases-context"
+import { PerformanceChart } from "./performance-chart"
+import { PerformanceExerciseSelector } from "./performance-exercise-selector"
+import { PerformanceHistory } from "./performance-history"
+import { PerformanceIndicators } from "./performance-indicators"
 
 export function PerformancePanel() {
   const progressUseCases = useProgressUseCases()
   const [sessions, setSessions] = useState<WorkoutSession[]>([])
   const [selected, setSelected] = useState("")
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  useEffect(() => {
-    void progressUseCases
-      .listPerformanceSessions()
-      .then(value => {
-        setSessions(value)
-        setSelected(progressUseCases.exerciseOptions(value)[0]?.key ?? "")
-      })
-      .catch(failure =>
-        setError(failure instanceof Error ? failure.message : "Não foi possível carregar")
-      )
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const items = await progressUseCases.listPerformanceSessions()
+      setSessions(items)
+      setSelected("")
+      setError("")
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Não foi possível carregar")
+    } finally {
+      setLoading(false)
+    }
   }, [progressUseCases])
+
+  useEffect(() => {
+    void load()
+  }, [load])
   const options = useMemo(
     () => progressUseCases.exerciseOptions(sessions),
     [progressUseCases, sessions]
@@ -43,97 +43,60 @@ export function PerformancePanel() {
     () => progressUseCases.performanceForExercise(sessions, selected),
     [progressUseCases, sessions, selected]
   )
-  const config = {
-    load: { label: "Carga", color: "var(--chart-1)" },
-    volume: { label: "Volume externo", color: "var(--chart-2)" },
-  } satisfies ChartConfig
-  if (error)
-    return (
-      <p className="text-destructive" role="alert">
-        {error}
-      </p>
-    )
-  if (!options.length)
-    return (
-      <p className="text-sm text-muted-foreground">
-        Nenhuma série de trabalho concluída encontrada
-      </p>
-    )
+
   return (
     <div className="space-y-6">
-      {data.latest && (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Metric label="Última carga" value={`${data.latest.load} kg`} />
-          <Metric
-            label="Melhor série"
-            value={`${data.latest.best.load} kg × ${data.latest.best.performedRepetitions}`}
-          />
-          <Metric label="Maior carga" value={`${data.maxLoad} kg`} />
-          <Metric label="Treinos concluídos" value={String(data.sessions)} />
+      <div className="flex flex-wrap justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold">Desempenho dos exercícios</h2>
+          <p className="text-sm text-muted-foreground">
+            Analise a carga e o volume das séries concluídas
+          </p>
         </div>
+
+        {!loading && !error && options.length > 0 && (
+          <PerformanceExerciseSelector
+            onSelect={setSelected}
+            options={options}
+            selected={selected}
+          />
+        )}
+      </div>
+
+      {loading ? (
+        <Skeletons />
+      ) : error ? (
+        <div role="alert">
+          <p className="text-destructive">{error} Tivemos um erro</p>
+          <Button className="mt-2" onClick={() => void load()} variant="secondary">
+            Tentar novamente
+          </Button>
+        </div>
+      ) : !options.length ? (
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyTitle>Nenhum desempenho registrado</EmptyTitle>
+            <EmptyDescription>
+              Conclua um treino com séries de trabalho para acompanhar sua evolução
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      ) : !selected ? (
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyTitle>Selecione um exercício</EmptyTitle>
+            <EmptyDescription>
+              Escolha um exercício para visualizar suas execuções
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      ) : (
+        <>
+          {data.latest && <PerformanceIndicators data={data} />}
+          {data.rows.length > 0 && <PerformanceChart data={data} />}
+          {data.rows.length > 0 && <PerformanceHistory items={data.rows} key={selected} />}
+        </>
       )}
-      <Card>
-        <CardHeader>
-          <CardTitle>Desempenho do exercício</CardTitle>
-          <CardDescription>Acompanhe carga e volume nas séries concluídas</CardDescription>
-          <CardAction className="col-span-full col-start-1 row-span-1 row-start-3 w-full sm:col-span-1 sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:w-72">
-            <select
-              aria-label="Exercício"
-              className="h-11 w-full border bg-background px-3 text-sm"
-              onChange={event => setSelected(event.target.value)}
-              value={selected}
-            >
-              {options.map(option => (
-                <option key={option.key} value={option.key}>
-                  {option.name} ·{" "}
-                  {option.source === "custom" ? "Personalizado" : "Biblioteca"}
-                </option>
-              ))}
-            </select>
-          </CardAction>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <ChartContainer className="h-72 w-full" config={config}>
-            <LineChart accessibilityLayer data={data.rows}>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="date"
-                tickFormatter={value => new Date(value).toLocaleDateString("pt-BR")}
-              />
-              <YAxis />
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    labelFormatter={label =>
-                      new Date(Number(label)).toLocaleDateString("pt-BR")
-                    }
-                  />
-                }
-              />
-              <Line dataKey="load" dot stroke="var(--color-load)" />
-              <Line dataKey="volume" dot stroke="var(--color-volume)" />
-            </LineChart>
-          </ChartContainer>
-          <ul className="space-y-2">
-            {data.rows.map(row => (
-              <li className="border p-3 text-sm" key={row.date}>
-                {new Date(row.date).toLocaleDateString("pt-BR")} · {row.target} · carga{" "}
-                {row.load} kg · volume {row.volume.toLocaleString("pt-BR")} kg
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
     </div>
-  )
-}
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardDescription>{label}</CardDescription>
-        <CardTitle className="text-2xl tracking-normal normal-case">{value}</CardTitle>
-      </CardHeader>
-    </Card>
   )
 }

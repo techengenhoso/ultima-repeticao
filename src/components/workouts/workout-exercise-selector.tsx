@@ -152,8 +152,8 @@ export function WorkoutExerciseSelector({
 
   return (
     <Dialog onOpenChange={open => !open && close()} open={target !== null}>
-      <DialogContent className="flex h-[calc(100svh-1rem)] max-h-192 flex-col overflow-hidden sm:max-w-3xl">
-        <DialogHeader>
+      <DialogContent className="max-h-[calc(100dvh-2rem)] sm:max-w-xl">
+        <DialogHeader className="pr-12">
           <DialogTitle>Selecionar exercício</DialogTitle>
           <DialogDescription>Escolha um exercício da sua biblioteca</DialogDescription>
         </DialogHeader>

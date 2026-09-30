@@ -109,7 +109,7 @@ export function AccountActions() {
           </AlertDialogTrigger>
 
           <AlertDialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
-            <AlertDialogHeader>
+            <AlertDialogHeader className="sm:group-data-[size=default]/alert-dialog-content:place-items-center sm:group-data-[size=default]/alert-dialog-content:text-center">
               <AlertDialogTitle>Exclusão permanente</AlertDialogTitle>
 
               <AlertDialogDescription>
@@ -125,19 +125,18 @@ export function AccountActions() {
                 error={errors.password}
                 icon={<LockKeyholeIcon aria-hidden="true" />}
                 id="account-deletion-password"
-                label="Digite sua senha atual para confirmar"
-                placeholder="Senha atual"
+                placeholder="Digite sua senha"
                 {...register("password")}
               />
 
-              <AlertDialogFooter className="gap-3">
+              <AlertDialogFooter className="w-full gap-3 sm:justify-stretch sm:*:flex-1">
                 <AlertDialogCancel disabled={isSubmitting} variant="secondary">
                   Cancelar
                 </AlertDialogCancel>
 
                 <Button disabled={isSubmitting} type="submit" variant="destructive">
                   {isSubmitting && <LoaderCircleIcon className="animate-spin" />}
-                  {isSubmitting ? "Excluindo" : "Confirmar"}
+                  {isSubmitting ? "Excluindo" : "Excluir"}
                 </Button>
               </AlertDialogFooter>
             </form>

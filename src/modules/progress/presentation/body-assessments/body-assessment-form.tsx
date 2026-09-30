@@ -2,19 +2,20 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { cn } from "cn"
-import { CalendarIcon, LoaderCircleIcon, RulerIcon, ScaleIcon } from "lucide-react"
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import { CalendarDaysIcon, LoaderCircleIcon, RulerIcon, ScaleIcon } from "lucide-react"
 import { useEffect, useState } from "react"
-import { type FieldPath, useForm } from "react-hook-form"
+import { Controller, type FieldPath, useForm } from "react-hook-form"
 import { z } from "zod"
 import { TextField } from "@/components/text-field"
 import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
 import { DialogFooter } from "@/components/ui/dialog"
-import { useScrollPadding } from "@/hooks/use-scroll-padding"
-import {
-  formatBrazilianDateInput,
-  formatIsoDateToBrazilian,
-  parseBrazilianDate,
-} from "@/lib/date"
+import { Field, FieldError, FieldLabel } from "@/components/ui/field"
+import { InputGroup, InputGroupAddon, InputGroupButton } from "@/components/ui/input-group"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { formatIsoDateToBrazilian, parseBrazilianDate } from "@/lib/date"
 import { dateSchema } from "@/lib/schemas-zod"
 import {
   assessmentInputSchema,
@@ -112,13 +113,14 @@ export function BodyAssessmentForm({
   onDirtyChange?: (value: boolean) => void
 }) {
   const progressUseCases = useProgressUseCases()
+  const [isAssessmentDatePickerOpen, setIsAssessmentDatePickerOpen] = useState(false)
+  const [assessmentDatePickerMonth, setAssessmentDatePickerMonth] = useState<Date>()
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: emptyValues(item),
   })
   const [saving, setSaving] = useState(false)
   const [failure, setFailure] = useState("")
-  const { hasVerticalOverflow, ref: scrollRef } = useScrollPadding()
   const visibleGroups = group ? [group] : groups.map(value => value.key)
   useEffect(() => form.reset(emptyValues(item)), [form, item])
   useEffect(
@@ -160,58 +162,118 @@ export function BodyAssessmentForm({
 
   return (
     <form className="space-y-5" onSubmit={form.handleSubmit(submit)}>
-      <div
-        className={cn(
-          "max-h-[calc(100dvh-15rem)] overflow-y-auto overscroll-contain",
-          hasVerticalOverflow && "pr-3"
-        )}
-        ref={scrollRef}
-      >
-        <fieldset className="grid content-start gap-5 sm:grid-cols-2" disabled={saving}>
-          <div className="sm:col-span-2">
-            <TextField
-              {...form.register("assessmentDate")}
-              error={form.formState.errors.assessmentDate}
-              icon={<CalendarIcon />}
-              id="assessment-date"
-              label="Data da avaliação"
-              onChange={event => {
-                event.target.value = formatBrazilianDateInput(event.target.value)
-                form.setValue("assessmentDate", event.target.value, { shouldDirty: true })
-              }}
-              placeholder="DD/MM/AAAA"
-            />
-          </div>
-          <BodyAssessmentGroupsAccordion
-            className="sm:col-span-2"
-            groups={visibleGroups.map(assessmentGroup => {
-              const groupFields = fieldsFor(assessmentGroup)
-              return {
-                key: assessmentGroup,
-                label:
-                  groups.find(groupItem => groupItem.key === assessmentGroup)?.label ??
-                  assessmentGroup,
-                measureCount: groupFields.length,
-              }
-            })}
-            renderContent={assessmentGroup => (
-              <div className="grid gap-5 sm:grid-cols-2">
-                {fieldsFor(assessmentGroup).map(renderField)}
-              </div>
-            )}
+      <fieldset className="grid content-start gap-5 sm:grid-cols-2" disabled={saving}>
+        <div className="sm:col-span-2">
+          <Controller
+            control={form.control}
+            name="assessmentDate"
+            render={({ field, fieldState }) => {
+              const isoAssessmentDate = parseBrazilianDate(field.value)
+              const selectedDate = isoAssessmentDate
+                ? new Date(`${isoAssessmentDate}T00:00:00`)
+                : undefined
+
+              return (
+                <Field>
+                  <FieldLabel htmlFor="assessment-date">Data da avaliação</FieldLabel>
+
+                  <InputGroup data-disabled={saving || undefined}>
+                    <InputGroupAddon>
+                      <CalendarDaysIcon aria-hidden="true" />
+                    </InputGroupAddon>
+
+                    <Popover
+                      onOpenChange={open => {
+                        setIsAssessmentDatePickerOpen(open)
+                        if (open) setAssessmentDatePickerMonth(selectedDate ?? new Date())
+                      }}
+                      open={isAssessmentDatePickerOpen}
+                    >
+                      <PopoverTrigger asChild>
+                        <InputGroupButton
+                          aria-describedby={
+                            fieldState.error ? "assessment-date-error" : undefined
+                          }
+                          aria-invalid={Boolean(fieldState.error)}
+                          className={cn(
+                            "h-full flex-1 justify-start rounded-none px-0 pl-1.5 font-normal hover:bg-transparent",
+                            !selectedDate && "text-muted-foreground"
+                          )}
+                          data-slot="input-group-control"
+                          disabled={saving}
+                          id="assessment-date"
+                          size="sm"
+                        >
+                          {selectedDate
+                            ? format(selectedDate, "dd 'de' MMMM 'de' yyyy", {
+                                locale: ptBR,
+                              })
+                            : "Selecione a data da avaliação"}
+                        </InputGroupButton>
+                      </PopoverTrigger>
+
+                      <PopoverContent align="start" className="w-auto p-0">
+                        <Calendar
+                          captionLayout="dropdown"
+                          disabled={{ after: new Date() }}
+                          endMonth={new Date()}
+                          locale={ptBR}
+                          mode="single"
+                          month={assessmentDatePickerMonth}
+                          onMonthChange={setAssessmentDatePickerMonth}
+                          onSelect={date => {
+                            field.onChange(date ? format(date, "dd/MM/yyyy") : "")
+                            setIsAssessmentDatePickerOpen(false)
+                          }}
+                          selected={selectedDate}
+                          startMonth={new Date(1900, 0)}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </InputGroup>
+
+                  <FieldError errors={[fieldState.error]} id="assessment-date-error" />
+                </Field>
+              )
+            }}
           />
-        </fieldset>
-      </div>
+        </div>
+        <BodyAssessmentGroupsAccordion
+          className="sm:col-span-2"
+          groups={visibleGroups.map(assessmentGroup => {
+            const groupFields = fieldsFor(assessmentGroup)
+            return {
+              key: assessmentGroup,
+              label:
+                groups.find(groupItem => groupItem.key === assessmentGroup)?.label ??
+                assessmentGroup,
+              measureCount: groupFields.length,
+            }
+          })}
+          renderContent={assessmentGroup => (
+            <div className="grid gap-5 sm:grid-cols-2">
+              {fieldsFor(assessmentGroup).map(renderField)}
+            </div>
+          )}
+          scrollContent
+        />
+      </fieldset>
       {(failure || form.formState.errors.root?.message) && (
         <p className="text-sm text-destructive" role="alert">
           {failure || form.formState.errors.root?.message}
         </p>
       )}
-      <DialogFooter className="border-t pt-4">
-        <Button disabled={saving} onClick={onCancel} type="button" variant="secondary">
+      <DialogFooter className="grid shrink-0 grid-cols-2 gap-2 sm:grid sm:grid-cols-2">
+        <Button
+          className="w-full"
+          disabled={saving}
+          onClick={onCancel}
+          type="button"
+          variant="secondary"
+        >
           Cancelar
         </Button>
-        <Button disabled={saving} type="submit">
+        <Button className="w-full" disabled={saving} type="submit">
           {saving && <LoaderCircleIcon className="animate-spin" />}
           {item ? "Alterar" : "Criar"}
         </Button>

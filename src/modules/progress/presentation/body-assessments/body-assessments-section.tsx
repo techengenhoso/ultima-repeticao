@@ -21,7 +21,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
-import { useScrollPadding } from "@/hooks/use-scroll-padding"
 import type { BodyAssessment } from "@/modules/body-assessments/domain/body-assessment"
 import {
   type AssessmentGroup,
@@ -39,9 +38,6 @@ const formatDate = (value: string) =>
     .format(new Date(`${value}T00:00:00Z`))
     .replaceAll(".", "")
 
-const preventDialogDismissal = (event: { preventDefault: () => void }) =>
-  event.preventDefault()
-
 export function BodyAssessmentsSection() {
   const progressUseCases = useProgressUseCases()
   const [items, setItems] = useState<BodyAssessment[]>([])
@@ -57,7 +53,6 @@ export function BodyAssessmentsSection() {
   const [confirmingClose, setConfirmingClose] = useState<"creating" | "editing" | null>(
     null
   )
-  const { hasVerticalOverflow, ref: detailsScrollRef } = useScrollPadding()
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -130,12 +125,8 @@ export function BodyAssessmentsSection() {
       </div>
 
       <Dialog onOpenChange={setChoosingType} open={choosingType}>
-        <DialogContent
-          className="px-6 py-8 sm:max-w-xl"
-          onEscapeKeyDown={preventDialogDismissal}
-          onPointerDownOutside={preventDialogDismissal}
-        >
-          <DialogHeader>
+        <DialogContent className="max-h-[calc(100dvh-2rem)] sm:max-w-xl">
+          <DialogHeader className="pr-12">
             <DialogTitle>Tipo de avaliação corporal</DialogTitle>
 
             <DialogDescription>
@@ -227,12 +218,8 @@ export function BodyAssessmentsSection() {
       )}
 
       <Dialog onOpenChange={open => !open && setViewing(null)} open={Boolean(viewing)}>
-        <DialogContent
-          className="flex max-h-[calc(100dvh-2rem)] min-w-0 flex-col gap-4 overflow-hidden px-4 py-8 sm:max-w-xl sm:px-6 sm:py-8"
-          onEscapeKeyDown={preventDialogDismissal}
-          onPointerDownOutside={preventDialogDismissal}
-        >
-          <DialogHeader>
+        <DialogContent className="max-h-[calc(100dvh-2rem)] sm:max-w-xl">
+          <DialogHeader className="pr-12">
             <DialogTitle>
               Avaliação de {viewing && formatDate(viewing.assessmentDate)}
             </DialogTitle>
@@ -242,12 +229,7 @@ export function BodyAssessmentsSection() {
             </DialogDescription>
           </DialogHeader>
 
-          <div
-            className={`min-h-0 overflow-y-auto overscroll-contain${hasVerticalOverflow ? " pr-3" : ""}`}
-            ref={detailsScrollRef}
-          >
-            {viewing && <BodyAssessmentDetails item={viewing} />}
-          </div>
+          {viewing && <BodyAssessmentDetails item={viewing} />}
         </DialogContent>
       </Dialog>
 
@@ -255,16 +237,17 @@ export function BodyAssessmentsSection() {
         onOpenChange={open => !open && setDeleting(null)}
         open={Boolean(deleting)}
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
+        <AlertDialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+          <AlertDialogHeader className="sm:group-data-[size=default]/alert-dialog-content:place-items-center sm:group-data-[size=default]/alert-dialog-content:text-center">
             <AlertDialogTitle>Exclusão permanente</AlertDialogTitle>
 
             <AlertDialogDescription>
-              Esta ação vai excluir a avaliação corporal de forma permanentemente
+              Esta avaliação corporal será excluída permanentemente sem possibilidade de
+              recuperação
             </AlertDialogDescription>
           </AlertDialogHeader>
 
-          <AlertDialogFooter>
+          <AlertDialogFooter className="w-full gap-3 sm:justify-stretch sm:*:flex-1">
             <AlertDialogCancel variant="secondary">Cancelar</AlertDialogCancel>
 
             <AlertDialogAction onClick={() => void remove()} variant="destructive">
@@ -314,12 +297,8 @@ function AssessmentDialog({
 }) {
   return (
     <Dialog onOpenChange={open => !open && onOpenChange()} open>
-      <DialogContent
-        className="flex max-h-[calc(100dvh-2rem)] min-w-0 flex-col gap-4 overflow-hidden px-4 py-8 sm:max-w-xl sm:px-6 sm:py-8"
-        onEscapeKeyDown={preventDialogDismissal}
-        onPointerDownOutside={preventDialogDismissal}
-      >
-        <DialogHeader>
+      <DialogContent className="max-h-[calc(100dvh-2rem)] sm:max-w-xl">
+        <DialogHeader className="pr-12">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>

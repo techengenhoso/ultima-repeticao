@@ -10,7 +10,7 @@ import {
 
 type Props = ComponentProps<typeof InputGroupInput> & {
   id: string
-  label: string
+  label?: string
   icon: ReactNode
   error?: { message?: string }
 }
@@ -20,10 +20,12 @@ export function PasswordField({ id, label, icon, error, children, ...inputProps 
 
   return (
     <Field>
-      <div className="flex items-center justify-between gap-5">
-        <FieldLabel htmlFor={id}>{label}</FieldLabel>
-        {children}
-      </div>
+      {label && (
+        <div className="flex items-center justify-between gap-5">
+          <FieldLabel htmlFor={id}>{label}</FieldLabel>
+          {children}
+        </div>
+      )}
 
       <InputGroup>
         <InputGroupInput

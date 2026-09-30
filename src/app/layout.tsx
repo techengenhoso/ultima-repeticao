@@ -4,9 +4,9 @@ import { Roboto } from "next/font/google"
 import { AuthGuard } from "@/components/auth-guard"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import { ApplicationProviders } from "./application-providers"
 import "./globals.css"
-import { TooltipProvider } from "@/components/ui/tooltip"
 
 const robotoSans = Roboto({
   variable: "--font-roboto-sans",
@@ -29,7 +29,7 @@ export default function RootLayout({
       lang="pt-BR"
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col overflow-x-visible">
+      <body className="min-h-full flex flex-col">
         <ApplicationProviders>
           <ThemeProvider
             attribute="class"

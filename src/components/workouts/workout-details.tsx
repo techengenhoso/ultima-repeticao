@@ -27,8 +27,8 @@ export function WorkoutDetails() {
 
   return (
     <Dialog onOpenChange={open => !open && onClose(null)} open={!!workout}>
-      <DialogContent className="flex max-h-[calc(100svh-1rem)] flex-col overflow-hidden sm:max-w-4xl">
-        <DialogHeader>
+      <DialogContent className="max-h-[calc(100dvh-2rem)] sm:max-w-xl">
+        <DialogHeader className="pr-12">
           <div className="flex items-start justify-between gap-3 pr-14">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <DialogTitle className="normal-case tracking-normal">

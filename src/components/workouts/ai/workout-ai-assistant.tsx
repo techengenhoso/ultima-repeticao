@@ -239,10 +239,10 @@ export function WorkoutAiAssistant({ open, onOpenChange }: WorkoutAiAssistantPro
         open={open}
       >
         <DialogContent
-          className={`flex max-h-[calc(100dvh-2rem)] min-w-0 flex-col gap-4 overflow-hidden p-4 sm:max-w-4xl sm:p-6 ${dialogHeightByStep[step]}`}
+          className={`max-h-[calc(100dvh-2rem)] sm:max-w-xl ${dialogHeightByStep[step]}`}
           showCloseButton={!pending}
         >
-          <DialogHeader className="pr-8">
+          <DialogHeader className="pr-12">
             <DialogTitle>Nova ficha com IA</DialogTitle>
 
             <DialogDescription>

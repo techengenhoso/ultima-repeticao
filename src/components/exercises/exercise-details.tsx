@@ -100,13 +100,11 @@ export function ExerciseDetails() {
   return (
     <Dialog onOpenChange={open => !open && onClose(null)} open={!!exercise}>
       <DialogContent
-        className="flex max-h-[calc(100dvh-2rem)] min-w-0 flex-col gap-4 overflow-hidden px-4 py-8 sm:max-w-xl sm:px-6 sm:py-8"
+        className="max-h-[calc(100dvh-2rem)] sm:max-w-xl"
         onPointerDownOutside={preventOutsideDismissal}
       >
-        <DialogHeader>
-          <DialogTitle className="pr-10 normal-case tracking-normal">
-            {exercise?.name}
-          </DialogTitle>
+        <DialogHeader className="pr-12">
+          <DialogTitle>{exercise?.name}</DialogTitle>
 
           <DialogDescription>
             {exercise?.source === "default"

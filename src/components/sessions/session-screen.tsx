@@ -78,7 +78,7 @@ function SessionConfirmationDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open={confirmation !== null}>
       <DialogContent>
-        <DialogHeader className="pr-14">
+        <DialogHeader className="pr-12">
           <DialogTitle>{details?.title}</DialogTitle>
           <DialogDescription>{details?.description}</DialogDescription>
         </DialogHeader>

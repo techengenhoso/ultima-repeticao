@@ -3,7 +3,7 @@ import { ProgressDashboard } from "@/modules/progress/presentation/progress-dash
 
 export const metadata: Metadata = {
   title: "Evolução | Última Repetição",
-  description: "Acompanhe suas avaliações corporais e seu desempenho nos treinos",
+  description: "Acompanhe suas avaliações corporais e seu desempenho nos exercícios",
 }
 
 export default function ProgressPage() {

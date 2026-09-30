@@ -1,6 +1,6 @@
 "use client"
 
-import { InfoIcon } from "lucide-react"
+import { InfoIcon, MailIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { Item, ItemContent, ItemMedia, ItemTitle } from "./ui/item"
 
 const supportEmail = "techengenhoso@outlook.com"
 const supportEmailSubject = "Suporte - Última Repetição"
@@ -29,7 +30,7 @@ export function SupportDialog({ className }: { className?: string }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button aria-label="Suporte" className={className} size="icon" variant="outline">
+        <Button aria-label="Suporte" className={className} size="icon" variant="secondary">
           <InfoIcon />
         </Button>
       </DialogTrigger>
@@ -43,9 +44,15 @@ export function SupportDialog({ className }: { className?: string }) {
           </DialogDescription>
         </DialogHeader>
 
-        <p className="break-all rounded-none border bg-muted px-4 py-3 font-medium">
-          {supportEmail}
-        </p>
+        <Item variant="muted">
+          <ItemMedia>
+            <MailIcon aria-hidden="true" />
+          </ItemMedia>
+
+          <ItemContent className="break-all">
+            <ItemTitle>{supportEmail}</ItemTitle>
+          </ItemContent>
+        </Item>
 
         <DialogFooter className="w-full sm:justify-stretch sm:*:flex-1">
           <Button asChild variant="secondary">

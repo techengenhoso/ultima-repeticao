@@ -22,7 +22,7 @@ export function ThemeToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button size="icon" variant="outline">
+        <Button aria-label="Selecionar tema" size="icon" variant="secondary">
           {theme === "light" ? (
             <SunIcon />
           ) : theme === "dark" ? (
