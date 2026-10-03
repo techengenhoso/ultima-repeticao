@@ -43,7 +43,6 @@ export function PerformancePanel() {
     () => progressUseCases.performanceForExercise(sessions, selected),
     [progressUseCases, sessions, selected]
   )
-
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap justify-between gap-3">

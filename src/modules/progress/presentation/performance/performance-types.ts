@@ -4,3 +4,4 @@ export type PerformanceData = ReturnType<ProgressUseCases["performanceForExercis
 export type PerformanceExerciseOption = ReturnType<
   ProgressUseCases["exerciseOptions"]
 >[number]
+export type WorkoutPerformanceData = ReturnType<ProgressUseCases["workoutPerformance"]>

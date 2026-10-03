@@ -6,6 +6,7 @@ import { sortAssessments } from "@/modules/body-assessments/domain/calculations"
 import {
   exerciseOptions,
   performanceForExercise,
+  workoutPerformance,
 } from "@/modules/progress/domain/performance"
 import type { WorkoutSession } from "@/modules/sessions/domain/session"
 import type { ProgressGateway } from "./ports/progress-gateway"
@@ -21,6 +22,7 @@ export interface ProgressUseCases {
   removeAssessmentFromList(items: BodyAssessment[], id: string): BodyAssessment[]
   listPerformanceSessions(): Promise<WorkoutSession[]>
   exerciseOptions(sessions: WorkoutSession[]): ReturnType<typeof exerciseOptions>
+  workoutPerformance(sessions: WorkoutSession[]): ReturnType<typeof workoutPerformance>
   performanceForExercise(
     sessions: WorkoutSession[],
     key: string
@@ -42,6 +44,7 @@ export function createProgressUseCases(gateway: ProgressGateway): ProgressUseCas
     removeAssessmentFromList: (items, id) => items.filter(item => item.id !== id),
     listPerformanceSessions: () => gateway.listPerformanceSessions(),
     exerciseOptions,
+    workoutPerformance,
     performanceForExercise,
   }
 }

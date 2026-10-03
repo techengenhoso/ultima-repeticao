@@ -17,17 +17,17 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { PerformanceData } from "./performance-types"
+import type { WorkoutPerformanceData } from "./performance-types"
 
-type PerformanceMetric = "load" | "volume"
+type WorkoutPerformanceMetric = "sets" | "volume"
 
-const metrics: Record<PerformanceMetric, { description: string; label: string }> = {
-  load: {
-    description: "Maior carga registrada em cada execução",
-    label: "Maior carga",
+const metrics: Record<WorkoutPerformanceMetric, { description: string; label: string }> = {
+  sets: {
+    description: "Séries de trabalho concluídas em cada treino",
+    label: "Séries concluídas",
   },
   volume: {
-    description: "Soma de carga e repetições concluídas em cada execução",
+    description: "Soma de carga e repetições concluídas em cada treino",
     label: "Volume externo",
   },
 }
@@ -47,18 +47,21 @@ const formatTooltipDate = (value: number) =>
     .replaceAll(".", "")
     .replace(", ", " às ")
 
-export function PerformanceChart({ data }: { data: PerformanceData }) {
-  const [metric, setMetric] = useState<PerformanceMetric>("load")
+const formatMetricValue = (metric: WorkoutPerformanceMetric, value: number | string) =>
+  metric === "volume"
+    ? `${Number(value).toLocaleString("pt-BR")} kg`
+    : `${Number(value).toLocaleString("pt-BR")} séries`
+
+export function WorkoutPerformanceChart({ data }: { data: WorkoutPerformanceData }) {
+  const [metric, setMetric] = useState<WorkoutPerformanceMetric>("sets")
   const metricInfo = metrics[metric]
-  const chartData = data.rows.slice(-5).map((row, index) => ({
+  const chartData = data.rows.slice(-5).map(row => ({
     date: formatSessionDate(row.date),
-    executionId: `${row.sessionId}-${index}`,
+    sessionId: row.id,
     timestamp: row.date,
     value: row[metric],
   }))
-  const dateByExecutionId = new Map(chartData.map(item => [item.executionId, item.date]))
-  const formatMetricValue = (value: number | string) =>
-    `${Number(value).toLocaleString("pt-BR")} kg`
+  const dateBySessionId = new Map(chartData.map(item => [item.sessionId, item.date]))
   const config = {
     value: { label: metricInfo.label, color: "var(--chart-1)" },
   } satisfies ChartConfig
@@ -66,7 +69,7 @@ export function PerformanceChart({ data }: { data: PerformanceData }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Evolução do exercício</CardTitle>
+        <CardTitle>Evolução dos treinos</CardTitle>
         <CardDescription className="col-span-full col-start-1 row-start-2 sm:col-span-1">
           {metricInfo.description}
         </CardDescription>
@@ -74,13 +77,13 @@ export function PerformanceChart({ data }: { data: PerformanceData }) {
           <Tabs
             className="w-full sm:w-auto"
             onValueChange={value => {
-              if (value === "load" || value === "volume") setMetric(value)
+              if (value === "sets" || value === "volume") setMetric(value)
             }}
             value={metric}
           >
             <TabsList aria-label="Métrica do gráfico" className="w-full sm:w-fit">
-              <TabsTrigger className="flex-1 sm:flex-none" value="load">
-                Carga
+              <TabsTrigger className="flex-1 sm:flex-none" value="sets">
+                Séries
               </TabsTrigger>
               <TabsTrigger className="flex-1 sm:flex-none" value="volume">
                 Volume externo
@@ -98,7 +101,13 @@ export function PerformanceChart({ data }: { data: PerformanceData }) {
             margin={{ bottom: 4, left: 4, right: 12, top: 28 }}
           >
             <defs>
-              <linearGradient id="performance-chart-fill" x1="0" x2="0" y1="0" y2="1">
+              <linearGradient
+                id="workout-performance-chart-fill"
+                x1="0"
+                x2="0"
+                y1="0"
+                y2="1"
+              >
                 <stop offset="0%" stopColor="var(--color-value)" stopOpacity={0.35} />
                 <stop offset="100%" stopColor="var(--color-value)" stopOpacity={0.02} />
               </linearGradient>
@@ -106,9 +115,9 @@ export function PerformanceChart({ data }: { data: PerformanceData }) {
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis
               axisLine={false}
-              dataKey="executionId"
+              dataKey="sessionId"
               minTickGap={16}
-              tickFormatter={value => dateByExecutionId.get(String(value)) ?? ""}
+              tickFormatter={value => dateBySessionId.get(String(value)) ?? ""}
               tickLine={false}
               tickMargin={10}
             />
@@ -116,7 +125,7 @@ export function PerformanceChart({ data }: { data: PerformanceData }) {
             <ChartTooltip
               content={
                 <ChartTooltipContent
-                  formatter={item => formatMetricValue(Number(item))}
+                  formatter={item => formatMetricValue(metric, Number(item))}
                   labelFormatter={(_, payload) => {
                     const timestamp = payload[0]?.payload?.timestamp
                     return typeof timestamp === "number"
@@ -141,7 +150,7 @@ export function PerformanceChart({ data }: { data: PerformanceData }) {
                 stroke: "var(--background)",
                 strokeWidth: 2,
               }}
-              fill="url(#performance-chart-fill)"
+              fill="url(#workout-performance-chart-fill)"
               name="value"
               stroke="var(--color-value)"
               strokeWidth={2}
@@ -159,7 +168,7 @@ export function PerformanceChart({ data }: { data: PerformanceData }) {
                       x={x}
                       y={typeof y === "number" ? y - 8 : y}
                     >
-                      {formatMetricValue(Number(value))}
+                      {formatMetricValue(metric, Number(value))}
                     </text>
                   )
                 }}
@@ -172,7 +181,7 @@ export function PerformanceChart({ data }: { data: PerformanceData }) {
         <p className="sr-only">
           {metricInfo.label}:{" "}
           {chartData
-            .map(item => `${item.date} ${formatMetricValue(item.value)}`)
+            .map(item => `${item.date} ${formatMetricValue(metric, item.value)}`)
             .join(", ")}
         </p>
       </CardContent>

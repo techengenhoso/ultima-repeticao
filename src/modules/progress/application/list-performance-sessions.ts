@@ -4,5 +4,5 @@ export async function listPerformanceSessions(
   reader: PerformanceSessionReader,
   uid: string
 ) {
-  return { sessions: await reader.listCompleted(uid) }
+  return { sessions: await reader.listFinalized(uid) }
 }

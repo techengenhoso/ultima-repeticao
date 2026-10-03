@@ -10,8 +10,23 @@ export type ExerciseOption = {
   source: "default" | "custom"
   exerciseId: string
 }
+
+export type WorkoutPerformanceRow = {
+  date: number
+  exercises: number
+  id: string
+  repetitions: number
+  sets: number
+  volume: number
+  workoutDayName: string
+  workoutPlanName: string
+}
+
 const validSets = (exercise: SessionExercise) =>
   exercise.sets.filter(set => set.completed && !set.warmup)
+
+const completedSets = (session: WorkoutSession) =>
+  session.exercises.flatMap(exercise => validSets(exercise))
 export function exerciseOptions(sessions: WorkoutSession[]) {
   const values = new Map<string, ExerciseOption>()
   for (const session of sessions)
@@ -24,6 +39,76 @@ export function exerciseOptions(sessions: WorkoutSession[]) {
         })
   return [...values.values()].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
 }
+
+export function workoutPerformance(sessions: WorkoutSession[], now = Date.now()) {
+  const rows: WorkoutPerformanceRow[] = sessions
+    .filter(session => session.status === "completed")
+    .map(session => {
+      const sets = completedSets(session)
+      const date = session.completedAt ?? session.startedAt
+
+      return {
+        date,
+        exercises: session.exercises.length,
+        id: session.id,
+        repetitions: sets.reduce((sum, set) => sum + set.performedRepetitions, 0),
+        sets: sets.length,
+        volume: sets.reduce((sum, set) => sum + set.load * set.performedRepetitions, 0),
+        workoutDayName: session.workoutDayName,
+        workoutPlanName: session.workoutPlanName,
+      }
+    })
+    .sort((a, b) => a.date - b.date)
+
+  const totals = rows.reduce(
+    (summary, row) => ({
+      repetitions: summary.repetitions + row.repetitions,
+      sets: summary.sets + row.sets,
+      volume: summary.volume + row.volume,
+    }),
+    { repetitions: 0, sets: 0, volume: 0 }
+  )
+  const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000
+  const recentRows = rows.filter(row => row.date >= thirtyDaysAgo)
+  const recentTotals = recentRows.reduce(
+    (summary, row) => ({
+      repetitions: summary.repetitions + row.repetitions,
+      sets: summary.sets + row.sets,
+      volume: summary.volume + row.volume,
+    }),
+    { repetitions: 0, sets: 0, volume: 0 }
+  )
+  const recentCompletedSessions = sessions.filter(
+    session =>
+      session.status === "completed" &&
+      (session.completedAt ?? session.startedAt) >= thirtyDaysAgo
+  )
+  const recentExerciseKeys = new Set(
+    recentCompletedSessions.flatMap(session =>
+      session.exercises
+        .filter(exercise => validSets(exercise).length > 0)
+        .map(exercise => referenceKey(exercise.exerciseReference))
+    )
+  )
+
+  return {
+    ...totals,
+    lastThirtyDays: {
+      cancelledSessions: sessions.filter(
+        session =>
+          session.status === "cancelled" &&
+          (session.completedAt ?? session.startedAt) >= thirtyDaysAgo
+      ).length,
+      completedSessions: recentRows.length,
+      exercises: recentExerciseKeys.size,
+      ...recentTotals,
+    },
+    recentSessions: recentRows.length,
+    rows,
+    sessions: rows.length,
+  }
+}
+
 export function performanceForExercise(sessions: WorkoutSession[], key: string) {
   const rows = sessions
     .filter(session => session.status === "completed")

@@ -90,4 +90,13 @@ export class FirebaseSessionRepository implements SessionRepository {
       .get()
     return snapshot.docs.map(item => decodeFirebaseSession(item.id, item.data()))
   }
+
+  async listFinalized(uid: string) {
+    const snapshot = await sessions(uid)
+      .where("status", "in", ["completed", "cancelled"])
+      .orderBy("startedAt", "desc")
+      .limit(100)
+      .get()
+    return snapshot.docs.map(item => decodeFirebaseSession(item.id, item.data()))
+  }
 }
