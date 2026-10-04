@@ -1,11 +1,6 @@
 import { parseRepetitions } from "@/modules/workouts/domain/repetitions"
 import { suggestLoad } from "./progression"
-import {
-  type IncrementSettings,
-  type SessionCommand,
-  type SessionExercise,
-  type WorkoutSession,
-} from "./session"
+import { type SessionCommand, type SessionExercise, type WorkoutSession } from "./session"
 
 export class SessionDomainError extends Error {}
 
@@ -172,8 +167,4 @@ export type SessionPlanDay = {
   workoutPlanName: string
   workoutDayName: string
   exercises: SessionExerciseTarget[]
-}
-export type LoadDecisionInput = {
-  command: Extract<SessionCommand, { action: "decide" }>
-  settings: IncrementSettings
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
+import { documentIdSchema } from "@/lib/schemas-zod"
 import { SessionUseCaseError } from "@/modules/sessions/application/session-use-cases"
 import {
-  documentIdSchema,
   sessionCommandSchema,
   sessionDeletionResultSchema,
 } from "@/modules/sessions/domain/session"

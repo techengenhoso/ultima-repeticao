@@ -89,10 +89,6 @@ export class SessionUseCases {
     }
   }
 
-  async listPerformance(uid: string) {
-    return { sessions: await this.repository.listCompleted(uid) }
-  }
-
   private async prepare(
     uid: string,
     command: Extract<SessionCommand, { action: "start" }>

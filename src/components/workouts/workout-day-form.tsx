@@ -24,7 +24,10 @@ import { FieldError } from "@/components/ui/field"
 import { muscleGroups, muscles } from "@/lib/options-select"
 import { type Exercise } from "@/modules/exercises/domain/exercise"
 import type { WorkoutFormValues } from "@/modules/workouts/domain/workout"
-import { useWorkoutReview, WorkoutReviewMessages } from "./ai/workout-review-context"
+import {
+  useWorkoutReview,
+  WorkoutReviewMessages,
+} from "./generator/workout-review-context"
 import { WorkoutExerciseForm } from "./workout-exercise-form"
 
 export function WorkoutDayForm({

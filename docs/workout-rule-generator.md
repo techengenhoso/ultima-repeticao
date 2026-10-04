@@ -25,7 +25,7 @@ As preferências orientam a seleção, mas não garantem a inclusão de todos os
 
 ## Interface e persistência
 
-O botão agora é **Montar treino automaticamente**. Revisão, edição, regeneração, confirmação de avisos e salvamento permanecem disponíveis. O formato persistido não mudou. Alguns identificadores internos ainda usam o nome `ai` por compatibilidade organizacional; isso não representa uma conexão com IA.
+O botão agora é **Montar automaticamente**. Revisão, edição, regeneração, confirmação de avisos e salvamento permanecem disponíveis. O formato persistido não mudou.
 
 A validação local não substitui controles de segurança no servidor. A pendência de validação profunda de `workoutPlans` registrada na Fase 1 continua existindo. As sessões da Fase 4 mantêm sua API validada com Firebase Admin.
 

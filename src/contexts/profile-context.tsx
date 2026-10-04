@@ -47,14 +47,10 @@ function useProfileState() {
     [profileUseCases, user.uid]
   )
 
-  const refreshProfile = useCallback(async () => {
-    setProfile(await profileUseCases.load(user.uid))
-  }, [profileUseCases, user.uid])
-
   if (loadingError) throw loadingError
   if (!profile) return null
 
-  return { profile, saveProfile, refreshProfile }
+  return { profile, saveProfile }
 }
 
 type ProfileContext = NonNullable<ReturnType<typeof useProfileState>>

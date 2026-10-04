@@ -4,7 +4,7 @@
 
 O repositório não possuía execução de treino, armazenamento de séries nem histórico funcional. Foram criados esses recursos mínimos, preservando as fichas e os componentes das fases anteriores.
 
-Fluxo: **Fichas → detalhes da ficha → dia → Iniciar este treino**. A rota `/sessions/{id}` permite registrar carga, repetições e a avaliação de dificuldade da série, marcar séries concluídas, acrescentar até cinco aquecimentos, repetir a carga anterior e iniciar o temporizador de descanso. A avaliação usa cinco níveis: muito difícil, difícil, adequado, fácil e muito fácil. Ela é opcional e nunca é preenchida por inferência.
+Fluxo: **Fichas → detalhes da ficha → dia → Iniciar este treino**. A rota `/workouts/sessions/{id}` permite registrar carga, repetições e a avaliação de dificuldade da série, marcar séries concluídas, acrescentar até cinco aquecimentos, repetir a carga anterior e iniciar o temporizador de descanso. Sessões encerradas usam `/history/sessions/{id}`. A avaliação usa cinco níveis: muito difícil, difícil, adequado, fácil e muito fácil. Ela é opcional e nunca é preenchida por inferência.
 
 O andamento é salvo automaticamente apenas neste dispositivo. O Firestore recebe a sessão somente ao **Concluir treino** ou **Cancelar**. Enquanto estiver em andamento, o treino pode ser retomado no mesmo navegador e perfil, mas não aparece no Histórico nem em outro dispositivo. O temporizador de descanso também preserva localmente seu horário de término e continua a contagem ao sair e retornar à sessão. **Histórico** lista as sessões encerradas, com paginação de sete registros, e permite excluí-las permanentemente após confirmação. **Evolução** dá acesso ao mesmo histórico e à análise por exercício. Ao concluir, o resumo preserva as séries incompletas e permite abrir **Evolução e sugestão** em cada exercício.
 
@@ -16,13 +16,13 @@ Coleção: `users/{uid}/workoutSessions/{sessionId}`. Apenas sessões concluída
 
 Os timestamps são produzidos pelo servidor e armazenados como `Timestamp`; a API usa milissegundos em JSON, validados com Zod. A data de encerramento também é usada nas sessões canceladas. Não são aceitos UID, snapshots, datas ou prescrições arbitrárias como autoridade do cliente.
 
-A API `/api/workout-sessions` verifica o Firebase ID Token, inclusive revogação, e usa exclusivamente seu UID. Ao iniciar, ela lê a ficha persistida e a biblioteca real, aplica a normalização de documentos legados e devolve um rascunho assinado, sem escrita no Firestore. O navegador persiste esse rascunho localmente. Ao encerrar, a API verifica a assinatura e preserva metas, referências, snapshots e carga originalmente preparados; aceita somente o desempenho editável. A decisão de carga é uma operação específica, permitida após a conclusão.
+A API `/api/workout-sessions` verifica o Firebase ID Token, inclusive revogação, e usa exclusivamente seu UID. Ao iniciar, ela lê a ficha persistida e a biblioteca real no formato atual e devolve um rascunho assinado, sem escrita no Firestore. O navegador persiste esse rascunho localmente. Ao encerrar, a API verifica a assinatura e preserva metas, referências, snapshots e carga originalmente preparados; aceita somente o desempenho editável. A decisão de carga é uma operação específica, permitida após a conclusão.
 
 Schemas estritos limitam a sessão a 30 exercícios, 20 séries de trabalho e cinco de aquecimento por exercício. Carga: 0–1000 kg, até duas casas decimais; repetições: 0–100, sendo pelo menos uma em séries concluídas; avaliação: um dos cinco níveis definidos. Identificadores, estrutura, sequência, metas e estados também são verificados. O corpo da solicitação é limitado a 256 KiB.
 
 As regras novas permitem leitura somente ao proprietário e **bloqueiam toda escrita direta do cliente** na coleção de sessões. Toda escrita passa pelo serviço autenticado com Admin e pela validação integral dos arrays. Isso evita repetir a limitação de expressões das regras de fichas registrada na Fase 1. A pendência das regras de `workoutPlans` continua separada e não foi alterada nesta fase.
 
-Não foram encontrados modelos anteriores de sessões no repositório para migrar. Fichas legadas continuam usando a normalização de repetições e os defaults já estabelecidos. Sessões inválidas não são silenciosamente usadas como desempenho.
+Documentos fora do formato atual não são migrados nem normalizados. Sessões inválidas não são silenciosamente usadas como desempenho.
 
 ## Primeira carga e referência
 
@@ -63,7 +63,7 @@ O andamento é salvo automaticamente no armazenamento local do navegador a cada 
 
 ## Configuração necessária
 
-- Configurar as credenciais Firebase Admin já descritas na Fase 2, correspondentes ao projeto Firebase do aplicativo
+- Configurar as credenciais Firebase Admin descritas em `.env.example`, correspondentes ao projeto Firebase do aplicativo
 - Opcionalmente, configurar `WORKOUT_SESSION_DRAFT_SECRET` com uma sequência aleatória de pelo menos 32 caracteres; a mesma sequência precisa permanecer disponível para validar rascunhos iniciados antes de reiniciar o servidor. Na ausência dela, o servidor deriva a assinatura da chave privada já configurada do Firebase Admin
 - A identidade do servidor precisa ler fichas/biblioteca, verificar usuários e ler/gravar sessões no Firestore
 - Publicar as regras e o índice composto declarados em `firebase.json` e aguardar a criação do índice
@@ -71,34 +71,12 @@ O andamento é salvo automaticamente no armazenamento local do navegador a cada 
 
 A Fase 4 não precisa de chave de IA para executar sessões ou calcular progressão. A geração de fichas também foi substituída por [regras no navegador](workout-rule-generator.md), sem chave de IA. Nenhuma credencial ou índice foi publicado automaticamente nesta implementação.
 
-## Arquivos
+## Estrutura atual
 
-Criados:
-
-- `src/lib/sessions/schemas.ts`
-- `src/lib/sessions/progression.ts`
-- `src/lib/sessions/client.ts`
-- `src/lib/server/session-service.ts`
-- `src/app/api/workout-sessions/route.ts`
-- `src/app/(authenticated)/sessions/[id]/page.tsx`
-- `src/components/sessions/start-session-button.tsx`
-- `src/components/sessions/session-screen.tsx`
-- `src/components/sessions/session-exercise-form.tsx`
-- `src/components/sessions/rest-timer.tsx`
-- `src/components/sessions/session-summary.tsx`
-- `src/components/sessions/session-progression.tsx`
-- `src/components/sessions/session-history.tsx`
-- `firebase.json`
-- `firestore.indexes.json`
-- `docs/workout-performance-phase-4.md`
-
-Alterados nesta fase:
-
-- `src/components/workouts/workout-details.tsx`
-- `src/app/(authenticated)/history/page.tsx`
-- `src/app/(authenticated)/progress/page.tsx`
-- `firestore.rules`
-- `docs/workout-ai-phase-3.md`
+- Regras, schemas e progressão estão em `src/modules/sessions/domain`
+- Casos de uso e portas estão em `src/modules/sessions/application`
+- Persistência, assinatura do rascunho e gateway HTTP estão em `src/modules/sessions/infrastructure`
+- As rotas autenticadas e os componentes de execução e histórico ficam em `src/app` e `src/components/sessions`
 
 ## Verificações e limites restantes
 

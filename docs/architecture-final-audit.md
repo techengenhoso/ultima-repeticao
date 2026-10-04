@@ -10,7 +10,7 @@ Esta auditoria confirma as fronteiras dos contextos migrados sem alterar contrat
 - A checagem automatizada impede que `domain` e `application` importem framework ou infraestrutura
 - A apresentação não acessa Firestore diretamente; persistência e SDKs Firebase permanecem em adapters de infraestrutura
 - A leitura da biblioteca de exercícios usada por Sessões agora depende da porta `ExerciseLibraryReader`; a implementação Firebase é composta em `src/app/api/workout-sessions/dependencies.ts`, na borda HTTP
-- Schemas de compatibilidade de dias de ficha são regras puras do contexto de Fichas; adaptadores de Sessões não importam schemas concretos de infraestrutura
+- Schemas de dias de ficha são regras puras do contexto de Fichas; adaptadores de Sessões não importam schemas concretos de infraestrutura
 - Integrações entre contextos são compostas nas bordas da API ou dos provedores da aplicação, sem adapters de infraestrutura dependerem de implementações concretas de outro contexto
 - Os contratos de sessão, incluindo snapshots, controle de versão e progressão, não foram alterados
 

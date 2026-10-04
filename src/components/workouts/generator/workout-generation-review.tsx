@@ -18,8 +18,8 @@ import { Button } from "@/components/ui/button"
 import { useWorkout } from "@/contexts/workout-context"
 import { muscleGroupLabel } from "@/modules/exercises/domain/exercise"
 import type {
-  AiWorkoutInput,
-  AiWorkoutResult,
+  WorkoutGeneratorInput,
+  WorkoutGeneratorResult,
 } from "@/modules/workouts/application/workout-generation-schema"
 import { workoutFormSchema } from "@/modules/workouts/domain/schemas"
 import type { Workout, WorkoutFormValues } from "@/modules/workouts/domain/workout"
@@ -28,7 +28,7 @@ import { WorkoutDayForm } from "../workout-day-form"
 import { WorkoutExerciseSelector } from "../workout-exercise-selector"
 import { WorkoutReviewContext, WorkoutReviewMessages } from "./workout-review-context"
 
-export function WorkoutAiReview({
+export function WorkoutGenerationReview({
   result,
   input,
   busy,
@@ -38,8 +38,8 @@ export function WorkoutAiReview({
   onSavingChange,
   onSaved,
 }: {
-  result: AiWorkoutResult
-  input: AiWorkoutInput
+  result: WorkoutGeneratorResult
+  input: WorkoutGeneratorInput
   heading: RefObject<HTMLHeadingElement | null>
   busy: boolean
   error: string
@@ -132,7 +132,7 @@ export function WorkoutAiReview({
             <TextField
               error={form.formState.errors.name}
               icon={<DumbbellIcon />}
-              id="ai-plan-name"
+              id="generator-plan-name"
               label="Nome da ficha"
               {...form.register("name")}
             />
@@ -140,7 +140,7 @@ export function WorkoutAiReview({
             <TextField
               error={form.formState.errors.description}
               icon={<AlignLeftIcon />}
-              id="ai-plan-description"
+              id="generator-plan-description"
               label="Descrição"
               {...form.register("description")}
             />

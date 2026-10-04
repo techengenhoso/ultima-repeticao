@@ -4,7 +4,7 @@ import { getAuth } from "firebase-admin/auth"
 import { getFirestore } from "firebase-admin/firestore"
 
 function getAdminApp() {
-  const existing = getApps().find(app => app.name === "workout-ai")
+  const existing = getApps().find(app => app.name === "ultima-repeticao")
   if (existing) return existing
   const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID
   if (!projectId) throw new Error("Firebase Admin não configurado")
@@ -20,7 +20,7 @@ function getAdminApp() {
           ? cert({ projectId, clientEmail, privateKey })
           : applicationDefault(),
     },
-    "workout-ai"
+    "ultima-repeticao"
   )
 }
 

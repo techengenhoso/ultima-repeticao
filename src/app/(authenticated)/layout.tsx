@@ -5,7 +5,7 @@ import { ProfileProvider } from "@/contexts/profile-context"
 import { UserProvider } from "@/contexts/user-context"
 
 export const metadata: Metadata = {
-  title: "Início | Última Repetição",
+  title: "Última Repetição",
   description: "Crie, organize e acompanhe suas rotinas de treino",
 }
 

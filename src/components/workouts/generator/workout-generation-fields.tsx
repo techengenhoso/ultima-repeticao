@@ -16,8 +16,8 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { experiences, goals, muscleGroups } from "@/lib/options-select"
 import type { Exercise } from "@/modules/exercises/domain/exercise"
 import {
-  type AiWorkoutInput,
   safetyQuestions,
+  type WorkoutGeneratorInput,
 } from "@/modules/workouts/application/workout-generation-schema"
 
 function selectionError(error: unknown): { message: string } | undefined {
@@ -37,12 +37,12 @@ function selectionError(error: unknown): { message: string } | undefined {
   return undefined
 }
 
-export function WorkoutAiBasics() {
+export function WorkoutGenerationBasics() {
   const {
     register,
     control,
     formState: { errors, isSubmitting },
-  } = useFormContext<AiWorkoutInput>()
+  } = useFormContext<WorkoutGeneratorInput>()
 
   return (
     <div className="grid min-w-0 gap-5 sm:grid-cols-2">
@@ -50,7 +50,7 @@ export function WorkoutAiBasics() {
         <TextField
           error={errors.name}
           icon={<DumbbellIcon />}
-          id="ai-name"
+          id="generator-name"
           label="Nome da ficha"
           placeholder="Ex: Treino de hipertrofia"
           {...register("name")}
@@ -65,7 +65,7 @@ export function WorkoutAiBasics() {
             disabled={isSubmitting}
             error={errors.goal}
             icon={<TargetIcon />}
-            id="ai-goal"
+            id="generator-goal"
             label="Objetivo"
             onChange={field.onChange}
             options={goals}
@@ -82,7 +82,7 @@ export function WorkoutAiBasics() {
             disabled={isSubmitting}
             error={errors.experienceLevel}
             icon={<GaugeIcon />}
-            id="ai-experience"
+            id="generator-experience"
             label="Experiência"
             onChange={field.onChange}
             options={experiences}
@@ -94,7 +94,7 @@ export function WorkoutAiBasics() {
       <TextField
         error={errors.daysPerWeek}
         icon={<DumbbellIcon />}
-        id="ai-days"
+        id="generator-days"
         inputMode="numeric"
         label="Dias por semana"
         placeholder="Ex: 3 (de 2 a 7 dias)"
@@ -106,7 +106,7 @@ export function WorkoutAiBasics() {
       <TextField
         error={errors.durationMinutes}
         icon={<ClockIcon />}
-        id="ai-duration"
+        id="generator-duration"
         inputMode="numeric"
         label="Minutos por treino"
         placeholder="Ex: 60 (de 20 a 180 minutos)"
@@ -117,11 +117,11 @@ export function WorkoutAiBasics() {
   )
 }
 
-export function WorkoutAiPreferences({ exercises }: { exercises: Exercise[] }) {
+export function WorkoutGenerationPreferences({ exercises }: { exercises: Exercise[] }) {
   const {
     control,
     formState: { errors, isSubmitting },
-  } = useFormContext<AiWorkoutInput>()
+  } = useFormContext<WorkoutGeneratorInput>()
 
   const exerciseOptions = exercises.map(exercise => ({
     label: `${exercise.name} (${exercise.source === "default" ? "Padrão" : "Personalizado"})`,
@@ -144,7 +144,7 @@ export function WorkoutAiPreferences({ exercises }: { exercises: Exercise[] }) {
               disabled={isSubmitting}
               error={selectionError(errors[name])}
               icon={<BicepsFlexedIcon />}
-              id={`ai-${name}`}
+              id={`generator-${name}`}
               label={
                 name === "priorityMuscleGroups"
                   ? "Grupos musculares prioritários"
@@ -168,7 +168,7 @@ export function WorkoutAiPreferences({ exercises }: { exercises: Exercise[] }) {
               disabled={isSubmitting}
               error={selectionError(errors[name])}
               icon={<DumbbellIcon />}
-              id={`ai-${name}`}
+              id={`generator-${name}`}
               label={
                 name === "preferredExercises"
                   ? "Exercícios preferidos"
@@ -190,7 +190,7 @@ export function WorkoutAiPreferences({ exercises }: { exercises: Exercise[] }) {
             disabled={isSubmitting}
             error={selectionError(errors.excludedMovementPatterns)}
             icon={<DumbbellIcon />}
-            id="ai-movements"
+            id="generator-movements"
             label="Movimentos que você não pode realizar"
             onChange={field.onChange}
             options={movementOptions}
@@ -202,11 +202,11 @@ export function WorkoutAiPreferences({ exercises }: { exercises: Exercise[] }) {
   )
 }
 
-export function WorkoutAiSafety() {
+export function WorkoutGenerationSafety() {
   const {
     control,
     formState: { errors, isSubmitting },
-  } = useFormContext<AiWorkoutInput>()
+  } = useFormContext<WorkoutGeneratorInput>()
 
   return (
     <div className="space-y-5">
@@ -225,7 +225,7 @@ export function WorkoutAiSafety() {
                   <Checkbox
                     checked={field.value.includes(question.value)}
                     disabled={isSubmitting}
-                    id={`ai-${question.value}`}
+                    id={`generator-${question.value}`}
                     onCheckedChange={checked =>
                       field.onChange(
                         checked
@@ -237,7 +237,7 @@ export function WorkoutAiSafety() {
 
                   <FieldLabel
                     className="block min-w-0 text-sm leading-5"
-                    htmlFor={`ai-${question.value}`}
+                    htmlFor={`generator-${question.value}`}
                   >
                     {question.label}
                   </FieldLabel>
@@ -262,13 +262,13 @@ export function WorkoutAiSafety() {
                 <Checkbox
                   checked={field.value}
                   disabled={isSubmitting}
-                  id="ai-confirm"
+                  id="generator-confirm"
                   onCheckedChange={value => field.onChange(value === true)}
                 />
 
                 <FieldLabel
                   className="block min-w-0 text-sm leading-5"
-                  htmlFor="ai-confirm"
+                  htmlFor="generator-confirm"
                 >
                   Revisei todas as situações acima e informei as que se aplicam a mim;
                   entendo que o assistente não avalia nem trata condições de saúde

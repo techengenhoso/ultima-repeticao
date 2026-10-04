@@ -4,8 +4,11 @@ import type {
   DefaultExerciseOverride,
   Exercise,
 } from "@/modules/exercises/domain/exercise"
+import {
+  customExerciseDocumentSchema,
+  exerciseInputSchema,
+} from "@/modules/exercises/domain/exercise"
 import { mergeExercises } from "@/modules/exercises/domain/exercise-library"
-import { normalizeExerciseFields } from "@/modules/exercises/domain/normalization"
 import { getAdminFirestore } from "@/modules/shared/infrastructure/firebase-admin"
 import { defaultExercises } from "@/seeds/default-exercises"
 import type { ExerciseLibraryReader } from "../application/ports/exercise-library-reader"
@@ -24,13 +27,12 @@ export class FirebaseExerciseLibraryReader implements ExerciseLibraryReader {
         "Sua biblioteca excede o tamanho suportado pelo assistente"
       )
     const custom: CustomExercise[] = customDocs.docs.map(item => ({
-      ...normalizeExerciseFields(item.data()),
+      ...customExerciseDocumentSchema.parse(item.data()),
       id: item.id,
       source: "custom",
-      normalizedName: "",
     }))
     const overrides: DefaultExerciseOverride[] = overrideDocs.docs.map(item => ({
-      ...normalizeExerciseFields(item.data()),
+      ...exerciseInputSchema.parse(item.data()),
       id: item.id,
       source: "default",
       isCustomized: true,

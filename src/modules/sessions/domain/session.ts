@@ -1,12 +1,8 @@
 import { z } from "zod"
+import { documentIdSchema } from "@/lib/schemas-zod"
 import { muscleGroupValues } from "@/lib/values-zod"
 import { repetitionsSchema } from "@/modules/workouts/domain/repetitions"
 
-export const documentIdSchema = z
-  .string()
-  .min(1)
-  .max(150)
-  .regex(/^[^/]+$/)
 export const loadSchema = z
   .number({ error: "Informe a carga utilizada" })
   .min(0)
@@ -213,7 +209,6 @@ export const sessionCommandSchema = z.discriminatedUnion("action", [
     })
     .strict(),
 ])
-export type CompletedSet = z.infer<typeof completedSetSchema>
 export type WorkoutSession = z.infer<typeof sessionSchema>
 export type SessionExercise = z.infer<typeof sessionExerciseSchema>
 export type LoadSuggestion = z.infer<typeof suggestionSchema>

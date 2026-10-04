@@ -74,9 +74,10 @@ export function PerformancePanel() {
       ) : !options.length ? (
         <Empty className="border">
           <EmptyHeader>
-            <EmptyTitle>Nenhum desempenho registrado</EmptyTitle>
+            <EmptyTitle>Nenhum exercício registrado</EmptyTitle>
+
             <EmptyDescription>
-              Conclua um treino com séries de trabalho para acompanhar sua evolução
+              Conclua um exercício para acompanhar seu desempenho
             </EmptyDescription>
           </EmptyHeader>
         </Empty>

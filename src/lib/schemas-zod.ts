@@ -11,17 +11,17 @@ import {
 
 export const requiredSchema = z.string().trim().min(1, "Campo obrigatório")
 
+export const documentIdSchema = z
+  .string()
+  .min(1)
+  .max(150)
+  .regex(/^[^/]+$/)
+
 export const textSchema = z
   .string()
   .trim()
   .min(3, "Deve ter no mínimo 3 caracteres")
   .max(100, "Deve ter no máximo 100 caracteres")
-
-export const textLongSchema = z
-  .string()
-  .trim()
-  .min(10, "Deve ter no mínimo 10 caracteres")
-  .max(1000, "Deve ter no máximo 1000 caracteres")
 
 export const emailSchema = z.email("Informe um e-mail válido")
 

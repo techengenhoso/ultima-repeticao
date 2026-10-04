@@ -86,7 +86,3 @@ const workoutFields = z
   })
 
 export const workoutFormSchema = workoutFields
-
-export function normalizeWorkoutOrders<T extends { order: number }>(items: T[]) {
-  return items.map((item, order) => ({ ...item, order }))
-}

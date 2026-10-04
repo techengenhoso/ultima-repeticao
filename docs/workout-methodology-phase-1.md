@@ -7,9 +7,9 @@ Manter este documento como referência até finalizar as implementações, confo
 ## Estado das fases
 
 - Fase 1: modelo, formulário manual, motor determinístico e validadores implementados, com a pendência de validação de gravação descrita abaixo
-- Fase 2: assistente, preparação da biblioteca e integração implementados; configuração de credenciais e conferência visual pendentes — detalhes em [workout-ai-phase-2.md](workout-ai-phase-2.md)
-- Fase 3: revisão, edição e salvamento explícito da ficha gerada — não implementada
-- Fase 4: registro de desempenho, definição de carga e sugestões determinísticas de progressão — não implementada
+- Fase 2: montagem automática por regras, preparação da biblioteca e validação implementadas — detalhes em [workout-rule-generator.md](workout-rule-generator.md)
+- Fase 3: revisão, edição e salvamento explícito da ficha gerada implementados
+- Fase 4: registro de desempenho, definição de carga e sugestões determinísticas de progressão implementados
 
 ## Escopo e integração
 
@@ -38,7 +38,7 @@ Repetições são texto e aceitam uma quantidade única ou uma faixa crescente d
 
 ## Pendência do Firestore
 
-As regras receberam os campos opcionais na função `validExercise`, mas há uma pendência arquitetural: as funções de validação dos itens já não eram chamadas pela regra de salvamento. Conectar as funções e percorrer todos os itens foi testado no emulador e excedeu o limite de 1.000 expressões já com dois dias e seis exercícios. Essa conexão foi retirada para não bloquear fichas válidas. Portanto, **a validação dos campos internos ainda não é garantida pelas regras**.
+As regras receberam campos opcionais para fichas, mas há uma pendência arquitetural: a validação dos itens internos não é chamada pela regra de salvamento. Percorrer todos os itens foi testado no emulador e excedeu o limite de 1.000 expressões já com dois dias e seis exercícios. Essa conexão foi retirada para não bloquear fichas válidas. Portanto, **a validação dos campos internos ainda não é garantida pelas regras**.
 
 Para concluir com segurança mantendo 14 dias × 30 exercícios e o formato embutido, a solução proposta é validar o salvamento em um backend confiável e impedir gravações diretas que contornem essa validação. O usuário decidiu manter o escopo da Fase 1 e registrar essa mudança de arquitetura como pendência, sem implementar salvamento no servidor nesta fase. Na Fase 2, Firebase Admin foi adicionado exclusivamente para verificar tokens e ler a biblioteca; a pendência de salvamento continua aberta. Nenhuma regra foi publicada e nenhum dado real foi acessado. Os testes do emulador usaram exclusivamente `demo-ultima-repeticao`.
 

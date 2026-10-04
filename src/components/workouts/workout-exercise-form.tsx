@@ -21,7 +21,10 @@ import { Input } from "@/components/ui/input"
 import { type Exercise, muscleGroupLabel } from "@/modules/exercises/domain/exercise"
 import type { WorkoutFormValues } from "@/modules/workouts/domain/workout"
 
-import { useWorkoutReview, WorkoutReviewMessages } from "./ai/workout-review-context"
+import {
+  useWorkoutReview,
+  WorkoutReviewMessages,
+} from "./generator/workout-review-context"
 
 interface Props {
   dayIndex: number

@@ -27,7 +27,6 @@ import {
   textSchema,
 } from "@/lib/schemas-zod"
 import type { Exercise, ExerciseInput } from "@/modules/exercises/domain/exercise"
-import { normalizeExerciseFields } from "@/modules/exercises/domain/normalization"
 import { LongTextField } from "../long-text-field"
 import { MultiSelectField } from "../multi-select-field"
 import { SelectField } from "../select-field"
@@ -84,8 +83,18 @@ interface Props {
 
 export function ExerciseForm({ exercise, onCancel, onSubmit }: Props) {
   const { hasVerticalOverflow, ref: scrollRef } = useScrollPadding()
-  const initialValues = exercise
-    ? normalizeExerciseFields({ ...exercise })
+  const initialValues: ExerciseFormValues = exercise
+    ? {
+        name: exercise.name,
+        muscleGroup: exercise.muscleGroup,
+        primaryMuscles: exercise.primaryMuscles,
+        secondaryMuscles: exercise.secondaryMuscles,
+        difficulty: exercise.difficulty,
+        movementPattern: exercise.movementPattern,
+        startingPosition: exercise.startingPosition,
+        movementExecution: exercise.movementExecution,
+        importantCautions: exercise.importantCautions,
+      }
     : emptyExerciseValues
   const {
     control,

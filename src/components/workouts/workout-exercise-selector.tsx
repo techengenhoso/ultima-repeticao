@@ -30,7 +30,7 @@ import {
 } from "@/modules/exercises/domain/exercise-library"
 import type { WorkoutFormValues } from "@/modules/workouts/domain/workout"
 import { useWorkoutGenerationUseCases } from "@/modules/workouts/presentation/workout-generation-use-cases-context"
-import { useWorkoutReview } from "./ai/workout-review-context"
+import { useWorkoutReview } from "./generator/workout-review-context"
 
 function exerciseBadgeLabel({
   isAlreadyAdded,

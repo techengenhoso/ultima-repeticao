@@ -31,7 +31,7 @@ const safetyValues = safetyQuestions.map(item => item.value) as [
   ...(typeof safetyQuestions)[number]["value"][],
 ]
 
-export const aiWorkoutInputSchema = methodologyInputSchema
+export const workoutGeneratorInputSchema = methodologyInputSchema
   .safeExtend({
     name: textSchema,
     preferredExercises: z.array(referenceSchema).max(30, "Escolha até 30 exercícios"),
@@ -54,11 +54,11 @@ export const aiWorkoutInputSchema = methodologyInputSchema
       })
   })
 
-export type AiWorkoutInput = z.infer<typeof aiWorkoutInputSchema>
+export type WorkoutGeneratorInput = z.infer<typeof workoutGeneratorInputSchema>
 
-export const aiWorkoutResultSchema = z.object({
+export const workoutGeneratorResultSchema = z.object({
   plan: workoutFormSchema,
   notices: z.array(z.string().max(500)).max(30),
 })
 
-export type AiWorkoutResult = z.infer<typeof aiWorkoutResultSchema>
+export type WorkoutGeneratorResult = z.infer<typeof workoutGeneratorResultSchema>

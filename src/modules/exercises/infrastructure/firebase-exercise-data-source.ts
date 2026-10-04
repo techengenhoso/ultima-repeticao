@@ -11,13 +11,14 @@ import {
   where,
 } from "firebase/firestore"
 import { db } from "@/infrastructure/firebase/client"
-import type { CustomExercise, ExerciseInput } from "@/modules/exercises/domain/exercise"
+import { DuplicateExerciseNameError } from "@/modules/exercises/application/ports/exercise-repository"
 import {
-  normalizeExerciseFields as exerciseFields,
-  normalizeExerciseName,
-} from "@/modules/exercises/domain/normalization"
-
-export class DuplicateExerciseNameError extends Error {}
+  type CustomExercise,
+  customExerciseDocumentSchema,
+  type ExerciseInput,
+  exerciseInputSchema,
+} from "@/modules/exercises/domain/exercise"
+import { normalizeExerciseName } from "@/modules/exercises/domain/normalization"
 
 function exercisesCollection(uid: string) {
   return collection(db, "users", uid, "exercises")
@@ -27,15 +28,12 @@ function exerciseOverridesCollection(uid: string) {
   return collection(db, "users", uid, "exerciseOverrides")
 }
 
-function parseExercise(id: string, data: Record<string, unknown>): CustomExercise {
+function parseExercise(id: string, data: unknown): CustomExercise {
+  const parsed = customExerciseDocumentSchema.parse(data)
   return {
-    ...exerciseFields(data),
+    ...parsed,
     id,
     source: "custom",
-    normalizedName:
-      typeof data.normalizedName === "string"
-        ? data.normalizedName
-        : normalizeExerciseName(String(data.name ?? "")),
   }
 }
 
@@ -55,11 +53,11 @@ async function hasDuplicateExerciseName(
   return snapshot.docs.some(item => item.id !== ignoredExerciseId)
 }
 
-function cleanInput(input: ExerciseInput) {
+function cleanInput(input: ExerciseInput): ExerciseInput {
   const cleanList = (items: string[]) => [
     ...new Set(items.map(item => item.trim()).filter(Boolean)),
   ]
-  return {
+  return exerciseInputSchema.parse({
     name: input.name.trim().replace(/\s+/g, " "),
     muscleGroup: input.muscleGroup,
     primaryMuscles: cleanList(input.primaryMuscles),
@@ -69,7 +67,7 @@ function cleanInput(input: ExerciseInput) {
     startingPosition: input.startingPosition.trim(),
     movementExecution: input.movementExecution.trim(),
     importantCautions: input.importantCautions.trim(),
-  }
+  })
 }
 
 export async function listCustomExercisesRepository(uid: string) {
@@ -82,7 +80,7 @@ export async function listCustomExercisesRepository(uid: string) {
 export async function listDefaultExerciseOverridesRepository(uid: string) {
   const snapshot = await getDocs(exerciseOverridesCollection(uid))
   return snapshot.docs.map(item => ({
-    ...exerciseFields(item.data()),
+    ...exerciseInputSchema.parse(item.data()),
     id: item.id,
     source: "default" as const,
     isCustomized: true as const,
@@ -130,7 +128,7 @@ export async function saveDefaultExerciseOverrideRepository(
   await setDoc(reference, clean)
   const saved = await getDoc(reference)
   return {
-    ...exerciseFields(saved.data() ?? {}),
+    ...exerciseInputSchema.parse(saved.data()),
     id: saved.id,
     source: "default" as const,
     isCustomized: true as const,

@@ -17,9 +17,9 @@ import {
 } from "@/modules/workouts/domain/methodology/validation"
 import type { WorkoutDay, WorkoutFormValues } from "@/modules/workouts/domain/workout"
 import {
-  type AiWorkoutInput,
-  aiWorkoutInputSchema,
-  aiWorkoutResultSchema,
+  type WorkoutGeneratorInput,
+  workoutGeneratorInputSchema,
+  workoutGeneratorResultSchema,
 } from "./workout-generation-schema"
 
 export class WorkoutGenerationError extends Error {}
@@ -29,7 +29,7 @@ export interface WorkoutGenerationUseCases {
     input: Pick<WorkoutGenerationInput, "safetyConfirmed" | "safetyFlags">
   ): string | null
   generate(
-    input: AiWorkoutInput,
+    input: WorkoutGeneratorInput,
     library: Exercise[],
     signal: AbortSignal
   ): Promise<{
@@ -89,7 +89,7 @@ export function createWorkoutGenerationUseCases(): WorkoutGenerationUseCases {
     },
     async generate(input, library, signal) {
       signal.throwIfAborted()
-      const validated = aiWorkoutInputSchema.parse(input)
+      const validated = workoutGeneratorInputSchema.parse(input)
       const safety = getSafetyBlock(validated)
       if (safety) throw new WorkoutGenerationError(safety)
       const prescription = createWorkoutPrescription(validated)
@@ -124,7 +124,7 @@ export function createWorkoutGenerationUseCases(): WorkoutGenerationUseCases {
         throw new WorkoutGenerationError(
           "A combinação não passou pela validação, revise as opções"
         )
-      return aiWorkoutResultSchema.parse({
+      return workoutGeneratorResultSchema.parse({
         plan,
         notices: [...new Set([...notices, ...issues.map(issue => issue.message)])].slice(
           0,

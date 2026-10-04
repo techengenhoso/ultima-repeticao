@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { documentIdSchema } from "@/lib/schemas-zod"
 import {
   BodyAssessmentError,
   createBodyAssessment,
@@ -7,7 +8,6 @@ import {
   updateBodyAssessment,
 } from "@/modules/body-assessments/application/body-assessment-use-cases"
 import { assessmentInputSchema } from "@/modules/body-assessments/domain/body-assessment"
-import { documentIdSchema } from "@/modules/sessions/domain/session"
 import {
   authenticateFirebaseRequest,
   RequestAuthenticationError,

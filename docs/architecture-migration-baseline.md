@@ -40,7 +40,7 @@ Os índices atuais cobrem consultas de sessões concluídas por data e por refer
 - Progressão é determinística, só ocorre depois da sessão concluída e não usa IA
 - Referências de exercício usam `source + exerciseId`, nunca o nome
 - Uma ficha ativa por usuário é preservada por transação
-- O formato legado de fichas continua normalizado somente em memória até salvamento explícito
+- Documentos fora do formato atual são recusados; não há normalização de formatos legados
 - A pendência de validação profunda dos itens internos de fichas nas regras do Firestore permanece aberta e não pode ser considerada resolvida por esta migração
 
 ## Mapa de dependências observado

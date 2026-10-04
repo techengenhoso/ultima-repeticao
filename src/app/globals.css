@@ -133,7 +133,4 @@
     @apply bg-muted/30 font-sans;
   }
 
-  button:not(:disabled), [role="button"]:not(:disabled) {
-    cursor: pointer;
-  }
 }

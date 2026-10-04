@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { WorkoutAiAssistant } from "@/components/workouts/ai/workout-ai-assistant"
+import { WorkoutGenerationAssistant } from "@/components/workouts/generator/workout-generation-assistant"
 import { useUser } from "@/contexts/user-context"
 import { useWorkout } from "@/contexts/workout-context"
 
@@ -43,7 +43,7 @@ export function WorkoutCreateChoice() {
             <DialogTitle>Como deseja criar sua ficha?</DialogTitle>
 
             <DialogDescription>
-              Você pode montar cada dia manualmente ou começar com uma sugestão do agente
+              Você pode montar cada dia manualmente ou começar com uma sugestão automática
             </DialogDescription>
           </DialogHeader>
 
@@ -70,18 +70,18 @@ export function WorkoutCreateChoice() {
               type="button"
             >
               <SparklesIcon />
-              <span>Com ajuda do agente</span>
+              <span>Montar automaticamente</span>
               <span className="text-xs font-normal leading-tight text-primary-foreground/80">
-                <span className="block">Receba uma sugestão</span>
-                <span className="block">e ajuste antes de</span>
-                <span className="block">salvar</span>
+                <span className="block">Receba uma sugestão baseada</span>
+                <span className="block">nas suas preferências</span>
+                <span className="block">e ajuste antes de salvar</span>
               </span>
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      <WorkoutAiAssistant
+      <WorkoutGenerationAssistant
         key={user.uid}
         onOpenChange={setAssistantOpen}
         open={assistantOpen}

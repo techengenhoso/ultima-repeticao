@@ -196,7 +196,7 @@ export function BodyAssessmentsSection() {
       ) : items.length === 0 ? (
         <Empty className="border">
           <EmptyHeader>
-            <EmptyTitle>Nenhuma avaliação cadastrada</EmptyTitle>
+            <EmptyTitle>Nenhuma avaliação registrado</EmptyTitle>
             <EmptyDescription>Crie uma avaliação para acompanhamento</EmptyDescription>
           </EmptyHeader>
         </Empty>

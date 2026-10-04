@@ -30,18 +30,18 @@ import {
 import { useProfile } from "@/contexts/profile-context"
 import { useWorkout } from "@/contexts/workout-context"
 import {
-  type AiWorkoutInput,
-  type AiWorkoutResult,
-  aiWorkoutInputSchema,
+  type WorkoutGeneratorInput,
+  type WorkoutGeneratorResult,
+  workoutGeneratorInputSchema,
 } from "@/modules/workouts/application/workout-generation-schema"
 import { WorkoutGenerationError } from "@/modules/workouts/application/workout-generation-use-cases"
 import { useWorkoutGenerationUseCases } from "@/modules/workouts/presentation/workout-generation-use-cases-context"
 import {
-  WorkoutAiBasics,
-  WorkoutAiPreferences,
-  WorkoutAiSafety,
-} from "./workout-ai-fields"
-import { WorkoutAiReview } from "./workout-ai-review"
+  WorkoutGenerationBasics,
+  WorkoutGenerationPreferences,
+  WorkoutGenerationSafety,
+} from "./workout-generation-fields"
+import { WorkoutGenerationReview } from "./workout-generation-review"
 
 function profileDefaults(profile: ReturnType<typeof useProfile>["profile"]) {
   return {
@@ -50,7 +50,7 @@ function profileDefaults(profile: ReturnType<typeof useProfile>["profile"]) {
   }
 }
 
-const steps: { title: string; fields: FieldPath<AiWorkoutInput>[] }[] = [
+const steps: { title: string; fields: FieldPath<WorkoutGeneratorInput>[] }[] = [
   {
     title: "Seu planejamento",
     fields: ["name", "goal", "experienceLevel", "daysPerWeek", "durationMinutes"],
@@ -80,10 +80,10 @@ function generationError(error: unknown, signal: AbortSignal) {
 }
 
 function useSafetyBlock(
-  control: Control<AiWorkoutInput>,
+  control: Control<WorkoutGeneratorInput>,
   generationAttempted: boolean,
   safetyBlock: (
-    input: Pick<AiWorkoutInput, "safetyConfirmed" | "safetyFlags">
+    input: Pick<WorkoutGeneratorInput, "safetyConfirmed" | "safetyFlags">
   ) => string | null
 ) {
   const values = useWatch({ control: control })
@@ -101,18 +101,21 @@ function submitLabel(pending: boolean, step: number) {
   return step < 2 ? "Continuar" : "Gerar sugestão"
 }
 
-interface WorkoutAiAssistantProps {
+interface WorkoutGenerationAssistantProps {
   open: boolean
   onOpenChange(open: boolean): void
 }
 
-export function WorkoutAiAssistant({ open, onOpenChange }: WorkoutAiAssistantProps) {
+export function WorkoutGenerationAssistant({
+  open,
+  onOpenChange,
+}: WorkoutGenerationAssistantProps) {
   const { profile } = useProfile()
   const { exercises } = useWorkout()
   const workoutGenerationUseCases = useWorkoutGenerationUseCases()
   const [step, setStep] = useState(0)
-  const [result, setResult] = useState<AiWorkoutResult | null>(null)
-  const [originalInput, setOriginalInput] = useState<AiWorkoutInput | null>(null)
+  const [result, setResult] = useState<WorkoutGeneratorResult | null>(null)
+  const [originalInput, setOriginalInput] = useState<WorkoutGeneratorInput | null>(null)
   const [revision, setRevision] = useState(0)
   const [generating, setGenerating] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -122,10 +125,10 @@ export function WorkoutAiAssistant({ open, onOpenChange }: WorkoutAiAssistantPro
   const activeRequest = useRef<AbortController | null>(null)
   const heading = useRef<HTMLHeadingElement>(null)
   const wasOpen = useRef(false)
-  const form = useForm<AiWorkoutInput>({
+  const form = useForm<WorkoutGeneratorInput>({
     mode: "onSubmit",
     reValidateMode: "onChange",
-    resolver: zodResolver(aiWorkoutInputSchema, {
+    resolver: zodResolver(workoutGeneratorInputSchema, {
       error: () => "Confira o valor informado",
     }),
     defaultValues: {
@@ -175,7 +178,7 @@ export function WorkoutAiAssistant({ open, onOpenChange }: WorkoutAiAssistantPro
       setStep(Math.min(step + 1, 2))
     }
   }
-  async function generate(input: AiWorkoutInput) {
+  async function generate(input: WorkoutGeneratorInput) {
     if (activeRequest.current) return
 
     const blocked = workoutGenerationUseCases.safetyBlock(input)
@@ -243,7 +246,7 @@ export function WorkoutAiAssistant({ open, onOpenChange }: WorkoutAiAssistantPro
           showCloseButton={!pending}
         >
           <DialogHeader className="pr-12">
-            <DialogTitle>Nova ficha com IA</DialogTitle>
+            <DialogTitle>Nova ficha automática</DialogTitle>
 
             <DialogDescription>
               Uma sugestão montada por regras a partir das suas respostas e da biblioteca.
@@ -254,7 +257,7 @@ export function WorkoutAiAssistant({ open, onOpenChange }: WorkoutAiAssistantPro
 
           <div className="min-h-0 w-full min-w-0 overflow-x-hidden overflow-y-auto overscroll-contain">
             {result && originalInput ? (
-              <WorkoutAiReview
+              <WorkoutGenerationReview
                 busy={pending}
                 error={error}
                 heading={heading}
@@ -306,9 +309,9 @@ export function WorkoutAiAssistant({ open, onOpenChange }: WorkoutAiAssistantPro
                   </div>
 
                   <fieldset className="min-w-0 space-y-5" disabled={pending}>
-                    {step === 0 && <WorkoutAiBasics />}
-                    {step === 1 && <WorkoutAiPreferences exercises={exercises} />}
-                    {step === 2 && <WorkoutAiSafety />}
+                    {step === 0 && <WorkoutGenerationBasics />}
+                    {step === 1 && <WorkoutGenerationPreferences exercises={exercises} />}
+                    {step === 2 && <WorkoutGenerationSafety />}
                   </fieldset>
 
                   {visibleSafety && (
