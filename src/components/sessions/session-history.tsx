@@ -1,21 +1,32 @@
 "use client"
 
-import { EyeIcon, LoaderCircleIcon, Trash2Icon } from "lucide-react"
+import { EyeIcon, Trash2Icon } from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { PageHeader } from "@/components/page-header"
-import { Button } from "@/components/ui/button"
+import { Skeletons } from "@/components/skeleton"
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemTitle,
+} from "@/components/ui/item"
 import {
   Pagination,
   PaginationContent,
@@ -24,14 +35,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { useUser } from "@/contexts/user-context"
 import type { WorkoutSession } from "@/modules/sessions/domain/session"
 import { useSessionGateway } from "@/modules/sessions/presentation/session-gateway-context"
@@ -61,6 +64,234 @@ const formatSessionDate = (session: WorkoutSession) =>
     year: "numeric",
   }).format(new Date(session.completedAt ?? session.startedAt))
 
+function SessionPagination({
+  cursor,
+  hasLoaded,
+  onPageChange,
+  page,
+  pageCursors,
+  pending,
+}: {
+  cursor: string | null
+  hasLoaded: boolean
+  onPageChange: (targetPage: number, targetCursor?: string) => void
+  page: number
+  pageCursors: (string | undefined)[]
+  pending: boolean
+}) {
+  const isFirstPage = page === 0
+  const isLastPage = !cursor
+
+  if (!hasLoaded) return null
+
+  return (
+    <CardFooter className="justify-center">
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              aria-disabled={isFirstPage || pending}
+              className={
+                isFirstPage || pending ? "pointer-events-none opacity-50" : undefined
+              }
+              href="#history-list"
+              onClick={event => {
+                event.preventDefault()
+                if (!isFirstPage && !pending) onPageChange(page - 1, pageCursors[page - 1])
+              }}
+              tabIndex={isFirstPage || pending ? -1 : undefined}
+              text="Anterior"
+            />
+          </PaginationItem>
+
+          {pageCursors.map((pageCursor, index) => (
+            <PaginationItem key={pageCursor ?? "first-page"}>
+              <PaginationLink
+                aria-disabled={pending}
+                className={pending ? "pointer-events-none opacity-50" : undefined}
+                href="#history-list"
+                isActive={index === page}
+                onClick={event => {
+                  event.preventDefault()
+                  if (index !== page && !pending) onPageChange(index, pageCursor)
+                }}
+                tabIndex={pending ? -1 : undefined}
+              >
+                {index + 1}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+
+          <PaginationItem>
+            <PaginationNext
+              aria-disabled={isLastPage || pending}
+              className={
+                isLastPage || pending ? "pointer-events-none opacity-50" : undefined
+              }
+              href="#history-list"
+              onClick={event => {
+                event.preventDefault()
+                if (!isLastPage && !pending) onPageChange(page + 1, cursor)
+              }}
+              tabIndex={isLastPage || pending ? -1 : undefined}
+              text="Próxima"
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    </CardFooter>
+  )
+}
+
+function SessionHistoryList({
+  cursor,
+  onDelete,
+  onPageChange,
+  page,
+  pageCursors,
+  pending,
+  sessions,
+}: {
+  cursor: string | null
+  onDelete: (session: WorkoutSession) => void
+  onPageChange: (targetPage: number, targetCursor?: string) => void
+  page: number
+  pageCursors: (string | undefined)[]
+  pending: boolean
+  sessions: WorkoutSession[]
+}) {
+  return (
+    <section aria-labelledby="history-list-title" id="history-list">
+      <Card>
+        <CardContent>
+          <ItemGroup>
+            {sessions.map(session => (
+              <Item key={session.id} variant="muted">
+                <ItemContent>
+                  <ItemTitle>{session.workoutPlanName}</ItemTitle>
+                  <ItemDescription>
+                    {session.workoutDayName} · {formatSessionDate(session)} ·{" "}
+                    {sessionStatusLabel(session.status)} · {completedWorkSets(session)}{" "}
+                    séries
+                  </ItemDescription>
+                </ItemContent>
+
+                <ItemActions className="shrink-0 gap-1">
+                  <Button
+                    aria-label={
+                      session.status === "inProgress"
+                        ? "Retomar treino"
+                        : "Ver desempenho do treino"
+                    }
+                    asChild
+                    className="size-9 px-0 sm:w-auto sm:px-4"
+                    size="sm"
+                    variant="secondary"
+                  >
+                    <Link
+                      href={
+                        session.status === "inProgress"
+                          ? `/workouts/sessions/${encodeURIComponent(session.id)}`
+                          : `/history/sessions/${encodeURIComponent(session.id)}`
+                      }
+                    >
+                      <EyeIcon aria-hidden="true" className="sm:hidden" />
+                      <span className="hidden sm:inline">
+                        {session.status === "inProgress"
+                          ? "Retomar treino"
+                          : "Ver desempenho"}
+                      </span>
+                    </Link>
+                  </Button>
+
+                  <Button
+                    aria-label="Excluir treino"
+                    onClick={() => onDelete(session)}
+                    size="icon-sm"
+                    type="button"
+                    variant="destructive"
+                  >
+                    <Trash2Icon />
+                  </Button>
+                </ItemActions>
+              </Item>
+            ))}
+          </ItemGroup>
+        </CardContent>
+
+        <SessionPagination
+          cursor={cursor}
+          hasLoaded
+          onPageChange={onPageChange}
+          page={page}
+          pageCursors={pageCursors}
+          pending={pending}
+        />
+      </Card>
+    </section>
+  )
+}
+
+function SessionHistoryContent({
+  cursor,
+  error,
+  hasLoaded,
+  onDelete,
+  onPageChange,
+  onRetry,
+  page,
+  pageCursors,
+  pending,
+  sessions,
+}: {
+  cursor: string | null
+  error: string
+  hasLoaded: boolean
+  onDelete: (session: WorkoutSession) => void
+  onPageChange: (targetPage: number, targetCursor?: string) => void
+  onRetry: () => void
+  page: number
+  pageCursors: (string | undefined)[]
+  pending: boolean
+  sessions: WorkoutSession[]
+}) {
+  if (pending && !hasLoaded) return <Skeletons />
+
+  if (error && !hasLoaded)
+    return (
+      <div role="alert">
+        <p className="text-destructive">{error} Tivemos um erro</p>
+        <Button className="mt-2" onClick={onRetry} variant="secondary">
+          Tentar novamente
+        </Button>
+      </div>
+    )
+
+  if (!hasLoaded) return null
+
+  if (!sessions.length)
+    return (
+      <Empty className="border">
+        <EmptyHeader>
+          <EmptyTitle>Seu histórico está vazio</EmptyTitle>
+          <EmptyDescription>Finalize um treino para poder acompanhar</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    )
+
+  return (
+    <SessionHistoryList
+      cursor={cursor}
+      onDelete={onDelete}
+      onPageChange={onPageChange}
+      page={page}
+      pageCursors={pageCursors}
+      pending={pending}
+      sessions={sessions}
+    />
+  )
+}
+
 function UserSessionHistory({ title }: { title: string }) {
   const gateway = useSessionGateway()
   const [sessions, setSessions] = useState<WorkoutSession[]>([])
@@ -69,10 +300,12 @@ function UserSessionHistory({ title }: { title: string }) {
   const [cursor, setCursor] = useState<string | null>(null)
   const [pending, setPending] = useState(true)
   const [hasLoaded, setHasLoaded] = useState(false)
+  const [error, setError] = useState("")
   const [deleting, setDeleting] = useState<WorkoutSession | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const mounted = useRef(true)
   const active = useRef(false)
+  const hasLoadedRef = useRef(false)
   const loadPage = useCallback(
     async (targetPage: number, targetCursor?: string) => {
       if (active.current) return
@@ -90,14 +323,19 @@ function UserSessionHistory({ title }: { title: string }) {
           return cursors
         })
         setHasLoaded(true)
+        hasLoadedRef.current = true
+        setError("")
       } catch (failure) {
         if (!mounted.current) return
-        toast.error(historyError(failure), {
-          action: {
-            label: "Tentar novamente",
-            onClick: () => void loadPage(targetPage, targetCursor),
-          },
-        })
+        const message = historyError(failure)
+        if (hasLoadedRef.current)
+          toast.error(message, {
+            action: {
+              label: "Tentar novamente",
+              onClick: () => void loadPage(targetPage, targetCursor),
+            },
+          })
+        else setError(message)
       } finally {
         active.current = false
         if (mounted.current) setPending(false)
@@ -138,188 +376,49 @@ function UserSessionHistory({ title }: { title: string }) {
         title={title}
       />
 
-      <section
-        aria-labelledby="history-list-title"
-        className="space-y-4"
-        id="history-list"
-      >
-        <h2 className="sr-only" id="history-list-title">
-          Treinos registrados
-        </h2>
+      <SessionHistoryContent
+        cursor={cursor}
+        error={error}
+        hasLoaded={hasLoaded}
+        onDelete={setDeleting}
+        onPageChange={(targetPage, targetCursor) =>
+          void loadPage(targetPage, targetCursor)
+        }
+        onRetry={() => void loadPage(page, pageCursors[page])}
+        page={page}
+        pageCursors={pageCursors}
+        pending={pending}
+        sessions={sessions}
+      />
 
-        {hasLoaded && sessions.length > 0 && (
-          <Table className="table w-full">
-            <TableHeader className="table-header-group border-y bg-muted/40">
-              <TableRow className="table-row">
-                <TableHead className="table-cell text-center">Treino</TableHead>
-
-                <TableHead className="table-cell text-center">Data</TableHead>
-
-                <TableHead className="hidden lg:table-cell text-center">Status</TableHead>
-
-                <TableHead className="hidden sm:table-cell text-center">Séries</TableHead>
-
-                <TableHead className="table-cell text-center">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-
-            <TableBody className="table-row-group">
-              {sessions.map(session => (
-                <TableRow className="table-row" key={session.id}>
-                  <TableCell className="table-cell text-center whitespace-normal">
-                    <p className="font-medium">{session.workoutPlanName}</p>
-
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {session.workoutDayName}
-                    </p>
-                  </TableCell>
-
-                  <TableCell className="table-cell text-center text-muted-foreground">
-                    {formatSessionDate(session)}
-                  </TableCell>
-
-                  <TableCell className="hidden lg:table-cell text-center">
-                    <span className="inline-flex rounded-full bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                      {sessionStatusLabel(session.status)}
-                    </span>
-                  </TableCell>
-
-                  <TableCell className="hidden sm:table-cell text-center tabular-nums">
-                    {completedWorkSets(session)}
-                  </TableCell>
-
-                  <TableCell className="table-cell text-center">
-                    <div className="flex justify-center gap-2">
-                      <Button
-                        asChild
-                        className="xl:w-auto xl:px-4"
-                        size="icon-sm"
-                        variant="outline"
-                      >
-                        <Link
-                          href={
-                            session.status === "inProgress"
-                              ? `/workouts/sessions/${encodeURIComponent(session.id)}`
-                              : `/history/sessions/${encodeURIComponent(session.id)}`
-                          }
-                        >
-                          <EyeIcon className="xl:hidden" />
-
-                          <span className="hidden xl:inline">
-                            {session.status === "inProgress"
-                              ? "Retomar treino"
-                              : "Ver desempenho"}
-                          </span>
-                        </Link>
-                      </Button>
-
-                      <Button
-                        onClick={() => setDeleting(session)}
-                        size="icon-sm"
-                        type="button"
-                        variant="destructive"
-                      >
-                        <Trash2Icon />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-
-        {!pending && hasLoaded && sessions.length === 0 && (
-          <Empty className="border">
-            <EmptyHeader>
-              <EmptyTitle>Seu histórico está vazio</EmptyTitle>
-
-              <EmptyDescription>
-                Inicie um dia nos detalhes de uma ficha para registrar seu primeiro treino
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        )}
-      </section>
-
-      {hasLoaded && (page > 0 || cursor) && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                aria-disabled={page === 0 || pending}
-                href="#history-list"
-                onClick={event => {
-                  event.preventDefault()
-                  if (page > 0 && !pending) void loadPage(page - 1, pageCursors[page - 1])
-                }}
-                text="Anterior"
-              />
-            </PaginationItem>
-
-            <PaginationItem>
-              <PaginationLink
-                href="#history-list"
-                isActive
-                onClick={event => event.preventDefault()}
-              >
-                {page + 1}
-              </PaginationLink>
-            </PaginationItem>
-
-            <PaginationItem>
-              <PaginationNext
-                aria-disabled={!cursor || pending}
-                href="#history-list"
-                onClick={event => {
-                  event.preventDefault()
-                  if (cursor && !pending) void loadPage(page + 1, cursor)
-                }}
-                text="Próxima"
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
-
-      {pending && (
-        <output className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-          <LoaderCircleIcon className="size-4 animate-spin" />
-
-          {hasLoaded
-            ? "Atualizando histórico de treinos"
-            : "Carregando histórico de treinos"}
-        </output>
-      )}
-
-      <Dialog
+      <AlertDialog
         onOpenChange={open => !open && !isDeleting && setDeleting(null)}
         open={!!deleting}
       >
-        <DialogContent showCloseButton={false}>
-          <DialogHeader>
-            <DialogTitle>Excluir treino</DialogTitle>
+        <AlertDialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+          <AlertDialogHeader className="sm:group-data-[size=default]/alert-dialog-content:place-items-center sm:group-data-[size=default]/alert-dialog-content:text-center">
+            <AlertDialogTitle>Exclusão permanente</AlertDialogTitle>
 
-            <DialogDescription>
-              O treino “{deleting?.workoutPlanName} · {deleting?.workoutDayName}” será
-              excluído permanentemente. Esta ação não poderá ser desfeita
-            </DialogDescription>
-          </DialogHeader>
+            <AlertDialogDescription>
+              Este treino será excluído permanentemente sem possibilidade de recuperação
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button disabled={isDeleting} variant="outline">
-                Cancelar
-              </Button>
-            </DialogClose>
+          <AlertDialogFooter className="w-full gap-3 sm:justify-stretch sm:*:flex-1">
+            <AlertDialogCancel disabled={isDeleting} variant="secondary">
+              Cancelar
+            </AlertDialogCancel>
 
-            <Button disabled={isDeleting} onClick={confirmDelete} variant="destructive">
-              {isDeleting && <LoaderCircleIcon className="animate-spin" />}
-              {isDeleting ? "Excluindo" : "Excluir"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <AlertDialogAction
+              disabled={isDeleting}
+              onClick={() => void confirmDelete()}
+              variant="destructive"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

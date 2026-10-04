@@ -104,9 +104,7 @@ function SuggestionResult({
       </ul>
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
         <Button
-          disabled={
-            pending || !canDecide || suggestionUnavailable || exercise.painReported
-          }
+          disabled={pending || !canDecide || suggestionUnavailable}
           onClick={() => onDecide("accept")}
           type="button"
         >

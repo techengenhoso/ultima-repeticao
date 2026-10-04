@@ -35,7 +35,7 @@ Os índices atuais cobrem consultas de sessões concluídas por data e por refer
 ## Invariantes a preservar
 
 - O histórico de sessões é imutável quanto a ficha, dia, identidade e snapshot de exercício
-- Atualizações de execução alteram somente desempenho permitido, relato de dor e decisão de carga
+- Atualizações de execução alteram somente desempenho permitido e decisão de carga
 - A concorrência otimista usa `version` e conflitos retornam 409
 - Progressão é determinística, só ocorre depois da sessão concluída e não usa IA
 - Referências de exercício usam `source + exerciseId`, nunca o nome

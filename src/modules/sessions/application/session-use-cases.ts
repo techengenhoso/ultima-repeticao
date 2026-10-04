@@ -121,7 +121,6 @@ export class SessionUseCases {
           targetSets: target.sets,
           targetRepetitions: target.targetRepetitions,
           initialLoad: target.initialLoad,
-          painReported: false,
           sets: Array.from({ length: target.sets }, (_, index) => ({
             setNumber: index + 1,
             targetRepetitions: target.targetRepetitions,

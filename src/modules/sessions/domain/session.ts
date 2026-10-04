@@ -94,7 +94,6 @@ export const sessionExerciseSchema = z
     initialLoad: loadSchema,
     referenceLoad: loadSchema.optional(),
     incrementSettings: incrementSchema.optional(),
-    painReported: z.boolean(),
     sets: z.array(completedSetSchema).min(1).max(25),
     decision: decisionSchema.optional(),
   })

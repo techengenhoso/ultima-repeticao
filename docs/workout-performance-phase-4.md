@@ -12,11 +12,11 @@ Nenhum teste, arquivo de teste, dependência de testes ou script de testes foi c
 
 ## Modelo e persistência
 
-Coleção: `users/{uid}/workoutSessions/{sessionId}`. Apenas sessões concluídas ou canceladas são gravadas. Cada sessão guarda o proprietário, referências da ficha e dia, nomes históricos, início/encerramento, status, versão e exercícios com snapshots e metas. Cada série registra número, meta, repetições realizadas, carga, avaliação opcional, conclusão e identificação de aquecimento. O relato de dor é apenas um booleano por exercício, sem texto clínico.
+Coleção: `users/{uid}/workoutSessions/{sessionId}`. Apenas sessões concluídas ou canceladas são gravadas. Cada sessão guarda o proprietário, referências da ficha e dia, nomes históricos, início/encerramento, status, versão e exercícios com snapshots e metas. Cada série registra número, meta, repetições realizadas, carga, avaliação opcional, conclusão e identificação de aquecimento.
 
 Os timestamps são produzidos pelo servidor e armazenados como `Timestamp`; a API usa milissegundos em JSON, validados com Zod. A data de encerramento também é usada nas sessões canceladas. Não são aceitos UID, snapshots, datas ou prescrições arbitrárias como autoridade do cliente.
 
-A API `/api/workout-sessions` verifica o Firebase ID Token, inclusive revogação, e usa exclusivamente seu UID. Ao iniciar, ela lê a ficha persistida e a biblioteca real, aplica a normalização de documentos legados e devolve um rascunho assinado, sem escrita no Firestore. O navegador persiste esse rascunho localmente. Ao encerrar, a API verifica a assinatura e preserva metas, referências, snapshots e carga originalmente preparados; aceita somente o desempenho e o relato de dor editáveis. A decisão de carga é uma operação específica, permitida após a conclusão.
+A API `/api/workout-sessions` verifica o Firebase ID Token, inclusive revogação, e usa exclusivamente seu UID. Ao iniciar, ela lê a ficha persistida e a biblioteca real, aplica a normalização de documentos legados e devolve um rascunho assinado, sem escrita no Firestore. O navegador persiste esse rascunho localmente. Ao encerrar, a API verifica a assinatura e preserva metas, referências, snapshots e carga originalmente preparados; aceita somente o desempenho editável. A decisão de carga é uma operação específica, permitida após a conclusão.
 
 Schemas estritos limitam a sessão a 30 exercícios, 20 séries de trabalho e cinco de aquecimento por exercício. Carga: 0–1000 kg, até duas casas decimais; repetições: 0–100, sendo pelo menos uma em séries concluídas; avaliação: um dos cinco níveis definidos. Identificadores, estrutura, sequência, metas e estados também são verificados. O corpo da solicitação é limitado a 256 KiB.
 
@@ -34,9 +34,9 @@ As escolhas e configurações de incremento são preservadas para o próximo tre
 
 ## Motor determinístico
 
-O motor não chama IA e não envia desempenho ou relato de dor a provedores. As consultas consideram apenas sessões concluídas, usando a referência exata do exercício. Sessões canceladas, aquecimentos e séries incompletas não são interpretados como perda de força.
+O motor não chama IA nem envia desempenho a provedores. As consultas consideram apenas sessões concluídas, usando a referência exata do exercício. Sessões canceladas, aquecimentos e séries incompletas não são interpretados como perda de força.
 
-1. Sem dados válidos, com dor, prescrição diferente, séries de trabalho incompletas ou cargas variadas, retorna `insufficientData`
+1. Sem dados válidos, prescrição diferente, séries de trabalho incompletas ou cargas variadas, retorna `insufficientData`
 2. Com todas as séries fáceis ou muito fáceis e abaixo do limite superior, indica mais uma repetição para o próximo treino; se todas foram muito fáceis, indica duas
 3. A avaliação mais difícil registrada prevalece. Adequado, difícil ou muito difícil mantém a carga e as repetições
 4. Ao atingir o limite superior da faixa em todas as séries, com avaliação ao menos adequada, indica aumento conservador de carga e retorno ao limite inferior de repetições

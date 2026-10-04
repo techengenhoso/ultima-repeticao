@@ -34,8 +34,6 @@ const comparable = (a: SessionExercise, b: SessionExercise) =>
   a.targetSets === b.targetSets && a.targetRepetitions === b.targetRepetitions
 
 function dataProblem(exercise: SessionExercise, latest?: HistoryEntry) {
-  if (exercise.painReported || latest?.exercise.painReported)
-    return "Dor relatada: não há sugestão de progressão, interrompa o exercício em caso de dor aguda e procure orientação profissional"
   if (!latest || !workSets(latest.exercise).some(set => set.completed))
     return "Sem desempenho concluído: defina a carga de forma conservadora durante o treino"
   if (!comparable(exercise, latest.exercise))

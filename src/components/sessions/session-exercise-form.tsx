@@ -151,11 +151,6 @@ export function SessionExerciseForm({
           <h2 className="min-w-0 wrap-break-word text-lg font-semibold">
             {exercise.exerciseSnapshot.name}
           </h2>
-          {exercise.painReported && (
-            <p className="ml-auto text-xs text-destructive" role="alert">
-              Dor relatada
-            </p>
-          )}
         </div>
 
         <div className="space-y-5 border-t border-border p-4">

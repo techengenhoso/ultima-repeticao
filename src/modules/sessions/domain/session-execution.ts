@@ -33,7 +33,6 @@ export function applyPerformance(
       )
     return {
       ...exercise,
-      painReported: incoming.painReported,
       sets: incoming.sets.map((set, setIndex) => {
         const planned = exercise.sets[setIndex]
         if (
@@ -83,8 +82,6 @@ export function applyLoadDecision(
     (suggestion.action === "insufficientData" || suggestion.suggestedLoad === undefined)
   )
     throw new SessionDomainError("Não há sugestão disponível para aceitar")
-  if (exercise.painReported && command.choice === "accept")
-    throw new SessionDomainError("Não aceite progressão com dor relatada")
   const expectedLoad =
     command.choice === "maintain" ? suggestion.currentLoad : suggestion.suggestedLoad
   if (command.choice !== "custom" && expectedLoad !== command.load)
@@ -124,7 +121,6 @@ export function initialExercise(
     targetRepetitions: target.targetRepetitions,
     ...(target.restSeconds !== undefined ? { restSeconds: target.restSeconds } : {}),
     initialLoad: target.initialLoad,
-    painReported: false,
     sets: [],
   }
   const latest = history
