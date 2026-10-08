@@ -73,6 +73,7 @@ export const decisionSchema = z
   .object({
     choice: z.enum(["accept", "maintain", "custom"]),
     load: loadSchema,
+    repetitions: z.number().int().min(1).max(100).optional(),
     settings: incrementSchema,
     suggestion: suggestionSchema,
     decidedAt: z.number().int().positive(),
@@ -206,6 +207,15 @@ export const sessionCommandSchema = z.discriminatedUnion("action", [
       settings: incrementSchema,
       choice: z.enum(["accept", "maintain", "custom"]),
       load: loadSchema,
+      repetitions: z.number().int().min(1).max(100).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      action: z.literal("removeDecision"),
+      id: documentIdSchema,
+      version: z.number().int().min(0),
+      exerciseIndex: z.number().int().min(0).max(29),
     })
     .strict(),
 ])

@@ -52,7 +52,7 @@ export function WorkoutCreateChoice() {
               className="h-auto min-h-24 flex-col items-start gap-2 p-4 text-left"
               onClick={createManually}
               type="button"
-              variant="outline"
+              variant="secondary"
             >
               <SquarePenIcon />
               <span>Criar manualmente</span>

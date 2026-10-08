@@ -2,6 +2,7 @@ import type { ExerciseRepository } from "@/modules/exercises/application/ports/e
 import {
   createCustomExerciseRepository,
   deleteCustomExerciseRepository,
+  deleteDefaultExerciseOverrideRepository,
   listCustomExercisesRepository,
   listDefaultExerciseOverridesRepository,
   saveDefaultExerciseOverrideRepository,
@@ -15,4 +16,5 @@ export const firebaseExerciseRepository: ExerciseRepository = {
   updateCustom: updateCustomExerciseRepository,
   saveDefaultOverride: saveDefaultExerciseOverrideRepository,
   deleteCustom: deleteCustomExerciseRepository,
+  deleteDefaultOverride: deleteDefaultExerciseOverrideRepository,
 }

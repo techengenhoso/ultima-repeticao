@@ -3,6 +3,7 @@ import { ExerciseCreateOrEdit } from "@/components/exercises/exercise-create-or-
 import { ExerciseDelete } from "@/components/exercises/exercise-delete"
 import { ExerciseDetails } from "@/components/exercises/exercise-details"
 import { ExerciseList } from "@/components/exercises/exercise-list"
+import { ExerciseRestore } from "@/components/exercises/exercise-restore"
 import { ExercisesFilter } from "@/components/exercises/exercises-filter"
 import { PageHeader } from "@/components/page-header"
 import { ExerciseProvider } from "@/contexts/exercise-context"
@@ -14,22 +15,26 @@ export const metadata: Metadata = {
 
 export default function ExercisesPage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <PageHeader
         description="Consulte exercícios padrão e gerencie sua biblioteca pessoal"
         title="Exercícios"
       />
 
       <ExerciseProvider>
-        <ExercisesFilter />
+        <div className="space-y-6">
+          <ExercisesFilter />
 
-        <ExerciseList />
+          <ExerciseList />
+        </div>
 
         <ExerciseCreateOrEdit />
 
         <ExerciseDetails />
 
         <ExerciseDelete />
+
+        <ExerciseRestore />
       </ExerciseProvider>
     </div>
   )

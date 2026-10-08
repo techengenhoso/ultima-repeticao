@@ -39,7 +39,7 @@ export function WorkoutList() {
           <EmptyDescription>Verifique sua conexão e tente novamente</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
-          <Button onClick={loadWorkouts} variant="outline">
+          <Button onClick={loadWorkouts} variant="secondary">
             <RefreshCwIcon />
             Tentar novamente
           </Button>

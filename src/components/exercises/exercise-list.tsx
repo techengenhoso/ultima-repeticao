@@ -5,10 +5,12 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
+import { ItemGroup } from "@/components/ui/item"
 import {
   Pagination,
   PaginationContent,
@@ -18,7 +20,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useExercise } from "@/contexts/exercise-context"
 import { ExerciseListRow } from "./exercise-list-row"
 
@@ -118,6 +119,7 @@ export function ExerciseList() {
     setDetails,
     setFormExercise,
     setPage,
+    setRestoring,
   } = useExercise()
 
   const totalPages = Math.max(1, Math.ceil(filteredExercises.length / itemsPerPage))
@@ -127,67 +129,56 @@ export function ExerciseList() {
     currentPage * itemsPerPage
   )
 
+  if (isLoading) return <Skeletons />
+
   return (
     <section aria-labelledby="exercise-list-title">
-      {isLoading ? (
-        <Skeletons />
-      ) : filteredExercises.length === 0 ? (
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>Nenhum resultado encontrado</EmptyTitle>
+      <Card>
+        <CardHeader>
+          <CardTitle id="exercise-list-title">Exercícios disponíveis</CardTitle>
 
-            <EmptyDescription>
-              Tente mudar, limpar os filtros ou crie um exercício
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle id="exercise-list-title">Biblioteca de exercícios</CardTitle>
-            <CardDescription>
-              Consulte os exercícios disponíveis e gerencie os personalizados
-            </CardDescription>
-          </CardHeader>
+          <CardDescription>
+            Consulte os exercícios e gerencie suas personalizações
+          </CardDescription>
+        </CardHeader>
 
-          <CardContent>
-            <div className="space-y-5">
-              <Table className="table-fixed">
-                <TableHeader className="bg-muted/50 [&_tr]:border-y [&_th]:font-semibold [&_th]:text-foreground">
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="text-center">Exercício</TableHead>
-                    <TableHead className="hidden text-center sm:table-cell">
-                      Músculos principais
-                    </TableHead>
-                    <TableHead className="hidden text-center lg:table-cell">
-                      Dificuldade
-                    </TableHead>
-                    <TableHead className="w-36 text-center">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
+        <CardContent>
+          {filteredExercises.length === 0 ? (
+            <Empty className="border">
+              <EmptyHeader>
+                <EmptyTitle>Nenhum resultado encontrado</EmptyTitle>
 
-                <TableBody className="[&_tr:last-child]:border-b">
-                  {exercises.map(exercise => (
-                    <ExerciseListRow
-                      exercise={exercise}
-                      key={`${exercise.source}-${exercise.id}`}
-                      onDelete={setDeleting}
-                      onDetails={setDetails}
-                      onEdit={setFormExercise}
-                    />
-                  ))}
-                </TableBody>
-              </Table>
+                <EmptyDescription>
+                  Tente mudar, limpar os filtros ou crie um exercício
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          ) : (
+            <ItemGroup>
+              {exercises.map(exercise => (
+                <ExerciseListRow
+                  exercise={exercise}
+                  key={`${exercise.source}-${exercise.id}`}
+                  onDelete={setDeleting}
+                  onDetails={setDetails}
+                  onEdit={setFormExercise}
+                  onRestore={setRestoring}
+                />
+              ))}
+            </ItemGroup>
+          )}
+        </CardContent>
 
-              <ExercisePagination
-                currentPage={currentPage}
-                onPageChange={setPage}
-                totalPages={totalPages}
-              />
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        {filteredExercises.length > 0 && (
+          <CardFooter className="justify-center">
+            <ExercisePagination
+              currentPage={currentPage}
+              onPageChange={setPage}
+              totalPages={totalPages}
+            />
+          </CardFooter>
+        )}
+      </Card>
     </section>
   )
 }

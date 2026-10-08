@@ -5,14 +5,18 @@ import { Skeletons } from "@/components/skeleton"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import type { WorkoutSession } from "@/modules/sessions/domain/session"
+import { useSessionGateway } from "@/modules/sessions/presentation/session-gateway-context"
 import { useProgressUseCases } from "../progress-use-cases-context"
 import { PerformanceChart } from "./performance-chart"
 import { PerformanceExerciseSelector } from "./performance-exercise-selector"
 import { PerformanceHistory } from "./performance-history"
 import { PerformanceIndicators } from "./performance-indicators"
+import type { PerformanceData } from "./performance-types"
+import { ProgressionHistory } from "./progression-history"
 
 export function PerformancePanel() {
   const progressUseCases = useProgressUseCases()
+  const sessionGateway = useSessionGateway()
   const [sessions, setSessions] = useState<WorkoutSession[]>([])
   const [selected, setSelected] = useState("")
   const [loading, setLoading] = useState(true)
@@ -43,13 +47,24 @@ export function PerformancePanel() {
     () => progressUseCases.performanceForExercise(sessions, selected),
     [progressUseCases, sessions, selected]
   )
+
+  async function removeProgression(item: PerformanceData["rows"][number]) {
+    const session = await sessionGateway.mutate({
+      action: "removeDecision",
+      id: item.sessionId,
+      version: item.sessionVersion,
+      exerciseIndex: item.exerciseIndex,
+    })
+    setSessions(current => current.map(item => (item.id === session.id ? session : item)))
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold">Desempenho dos exercícios</h2>
           <p className="text-sm text-muted-foreground">
-            Analise a carga e o volume das séries concluídas
+            Analise as séries concluídas e as evoluções registradas
           </p>
         </div>
 
@@ -94,7 +109,16 @@ export function PerformancePanel() {
         <>
           {data.latest && <PerformanceIndicators data={data} />}
           {data.rows.length > 0 && <PerformanceChart data={data} />}
-          {data.rows.length > 0 && <PerformanceHistory items={data.rows} key={selected} />}
+          {data.rows.length > 0 && (
+            <PerformanceHistory items={data.rows} key={`${selected}-performance`} />
+          )}
+          {data.rows.length > 0 && (
+            <ProgressionHistory
+              items={data.rows}
+              key={`${selected}-progression`}
+              onRemove={removeProgression}
+            />
+          )}
         </>
       )}
     </div>

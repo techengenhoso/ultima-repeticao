@@ -1,9 +1,10 @@
-import { exerciseHistory, suggestLoad } from "../domain/progression"
+import { suggestLoad } from "../domain/progression"
 import { type SessionCommand, sessionSchema, type WorkoutSession } from "../domain/session"
 import {
   applyLoadDecision,
   applyPerformance,
   initialExercise,
+  removeLoadDecision,
   SessionDomainError,
 } from "../domain/session-execution"
 import {
@@ -61,18 +62,22 @@ export class SessionUseCases {
     if (command.action === "start") return { draft: await this.prepare(uid, command) }
     if (command.action === "finalize")
       return { session: await this.finalize(uid, command) }
+    if (command.action === "suggest") return this.suggest(uid, command)
+    return this.update(uid, command)
+  }
+
+  private async update(
+    uid: string,
+    command: Exclude<SessionCommand, { action: "start" | "finalize" | "suggest" }>
+  ) {
     const session = await this.get(uid, command.id)
-    if (command.action === "suggest") {
-      const exercise = session.exercises[command.exerciseIndex]
-      if (!exercise) throw new SessionUseCaseError(404, "Exercício não encontrado")
-      const history = await this.repository.listCompletedForExercise(uid, exercise)
-      return { suggestion: suggestLoad(exercise, history, command.settings), history }
-    }
     try {
       const updated =
         command.action === "save"
           ? applyPerformance(session, command, this.now())
-          : await this.decide(uid, session, command)
+          : command.action === "decide"
+            ? await this.decide(uid, session, command)
+            : removeLoadDecision(session, command.exerciseIndex)
       const validated = sessionSchema.parse({ ...updated, version: session.version + 1 })
       await this.repository.updateIfVersion(uid, validated, command.version)
       return { session: validated }
@@ -86,6 +91,20 @@ export class SessionUseCases {
       if (error instanceof SessionDomainError)
         throw new SessionUseCaseError(409, error.message)
       throw error
+    }
+  }
+
+  private async suggest(
+    uid: string,
+    command: Extract<SessionCommand, { action: "suggest" }>
+  ) {
+    const session = await this.get(uid, command.id)
+    const exercise = session.exercises[command.exerciseIndex]
+    if (!exercise) throw new SessionUseCaseError(404, "Exercício não encontrado")
+    const latest = await this.repository.findLatestCompletedForExercise(uid, exercise)
+    return {
+      suggestion: suggestLoad(exercise, latest, command.settings),
+      latestSessionId: latest?.id ?? null,
     }
   }
 
@@ -111,7 +130,7 @@ export class SessionUseCases {
             422,
             "Um exercício não está mais disponível na biblioteca"
           )
-        const history = await this.repository.listCompletedForExercise(uid, {
+        const latest = await this.repository.findLatestCompletedForExercise(uid, {
           exerciseReference: target.exerciseReference,
           exerciseSnapshot: snapshot,
           targetSets: target.sets,
@@ -126,7 +145,7 @@ export class SessionUseCases {
             warmup: false,
           })),
         })
-        return initialExercise(target, snapshot, history)
+        return initialExercise(target, snapshot, latest)
       })
     )
     const session = sessionSchema.parse({
@@ -186,12 +205,12 @@ export class SessionUseCases {
   ) {
     const exercise = session.exercises[command.exerciseIndex]
     if (!exercise) throw new SessionUseCaseError(404, "Exercício não encontrado")
-    const history = await this.repository.listCompletedForExercise(uid, exercise)
-    if (exerciseHistory(history, exercise)[0]?.session.id !== session.id)
+    const latest = await this.repository.findLatestCompletedForExercise(uid, exercise)
+    if (latest?.id !== session.id)
       throw new SessionUseCaseError(
         409,
         "Registre a decisão no treino concluído mais recente deste exercício"
       )
-    return applyLoadDecision(session, command.exerciseIndex, command, history, this.now())
+    return applyLoadDecision(session, command.exerciseIndex, command, latest, this.now())
   }
 }

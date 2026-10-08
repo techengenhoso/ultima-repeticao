@@ -1,18 +1,34 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import Link from "next/link"
+import { CheckIcon, LoaderCircleIcon } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { type UseFormReturn, useForm } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { exerciseHistory } from "@/modules/sessions/domain/progression"
 import {
-  effortRatingLabel,
-  incrementSchema,
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item"
+import {
+  type IncrementSettings,
   type LoadSuggestion,
   loadSchema,
   type SessionExercise,
@@ -20,168 +36,203 @@ import {
 } from "@/modules/sessions/domain/session"
 import { useSessionGateway } from "@/modules/sessions/presentation/session-gateway-context"
 
-const settingsFormSchema = incrementSchema.extend({ customLoad: loadSchema })
-type SettingsForm = z.infer<typeof settingsFormSchema>
+type SuggestionResult = Awaited<
+  ReturnType<ReturnType<typeof useSessionGateway>["suggest"]>
+>
+
+const customLoadFormSchema = z.object({
+  customLoad: loadSchema,
+  customRepetitions: z.number().int().min(1).max(100),
+})
+
+type CustomLoadForm = z.infer<typeof customLoadFormSchema>
+
+const defaultIncrementSettings: IncrementSettings = {
+  percentage: 2.5,
+  roundingStep: 0.5,
+}
+
 const labels = {
   increase: "Aumento sugerido",
   increaseRepetitions: "Mais repetições sugeridas",
   maintain: "Manutenção sugerida",
   decrease: "Redução sugerida",
-  insufficientData: "Dados insuficientes para progredir",
+  insufficientData: "Dados insuficientes",
+}
+
+function loadForDecision(
+  choice: "accept" | "maintain" | "custom",
+  suggestion: LoadSuggestion,
+  customLoad?: number
+) {
+  if (choice === "custom") return customLoad
+  if (choice === "maintain") return suggestion.currentLoad
+  return suggestion.suggestedLoad ?? suggestion.currentLoad
+}
+
+function RecordedLoadDecision({ exercise }: { exercise: SessionExercise }) {
+  const decision = exercise.decision
+  if (!decision) return null
+
+  return (
+    <section aria-label="Próxima carga registrada" className="space-y-5">
+      <Card className="bg-muted/40 shadow-none ring-0" size="sm">
+        <CardContent>
+          <Item className="p-0" size="sm">
+            <ItemMedia className="bg-primary text-primary-foreground" variant="image">
+              <CheckIcon aria-hidden="true" />
+            </ItemMedia>
+
+            <ItemContent>
+              <Badge>Progressão concluída</Badge>
+
+              <ItemTitle className="mt-1 text-lg">Próxima carga definida</ItemTitle>
+
+              <ItemDescription>
+                Esta decisão será usada como referência no próximo treino
+              </ItemDescription>
+            </ItemContent>
+          </Item>
+        </CardContent>
+      </Card>
+
+      <ItemGroup className="grid gap-3 sm:grid-cols-2">
+        <Item variant="muted">
+          <ItemContent>
+            <ItemDescription>Carga definida</ItemDescription>
+
+            <ItemTitle className="mt-1 text-2xl tabular-nums">
+              {decision.load} kg
+            </ItemTitle>
+          </ItemContent>
+        </Item>
+
+        <Item variant="muted">
+          <ItemContent>
+            <ItemDescription>Repetição definida</ItemDescription>
+
+            <ItemTitle className="mt-1 text-2xl tabular-nums">
+              {decision.repetitions ?? "Sem alteração"}
+            </ItemTitle>
+          </ItemContent>
+        </Item>
+      </ItemGroup>
+    </section>
+  )
 }
 
 function SuggestionResult({
   canDecide,
-  exercise,
-  form,
-  history,
-  index,
-  onDecide,
-  pending,
-  sessionStartedAt,
   suggestion,
+  targetSets,
 }: {
   canDecide: boolean
-  exercise: SessionExercise
-  form: UseFormReturn<z.input<typeof settingsFormSchema>, unknown, SettingsForm>
-  history: WorkoutSession[]
-  index: number
-  onDecide: (choice: "accept" | "maintain" | "custom") => void
-  pending: boolean
-  sessionStartedAt: number
   suggestion: LoadSuggestion
+  targetSets: number
 }) {
-  const latestSessionId = exerciseHistory(history, exercise)[0]?.session.id
-  const suggestionUnavailable =
-    suggestion.action === "insufficientData" || suggestion.suggestedLoad === undefined
-
   return (
-    <div aria-live="polite" className="space-y-3 border p-3">
-      <h3 className="font-semibold">{labels[suggestion.action]}</h3>
-      {!canDecide && latestSessionId && (
+    <div aria-live="polite" className="space-y-5">
+      <Card className="bg-muted/40 shadow-none ring-0" size="sm">
+        <CardContent>
+          <Item className="p-0" size="sm">
+            <ItemMedia className="bg-primary text-primary-foreground" variant="image">
+              <span className="text-lg font-semibold">+</span>
+            </ItemMedia>
+
+            <ItemContent>
+              <Badge>{labels[suggestion.action]}</Badge>
+
+              <ItemTitle className="mt-1 text-lg">
+                Sugestão para o próximo treino
+              </ItemTitle>
+
+              <ItemDescription>{suggestion.reason}</ItemDescription>
+            </ItemContent>
+          </Item>
+        </CardContent>
+      </Card>
+
+      {!canDecide && (
         <p className="text-sm">
-          A decisão deve ser registrada na{" "}
-          <Link
-            className="underline"
-            href={`/history/sessions/${encodeURIComponent(latestSessionId)}`}
-          >
-            treino concluído mais recente
-          </Link>
+          A decisão deve ser registrada no treino concluído mais recente
         </p>
       )}
+
       {suggestion.action === "increaseRepetitions" ? (
-        <p className="text-sm">
-          Próximo treino: {exercise.targetSets} séries de {suggestion.suggestedRepetitions}{" "}
-          repetições com {suggestion.currentLoad} kg
-        </p>
+        <Item variant="muted">
+          <ItemContent>
+            <ItemDescription>Próximo treino</ItemDescription>
+            <ItemTitle className="mt-1 line-clamp-none">
+              {targetSets} séries de {suggestion.suggestedRepetitions} repetições com{" "}
+              {suggestion.currentLoad} kg
+            </ItemTitle>
+          </ItemContent>
+        </Item>
       ) : (
-        <p className="text-sm">
-          Carga atual:{" "}
-          {suggestion.basedOnSessionIds.length
-            ? `${suggestion.currentLoad} kg`
-            : "A definir"}{" "}
-          · Sugestão:{" "}
-          {suggestion.suggestedLoad !== undefined
-            ? `${suggestion.suggestedLoad} kg`
-            : "A definir"}
-        </p>
+        <ItemGroup className="grid gap-3 sm:grid-cols-2">
+          <Item variant="muted">
+            <ItemContent>
+              <ItemDescription>Carga atual</ItemDescription>
+              <ItemTitle className="mt-1 text-xl tabular-nums">
+                {suggestion.basedOnSessionIds.length
+                  ? `${suggestion.currentLoad} kg`
+                  : "A definir"}
+              </ItemTitle>
+            </ItemContent>
+          </Item>
+          <Item variant="muted">
+            <ItemContent>
+              <ItemDescription>Nova carga</ItemDescription>
+              <ItemTitle className="mt-1 text-xl tabular-nums">
+                {suggestion.suggestedLoad !== undefined
+                  ? `${suggestion.suggestedLoad} kg`
+                  : "A definir"}
+              </ItemTitle>
+            </ItemContent>
+          </Item>
+        </ItemGroup>
       )}
-      <p className="text-sm">{suggestion.reason}</p>
-      <p className="text-xs text-muted-foreground">
-        Confiança {suggestion.confidence === "low" ? "menor" : "normal"} · Nenhuma carga
-        será alterada sem sua escolha
-      </p>
-      <ul className="space-y-1 text-xs text-muted-foreground">
-        {suggestion.basedOnSessionIds.map(id => (
-          <li key={id}>
-            Dados de{" "}
-            {new Date(
-              history.find(item => item.id === id)?.startedAt ?? sessionStartedAt
-            ).toLocaleString("pt-BR")}{" "}
-            · Treino <span className="break-all">{id}</span>
-          </li>
-        ))}
-      </ul>
-      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-        <Button
-          disabled={pending || !canDecide || suggestionUnavailable}
-          onClick={() => onDecide("accept")}
-          type="button"
-        >
-          Usar no próximo treino
-        </Button>
-        <Button
-          disabled={pending || !canDecide}
-          onClick={() => onDecide("maintain")}
-          type="button"
-          variant="outline"
-        >
-          Manter carga atual
-        </Button>
-      </div>
-      <Field>
-        <FieldLabel htmlFor={`custom-load-${index}`}>Ou informe outra carga</FieldLabel>
-        <Input
-          disabled={pending || !canDecide}
-          id={`custom-load-${index}`}
-          inputMode="decimal"
-          max={1000}
-          min={0}
-          step={0.01}
-          type="number"
-          {...form.register("customLoad", { valueAsNumber: true })}
-        />
-        <FieldError errors={[form.formState.errors.customLoad]} />
-      </Field>
-      <Button
-        disabled={pending || !canDecide}
-        onClick={() => onDecide("custom")}
-        type="button"
-        variant="outline"
-      >
-        Confirmar minha carga
-      </Button>
     </div>
   )
 }
 
-export function SessionProgression({
+function NewLoadProgression({
   session,
   index,
+  onClose,
   onUpdated,
+  prefetchedSuggestion,
 }: {
   session: WorkoutSession
   index: number
+  onClose: () => void
   onUpdated: (session: WorkoutSession) => void
+  prefetchedSuggestion?: SuggestionResult
 }) {
   const gateway = useSessionGateway()
   const exercise = session.exercises[index]
-  const form = useForm<z.input<typeof settingsFormSchema>, unknown, SettingsForm>({
-    resolver: zodResolver(settingsFormSchema),
+  const latestSet = exercise?.sets.filter(set => set.completed && !set.warmup).at(-1)
+  const form = useForm<z.input<typeof customLoadFormSchema>, unknown, CustomLoadForm>({
+    resolver: zodResolver(customLoadFormSchema),
     defaultValues: {
-      percentage: 2.5,
-      roundingStep: 0.5,
-      ...exercise.incrementSettings,
-      ...exercise.decision?.settings,
-      customLoad:
-        exercise.decision?.load ??
-        exercise.sets.filter(set => set.completed && !set.warmup).at(-1)?.load ??
-        0,
+      customLoad: latestSet?.load ?? 0,
+      customRepetitions: latestSet?.performedRepetitions ?? 1,
     },
   })
-  const [result, setResult] = useState<{
-    suggestion: LoadSuggestion
-    history: WorkoutSession[]
-  } | null>(null)
-  const [error, setError] = useState("")
-  const [pending, setPending] = useState(false)
-  const lock = useRef(false)
-  const requestNumber = useRef(0)
-  const initialSettings = useRef(
-    exercise.decision?.settings ??
-      exercise.incrementSettings ?? { percentage: 2.5, roundingStep: 0.5 }
+  const [result, setResult] = useState<SuggestionResult | null>(
+    prefetchedSuggestion ?? null
   )
+  const [pending, setPending] = useState(false)
+  const [customDialogOpen, setCustomDialogOpen] = useState(false)
+  const lock = useRef(false)
+  const settings = exercise?.incrementSettings ?? defaultIncrementSettings
+
   useEffect(() => {
+    if (prefetchedSuggestion) {
+      setResult(prefetchedSuggestion)
+      setPending(false)
+      return
+    }
     let current = true
     setPending(true)
     gateway
@@ -189,17 +240,17 @@ export function SessionProgression({
         action: "suggest",
         id: session.id,
         exerciseIndex: index,
-        settings: initialSettings.current,
+        settings,
       })
       .then(value => {
         if (current) setResult(value)
       })
       .catch(failure => {
         if (current)
-          setError(
+          toast.error(
             failure instanceof Error
               ? failure.message
-              : "Não foi possível consultar o histórico"
+              : "Não foi possível calcular a sugestão"
           )
       })
       .finally(() => {
@@ -208,36 +259,18 @@ export function SessionProgression({
     return () => {
       current = false
     }
-  }, [session.id, index, gateway.suggest])
+  }, [session.id, index, gateway.suggest, prefetchedSuggestion, settings])
 
-  async function calculate(values: SettingsForm) {
-    const sequence = ++requestNumber.current
-    setPending(true)
-    setError("")
-    try {
-      const { customLoad: _custom, ...settings } = values
-      const value = await gateway.suggest({
-        action: "suggest",
-        id: session.id,
-        exerciseIndex: index,
-        settings,
-      })
-      if (sequence === requestNumber.current) setResult(value)
-      const saved = value.history.find(item => item.id === session.id)
-      if (saved && saved.version !== session.version) onUpdated(saved)
-    } catch (failure) {
-      setError(failure instanceof Error ? failure.message : "Não foi possível calcular")
-    } finally {
-      setPending(false)
-    }
-  }
-  async function decide(choice: "accept" | "maintain" | "custom", values: SettingsForm) {
+  async function decide(
+    choice: "accept" | "maintain" | "custom",
+    custom?: CustomLoadForm
+  ) {
     if (lock.current || pending || !result) return
+    const load = loadForDecision(choice, result.suggestion, custom?.customLoad)
+    if (load === undefined) return
     lock.current = true
     setPending(true)
-    setError("")
     try {
-      const { customLoad, ...settings } = values
       const saved = await gateway.mutate({
         action: "decide",
         id: session.id,
@@ -245,17 +278,15 @@ export function SessionProgression({
         exerciseIndex: index,
         choice,
         settings,
-        load:
-          choice === "custom"
-            ? customLoad
-            : choice === "maintain"
-              ? result.suggestion.currentLoad
-              : (result.suggestion.suggestedLoad ?? result.suggestion.currentLoad),
+        load,
+        repetitions: custom?.customRepetitions,
       })
       onUpdated(saved)
+      if (choice === "custom") setCustomDialogOpen(false)
+      onClose()
       toast.success("Decisão de carga salva")
     } catch (failure) {
-      setError(
+      toast.error(
         failure instanceof Error ? failure.message : "Não foi possível salvar a decisão"
       )
     } finally {
@@ -263,155 +294,148 @@ export function SessionProgression({
       setPending(false)
     }
   }
-  const history = result ? exerciseHistory(result.history, exercise) : []
+
   const suggestion = result?.suggestion
-  const canDecide = !history[0] || history[0].session.id === session.id
+  const canDecide = result?.latestSessionId === session.id
+  const canSaveSuggestion = canDecide && suggestion?.action !== "insufficientData"
+
+  function openCustomDialog() {
+    if (!suggestion) return
+    form.reset({
+      customLoad: suggestion.suggestedLoad ?? suggestion.currentLoad,
+      customRepetitions:
+        suggestion.suggestedRepetitions ?? latestSet?.performedRepetitions ?? 1,
+    })
+    setCustomDialogOpen(true)
+  }
+
   return (
-    <div className="space-y-4 border-t pt-4">
-      <form
-        className="space-y-3"
-        onChange={() => setResult(null)}
-        onSubmit={form.handleSubmit(calculate)}
-      >
-        <fieldset className="grid min-w-0 gap-3 sm:grid-cols-2" disabled={pending}>
-          {(
-            [
-              {
-                name: "increment",
-                label: "Incremento desejado (kg)",
-                max: 100,
-                step: 0.01,
-              },
-              {
-                name: "equipmentIncrement",
-                label: "Menor incremento do equipamento (kg)",
-                max: 100,
-                step: 0.01,
-              },
-              {
-                name: "roundingStep",
-                label: "Arredondamento disponível (kg)",
-                max: 100,
-                step: 0.01,
-              },
-              {
-                name: "percentage",
-                label: "Percentual conservador (%)",
-                max: 5,
-                step: 0.5,
-              },
-            ] as const
-          ).map(metric => (
-            <Field key={metric.name}>
-              <FieldLabel htmlFor={`progress-${index}-${metric.name}`}>
-                {metric.label}
-              </FieldLabel>
+    <div>
+      {suggestion && exercise && (
+        <>
+          <SuggestionResult
+            canDecide={canDecide}
+            suggestion={suggestion}
+            targetSets={exercise.targetSets}
+          />
+
+          <DialogFooter className="mt-6">
+            <Button disabled={pending} onClick={onClose} type="button" variant="secondary">
+              Cancelar
+            </Button>
+
+            <Button
+              disabled={pending || !canDecide}
+              onClick={openCustomDialog}
+              type="button"
+              variant="secondary"
+            >
+              Alterar
+            </Button>
+
+            <Button
+              disabled={pending || !canSaveSuggestion}
+              onClick={() => void decide("accept")}
+              type="button"
+            >
+              {pending && <LoaderCircleIcon className="animate-spin" />}
+              {pending ? "Salvando" : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </>
+      )}
+
+      <Dialog onOpenChange={setCustomDialogOpen} open={customDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Progressão manual</DialogTitle>
+
+            <DialogDescription>
+              Informe a carga e as repetições desejadas para utilizar como progressão do
+              exercício
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            className="space-y-5"
+            onSubmit={form.handleSubmit(values => void decide("custom", values))}
+          >
+            <Field>
+              <FieldLabel htmlFor={`custom-load-${index}`}>Carga</FieldLabel>
+
               <Input
-                id={`progress-${index}-${metric.name}`}
+                disabled={pending}
+                id={`custom-load-${index}`}
                 inputMode="decimal"
-                max={metric.max}
-                min={metric.name === "percentage" ? 0.5 : 0.01}
-                placeholder="Opcional"
-                step={metric.step}
+                step={1}
                 type="number"
-                {...form.register(metric.name, {
-                  setValueAs: value => (value === "" ? undefined : Number(value)),
-                })}
+                {...form.register("customLoad", { valueAsNumber: true })}
               />
-              <FieldError errors={[form.formState.errors[metric.name]]} />
+              <FieldError errors={[form.formState.errors.customLoad]} />
             </Field>
-          ))}
-        </fieldset>
-        <Button disabled={pending} type="submit" variant="outline">
-          Calcular sugestão
-        </Button>
-      </form>
-      {pending && <output className="block text-sm">Consultando desempenho</output>}
-      {error && (
-        <p className="text-sm text-destructive" role="alert">
-          {error}
-        </p>
-      )}
-      {suggestion && (
-        <SuggestionResult
-          canDecide={canDecide}
-          exercise={exercise}
-          form={form}
-          history={result?.history ?? []}
-          index={index}
-          onDecide={choice => void form.handleSubmit(values => decide(choice, values))()}
-          pending={pending}
-          sessionStartedAt={session.startedAt}
-          suggestion={suggestion}
-        />
-      )}
-      <ExerciseHistoryList history={history} />
+
+            <Field>
+              <FieldLabel htmlFor={`custom-repetitions-${index}`}>Repetições</FieldLabel>
+
+              <Input
+                disabled={pending}
+                id={`custom-repetitions-${index}`}
+                inputMode="numeric"
+                step={1}
+                type="number"
+                {...form.register("customRepetitions", { valueAsNumber: true })}
+              />
+              <FieldError errors={[form.formState.errors.customRepetitions]} />
+            </Field>
+
+            <DialogFooter>
+              <Button
+                disabled={pending}
+                onClick={() => setCustomDialogOpen(false)}
+                type="button"
+                variant="secondary"
+              >
+                Cancelar
+              </Button>
+
+              <Button disabled={pending} type="submit">
+                {pending && <LoaderCircleIcon className="animate-spin" />}
+                {pending ? "Salvando" : "Salvar"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
 
-function ExerciseHistoryList({
-  history,
+export function SessionProgression({
+  session,
+  index,
+  onClose,
+  onUpdated,
+  prefetchedSuggestion,
 }: {
-  history: ReturnType<typeof exerciseHistory>
+  session: WorkoutSession
+  index: number
+  onClose: () => void
+  onUpdated: (session: WorkoutSession) => void
+  prefetchedSuggestion?: SuggestionResult
 }) {
-  const validSets = history.flatMap(item =>
-    item.exercise.sets.filter(set => set.completed && !set.warmup)
-  )
-  const best = [...validSets].sort(
-    (a, b) => b.load - a.load || b.performedRepetitions - a.performedRepetitions
-  )[0]
-  const loads = history.flatMap(item => {
-    const load = item.exercise.sets
-      .filter(set => set.completed && !set.warmup)
-      .at(-1)?.load
-    return load === undefined ? [] : [load]
-  })
-  const newestLoad = loads[0]
-  const oldestLoad = loads.at(-1)
-  if (!history.length) return null
+  const exercise = session.exercises[index]
+
+  if (!exercise) return null
+
+  if (exercise.decision) return <RecordedLoadDecision exercise={exercise} />
+
   return (
-    <section aria-label="Histórico do exercício" className="space-y-3">
-      <h3 className="font-semibold">Últimos {history.length} treinos concluídos</h3>
-      {newestLoad !== undefined && oldestLoad !== undefined && (
-        <p className="text-sm">
-          Carga registrada no período: {oldestLoad} kg → {newestLoad} kg · Variação de{" "}
-          {Math.round((newestLoad - oldestLoad) * 100) / 100} kg
-        </p>
-      )}
-      {best && (
-        <p className="text-sm">
-          Melhor série neste período: {best.load} kg × {best.performedRepetitions}{" "}
-          repetições · Maior carga, com repetições como desempate
-        </p>
-      )}
-      <p className="text-xs text-muted-foreground">
-        Aquecimentos não entram no melhor desempenho · Compare também repetições, avaliação
-        e técnica
-      </p>
-      <ol className="space-y-3">
-        {history.map(item => (
-          <li className="space-y-1 border p-3 text-sm" key={item.session.id}>
-            <p className="font-medium">
-              {new Date(item.session.startedAt).toLocaleString("pt-BR")}
-            </p>
-            <p>
-              {item.exercise.sets.filter(set => set.completed && !set.warmup).length}/
-              {item.exercise.targetSets} séries de trabalho concluídas
-            </p>
-            {item.exercise.sets
-              .filter(set => !set.warmup)
-              .map(set => (
-                <p key={set.setNumber}>
-                  Série {set.setNumber}:{" "}
-                  {set.completed
-                    ? `${set.load} kg × ${set.performedRepetitions} · ${set.effortRating ? effortRatingLabel[set.effortRating] : "Não avaliada"}`
-                    : "Incompleta"}
-                </p>
-              ))}
-          </li>
-        ))}
-      </ol>
-    </section>
+    <NewLoadProgression
+      index={index}
+      onClose={onClose}
+      onUpdated={onUpdated}
+      prefetchedSuggestion={prefetchedSuggestion}
+      session={session}
+    />
   )
 }

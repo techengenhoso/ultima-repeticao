@@ -28,9 +28,9 @@ Documentos fora do formato atual não são migrados nem normalizados. Sessões i
 
 Sem histórico e com carga zero, a tela informa **Carga a definir** e orienta o registro conservador da carga realmente usada. O zero continua sendo uma carga válida para exercícios sem carga externa; não representa uma recomendação em quilogramas.
 
-A referência seguinte vem da última sessão concluída com desempenho válido para a mesma referência `source + exerciseId`, ou da decisão explícita de carga registrada nela. Quando as cargas variam, a última série de trabalho concluída serve como referência, mas não autoriza progressão automática. Uma sessão que não executou esse exercício não apaga uma referência anterior disponível no histórico consultado.
+A referência seguinte vem exclusivamente da última sessão concluída para a mesma referência `source + exerciseId`, ou da decisão explícita de carga registrada nela. Quando as cargas variam, a última série de trabalho concluída serve como referência, mas não autoriza progressão automática.
 
-As escolhas e configurações de incremento são preservadas para o próximo treino. A carga da ficha não é alterada. Cargas informadas manualmente continuam permitidas, mesmo quando diferentes da sugestão.
+As escolhas e configurações de incremento são preservadas para o próximo treino. A carga da ficha não é alterada. Cargas e repetições informadas manualmente continuam permitidas, mesmo quando diferentes da sugestão.
 
 ## Motor determinístico
 
@@ -45,15 +45,15 @@ O motor não chama IA nem envia desempenho a provedores. As consultas consideram
 
 Incrementos seguem a prioridade: incremento escolhido pelo usuário, incremento do equipamento, percentual conservador. O percentual padrão é 2,5%, configurável entre 0,5% e 5%. O arredondamento usa o equipamento, o incremento informado ou a unidade configurável de arredondamento (padrão de 0,5 kg). A interface pede conferir se a carga resultante está disponível. Reduções acima de 10% após arredondar são recusadas; aumentos acima de 10% também são recusados quando não há incremento expressamente escolhido pelo usuário. Nesses casos, sugere manutenção e permite escolha manual.
 
-O retorno inclui ação, carga atual, eventual carga ou repetições sugeridas, motivo, confiança e IDs das sessões utilizadas. A API recalcula a sugestão ao aceitar e rejeita confirmação se a sugestão mudou. A decisão só pode ser registrada na sessão concluída mais recente daquele exercício.
+O retorno inclui ação, carga atual, eventual carga ou repetições sugeridas, motivo, confiança e IDs das sessões utilizadas. A sugestão usa as configurações padrão ou as preservadas do treino anterior, sem campos de ajuste na tela. A API recalcula a sugestão ao aceitar e rejeita confirmação se a sugestão mudou. A criação de uma decisão só ocorre na sessão concluída mais recente daquele exercício.
 
 ## Histórico e decisões
 
-A análise consulta no máximo as 20 sessões concluídas mais recentes que contêm a referência exata, ordenadas por início. O índice composto está em `firestore.indexes.json`. A listagem geral é paginada; o recorte analítico de 20 sessões é mostrado explicitamente na interface.
+A análise consulta somente a última sessão concluída que contém a referência exata, ordenada por início. O índice composto está em `firestore.indexes.json`. A listagem geral do histórico continua paginada; a sugestão não carrega nem exibe sessões anteriores do exercício.
 
-Por exercício são exibidos data, cargas, repetições, séries concluídas, avaliação, variação de carga no período, melhor série e sugestão atual. “Melhor série” significa maior carga, com repetições como desempate; não estima 1RM nem afirma melhora clínica. Se a referência aparece mais de uma vez na mesma sessão, o motor não mistura as duas execuções.
+Por exercício, a sugestão exibe a carga atual, a eventual próxima carga ou repetição e o motivo da decisão. Ela não estima 1RM nem afirma melhora clínica. Se a referência aparece mais de uma vez na mesma sessão, o motor não mistura as duas execuções.
 
-**Aceitar sugestão**, **Manter carga atual** e **Confirmar minha carga** gravam uma decisão individual, incluindo carga, escolha, configuração, sugestão e dados utilizados. Nenhuma sugestão é aplicada sem uma dessas ações explícitas.
+**Aceitar sugestão**, **Manter carga atual** e **Confirmar minha carga** gravam uma decisão individual, incluindo carga, escolha, configuração, sugestão e dados utilizados. Enquanto registrada, a decisão não pode ser substituída por outra. A Evolução do exercício exibe um histórico próprio das decisões, sem tratá-las como carga efetivamente realizada. O histórico permite excluir somente a decisão, preservando as séries concluídas. Nenhuma sugestão é aplicada sem uma dessas ações explícitas.
 
 ## Concorrência e recuperação
 

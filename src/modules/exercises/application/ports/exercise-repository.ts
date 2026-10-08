@@ -17,4 +17,5 @@ export interface ExerciseRepository {
     input: ExerciseInput
   ): Promise<DefaultExerciseOverride>
   deleteCustom(uid: string, id: string): Promise<void>
+  deleteDefaultOverride(uid: string, id: string): Promise<void>
 }

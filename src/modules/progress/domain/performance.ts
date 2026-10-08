@@ -22,6 +22,26 @@ export type WorkoutPerformanceRow = {
   workoutPlanName: string
 }
 
+export type ExerciseLoadProgression = {
+  decidedAt: number
+  load: number
+  suggestedRepetitions?: number
+}
+
+export type ExercisePerformanceRow = {
+  best: SessionExercise["sets"][number]
+  date: number
+  decision?: ExerciseLoadProgression
+  exerciseIndex: number
+  load: number
+  performedSets: SessionExercise["sets"]
+  repetitions: number
+  sessionId: string
+  sessionVersion: number
+  sets: number
+  volume: number
+}
+
 const validSets = (exercise: SessionExercise) =>
   exercise.sets.filter(set => set.completed && !set.warmup)
 
@@ -110,12 +130,13 @@ export function workoutPerformance(sessions: WorkoutSession[], now = Date.now())
 }
 
 export function performanceForExercise(sessions: WorkoutSession[], key: string) {
-  const rows = sessions
+  const rows: ExercisePerformanceRow[] = sessions
     .filter(session => session.status === "completed")
     .flatMap(session =>
       session.exercises
-        .filter(exercise => referenceKey(exercise.exerciseReference) === key)
-        .flatMap(exercise => {
+        .map((exercise, exerciseIndex) => ({ exercise, exerciseIndex }))
+        .filter(({ exercise }) => referenceKey(exercise.exerciseReference) === key)
+        .flatMap(({ exercise, exerciseIndex }) => {
           const sets = validSets(exercise)
           if (!sets.length) return []
           const best = [...sets].sort(
@@ -124,9 +145,22 @@ export function performanceForExercise(sessions: WorkoutSession[], key: string) 
           return [
             {
               date: session.completedAt ?? session.startedAt,
+              ...(exercise.decision
+                ? {
+                    decision: {
+                      decidedAt: exercise.decision.decidedAt,
+                      load: exercise.decision.load,
+                      suggestedRepetitions:
+                        exercise.decision.repetitions ??
+                        exercise.decision.suggestion.suggestedRepetitions,
+                    },
+                  }
+                : {}),
+              exerciseIndex,
               performedSets: sets,
               repetitions: sets.reduce((sum, set) => sum + set.performedRepetitions, 0),
               sessionId: session.id,
+              sessionVersion: session.version,
               sets: sets.length,
               load: best.load,
               volume: sets.reduce(

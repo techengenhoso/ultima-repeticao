@@ -8,20 +8,22 @@ import {
   type WorkoutSession,
 } from "./session"
 
-export function exerciseHistory(sessions: WorkoutSession[], exercise: SessionExercise) {
-  return sessions
-    .filter(session => session.status === "completed")
-    .sort((a, b) => b.startedAt - a.startedAt)
-    .flatMap(session => {
-      const items = session.exercises.filter(
-        item =>
-          referenceKey(item.exerciseReference) === referenceKey(exercise.exerciseReference)
-      )
-      return items.length === 1 ? [{ session, exercise: items[0] }] : []
-    })
+export function exerciseFromLatestSession(
+  session: WorkoutSession | null,
+  exercise: Pick<SessionExercise, "exerciseReference">
+) {
+  if (!session || session.status !== "completed") return undefined
+  const items = session.exercises.filter(
+    item =>
+      referenceKey(item.exerciseReference) === referenceKey(exercise.exerciseReference)
+  )
+  return items.length === 1 ? items[0] : undefined
 }
 
-type HistoryEntry = ReturnType<typeof exerciseHistory>[number]
+type LatestExercise = {
+  session: WorkoutSession
+  exercise: SessionExercise
+}
 const workSets = (exercise: SessionExercise) => exercise.sets.filter(set => !set.warmup)
 const effortRank: Record<EffortRating, number> = {
   veryHard: 0,
@@ -33,7 +35,7 @@ const effortRank: Record<EffortRating, number> = {
 const comparable = (a: SessionExercise, b: SessionExercise) =>
   a.targetSets === b.targetSets && a.targetRepetitions === b.targetRepetitions
 
-function dataProblem(exercise: SessionExercise, latest?: HistoryEntry) {
+function dataProblem(exercise: SessionExercise, latest?: LatestExercise) {
   if (!latest || !workSets(latest.exercise).some(set => set.completed))
     return "Sem desempenho concluído: defina a carga de forma conservadora durante o treino"
   if (!comparable(exercise, latest.exercise))
@@ -91,11 +93,14 @@ function adjustedLoad(
 
 export function suggestLoad(
   exercise: SessionExercise,
-  sessions: WorkoutSession[],
+  latestSession: WorkoutSession | null,
   settings: IncrementSettings
 ): LoadSuggestion {
-  const history = exerciseHistory(sessions, exercise)
-  const latest = history[0]
+  const latestExercise = exerciseFromLatestSession(latestSession, exercise)
+  const latest =
+    latestSession && latestExercise
+      ? { session: latestSession, exercise: latestExercise }
+      : undefined
   const sets = latest ? workSets(latest.exercise).filter(set => set.completed) : []
   const base: LoadSuggestion = {
     currentLoad: sets.at(-1)?.load ?? 0,

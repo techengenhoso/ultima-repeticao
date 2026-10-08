@@ -92,14 +92,16 @@ function ComboboxContent({
   align = "start",
   alignOffset = 0,
   anchor,
+  container,
   ...props
 }: ComboboxPrimitive.Popup.Props &
+  Pick<ComboboxPrimitive.Portal.Props, "container"> &
   Pick<
     ComboboxPrimitive.Positioner.Props,
     "side" | "align" | "sideOffset" | "alignOffset" | "anchor"
   >) {
   return (
-    <ComboboxPrimitive.Portal>
+    <ComboboxPrimitive.Portal className="absolute" container={container ?? undefined}>
       <ComboboxPrimitive.Positioner
         align={align}
         alignOffset={alignOffset}
@@ -266,6 +268,20 @@ function useComboboxAnchor() {
   return React.useRef<HTMLDivElement | null>(null)
 }
 
+function useComboboxPortalContainer(anchor: React.RefObject<HTMLElement | null>) {
+  const [container, setContainer] = React.useState<HTMLElement | null>(null)
+
+  React.useEffect(() => {
+    setContainer(
+      anchor.current?.closest<HTMLElement>(
+        "[data-slot=dialog-content], [data-slot=drawer-content]"
+      ) ?? null
+    )
+  }, [anchor])
+
+  return container
+}
+
 export {
   Combobox,
   ComboboxInput,
@@ -284,4 +300,5 @@ export {
   ComboboxTrigger,
   ComboboxValue,
   useComboboxAnchor,
+  useComboboxPortalContainer,
 }

@@ -47,14 +47,15 @@ export class FirebaseSessionRepository implements SessionRepository {
     }
   }
 
-  async listCompletedForExercise(uid: string, exercise: SessionExercise) {
+  async findLatestCompletedForExercise(uid: string, exercise: SessionExercise) {
     const snapshot = await sessions(uid)
       .where("exerciseKeys", "array-contains", referenceKey(exercise.exerciseReference))
       .where("status", "==", "completed")
       .orderBy("startedAt", "desc")
-      .limit(20)
+      .limit(1)
       .get()
-    return snapshot.docs.map(item => decodeFirebaseSession(item.id, item.data()))
+    const latest = snapshot.docs[0]
+    return latest ? decodeFirebaseSession(latest.id, latest.data()) : null
   }
 
   async createIfAbsent(uid: string, session: WorkoutSession) {

@@ -262,7 +262,7 @@ export function WorkoutGenerationReview({
                 else void onRegenerate()
               }}
               type="button"
-              variant="outline"
+              variant="secondary"
             >
               Gerar nova ficha
             </Button>

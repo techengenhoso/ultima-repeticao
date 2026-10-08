@@ -7,10 +7,10 @@ export interface SessionRepository {
     uid: string,
     cursor?: string
   ): Promise<{ sessions: WorkoutSession[]; nextCursor: string | null }>
-  listCompletedForExercise(
+  findLatestCompletedForExercise(
     uid: string,
     exercise: SessionExercise
-  ): Promise<WorkoutSession[]>
+  ): Promise<WorkoutSession | null>
   createIfAbsent(uid: string, session: WorkoutSession): Promise<WorkoutSession>
   updateIfVersion(
     uid: string,

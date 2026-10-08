@@ -1,3 +1,5 @@
+import { Item, ItemContent, ItemDescription, ItemTitle } from "@/components/ui/item"
+
 interface DetailSectionProps {
   title: string
   value: string
@@ -5,9 +7,13 @@ interface DetailSectionProps {
 
 export function DetailSection({ title, value }: DetailSectionProps) {
   return (
-    <div>
-      <dt className="text-xs font-semibold uppercase">{title}</dt>
-      <dd className="mt-1 whitespace-pre-wrap text-muted-foreground">{value}</dd>
-    </div>
+    <Item className="items-start" size="sm" variant="muted">
+      <ItemContent className="min-w-0">
+        <ItemDescription className="leading-tight">{title}</ItemDescription>
+        <ItemTitle className="line-clamp-none leading-tight whitespace-pre-wrap">
+          {value}
+        </ItemTitle>
+      </ItemContent>
+    </Item>
   )
 }

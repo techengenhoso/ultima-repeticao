@@ -59,9 +59,9 @@ export function PerformanceHistory({ items }: { items: PerformanceData["rows"] }
                 key={item.sessionId}
               >
                 <CollapsibleTrigger className="group flex w-full items-center justify-between gap-4 bg-accent/60 p-4 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
-                  <div className="grid min-w-0 gap-1">
+                  <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
                     <span className="font-medium">{formatDate(item.date)}</span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-muted-foreground">
                       {item.sets} séries concluídas · {item.repetitions} repetições ·
                       volume {item.volume.toLocaleString("pt-BR")} kg
                     </span>

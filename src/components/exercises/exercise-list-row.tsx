@@ -1,8 +1,15 @@
-import { EyeIcon, PencilIcon, Trash2Icon } from "lucide-react"
+import { EyeIcon, PencilIcon, RotateCcwIcon, Trash2Icon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { TableCell, TableRow } from "@/components/ui/table"
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemTitle,
+} from "@/components/ui/item"
 import {
   type CustomExercise,
+  type DefaultExercise,
   type Exercise,
   exerciseDifficultyLabel,
   muscleGroupLabel,
@@ -14,70 +21,76 @@ interface Props {
   onDelete: (exercise: CustomExercise) => void
   onDetails: (exercise: Exercise) => void
   onEdit: (exercise: Exercise) => void
+  onRestore: (exercise: DefaultExercise) => void
 }
 
-export function ExerciseListRow({ exercise, onDelete, onDetails, onEdit }: Props) {
+export function ExerciseListRow({
+  exercise,
+  onDelete,
+  onDetails,
+  onEdit,
+  onRestore,
+}: Props) {
   const primaryMuscles = exercise.primaryMuscles
     .map(muscle => muscleLabel[muscle] ?? muscle)
     .join(", ")
 
   return (
-    <TableRow>
-      <TableCell className="min-w-0 text-center whitespace-normal">
-        <div className="flex flex-col items-center text-center">
-          <p className="font-medium wrap-break-word">{exercise.name}</p>
+    <Item className="gap-3" variant="muted">
+      <ItemContent className="min-w-0">
+        <ItemTitle className="line-clamp-none wrap-break-word">{exercise.name}</ItemTitle>
 
-          <p className="mt-1 text-xs text-muted-foreground">
-            {muscleGroupLabel[exercise.muscleGroup]}
-          </p>
-        </div>
-      </TableCell>
+        <ItemDescription className="mt-0.5">
+          {muscleGroupLabel[exercise.muscleGroup]} ·{" "}
+          {exerciseDifficultyLabel[exercise.difficulty]} · {primaryMuscles}
+        </ItemDescription>
+      </ItemContent>
 
-      <TableCell className="hidden text-center whitespace-normal text-muted-foreground sm:table-cell">
-        <div className="flex justify-center text-center">{primaryMuscles}</div>
-      </TableCell>
+      <ItemActions className="shrink-0 gap-1">
+        <Button
+          aria-label={`Ver detalhes de ${exercise.name}`}
+          onClick={() => onDetails(exercise)}
+          size="icon-sm"
+          type="button"
+          variant="secondary"
+        >
+          <EyeIcon />
+        </Button>
 
-      <TableCell className="hidden text-center whitespace-normal text-muted-foreground lg:table-cell">
-        <div className="flex justify-center text-center">
-          {exerciseDifficultyLabel[exercise.difficulty]}
-        </div>
-      </TableCell>
+        <Button
+          aria-label={`Editar ${exercise.name}`}
+          onClick={() => onEdit(exercise)}
+          size="icon-sm"
+          type="button"
+          variant="secondary"
+        >
+          <PencilIcon />
+        </Button>
 
-      <TableCell className="w-36">
-        <div className="flex justify-center gap-1">
+        {exercise.source === "custom" && (
           <Button
-            aria-label={`Ver detalhes de ${exercise.name}`}
-            onClick={() => onDetails(exercise)}
+            aria-label={`Excluir ${exercise.name}`}
+            onClick={() => onDelete(exercise)}
+            size="icon-sm"
+            type="button"
+            variant="destructive"
+          >
+            <Trash2Icon />
+          </Button>
+        )}
+
+        {exercise.source === "default" && exercise.isCustomized && (
+          <Button
+            aria-label={`Restaurar versão padrão de ${exercise.name}`}
+            onClick={() => onRestore(exercise)}
             size="icon-sm"
             type="button"
             variant="secondary"
           >
-            <EyeIcon />
+            <RotateCcwIcon />
           </Button>
-
-          <Button
-            aria-label={`Editar ${exercise.name}`}
-            onClick={() => onEdit(exercise)}
-            size="icon-sm"
-            type="button"
-            variant="secondary"
-          >
-            <PencilIcon />
-          </Button>
-
-          {exercise.source === "custom" && (
-            <Button
-              aria-label={`Excluir ${exercise.name}`}
-              onClick={() => onDelete(exercise)}
-              size="icon-sm"
-              type="button"
-              variant="destructive"
-            >
-              <Trash2Icon />
-            </Button>
-          )}
-        </div>
-      </TableCell>
-    </TableRow>
+        )}
+      </ItemActions>
+    </Item>
   )
 }

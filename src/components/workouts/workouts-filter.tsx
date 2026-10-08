@@ -13,7 +13,14 @@ import { SelectField } from "@/components/select-field"
 import { TextField } from "@/components/text-field"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   Sheet,
   SheetContent,
@@ -224,6 +231,14 @@ export function WorkoutsFilter() {
       </Card>
 
       <Card className="hidden md:block">
+        <CardHeader className="mb-5">
+          <CardTitle id="exercise-list-title">Filtrar treinos</CardTitle>
+
+          <CardDescription>
+            Consulte os treinos e gerencie suas personalizações
+          </CardDescription>
+        </CardHeader>
+
         <CardContent className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           <WorkoutFilterFields filters={filters} onFiltersChange={updateFilters} />
         </CardContent>

@@ -1,7 +1,6 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { cn } from "cn"
 import {
   ActivityIcon,
   BicepsFlexedIcon,
@@ -15,9 +14,15 @@ import {
 } from "lucide-react"
 import { Controller, useForm } from "react-hook-form"
 import z from "zod"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
 import { DialogFooter } from "@/components/ui/dialog"
-import { useScrollPadding } from "@/hooks/use-scroll-padding"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { difficulties, muscleGroups, muscles } from "@/lib/options-select"
 import {
   difficultiesSchema,
@@ -27,12 +32,13 @@ import {
   textSchema,
 } from "@/lib/schemas-zod"
 import type { Exercise, ExerciseInput } from "@/modules/exercises/domain/exercise"
+import { ComboboxField } from "../combobox-field"
 import { LongTextField } from "../long-text-field"
 import { MultiSelectField } from "../multi-select-field"
-import { SelectField } from "../select-field"
 import { TextField } from "../text-field"
 
 const optionalTextSchema = z.string().trim().max(100, "Deve ter no máximo 100 caracteres")
+
 const optionalLongTextSchema = z
   .string()
   .trim()
@@ -82,7 +88,6 @@ interface Props {
 }
 
 export function ExerciseForm({ exercise, onCancel, onSubmit }: Props) {
-  const { hasVerticalOverflow, ref: scrollRef } = useScrollPadding()
   const initialValues: ExerciseFormValues = exercise
     ? {
         name: exercise.name,
@@ -116,17 +121,11 @@ export function ExerciseForm({ exercise, onCancel, onSubmit }: Props) {
     })
   }
 
-  return (
-    <form className="space-y-5" onSubmit={handleSubmit(handleValidSubmit)}>
-      <div
-        className={cn(
-          "max-h-[calc(100dvh-15rem)] overflow-y-auto overscroll-contain",
-          hasVerticalOverflow && "pr-3"
-        )}
-        ref={scrollRef}
-      >
-        <fieldset className="grid content-start gap-5" disabled={isSubmitting}>
-          <div>
+  const sections = [
+    {
+      content: (
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div className="sm:col-span-2">
             <TextField
               autoComplete="name"
               error={errors.name}
@@ -143,13 +142,29 @@ export function ExerciseForm({ exercise, onCancel, onSubmit }: Props) {
             control={control}
             name="muscleGroup"
             render={({ field, fieldState }) => (
-              <SelectField
+              <ComboboxField
                 error={fieldState.error}
                 icon={<DumbbellIcon aria-hidden="true" />}
                 id="muscleGroup"
                 label="Grupo muscular"
                 onChange={field.onChange}
                 options={muscleGroups}
+                value={field.value}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="difficulty"
+            render={({ field, fieldState }) => (
+              <ComboboxField
+                error={fieldState.error}
+                icon={<GaugeIcon aria-hidden="true" />}
+                id="difficulty"
+                label="Dificuldade"
+                onChange={field.onChange}
+                options={[...difficulties]}
                 value={field.value}
               />
             )}
@@ -186,71 +201,101 @@ export function ExerciseForm({ exercise, onCancel, onSubmit }: Props) {
               />
             )}
           />
-
-          <Controller
-            control={control}
-            name="difficulty"
-            render={({ field, fieldState }) => (
-              <SelectField
-                error={fieldState.error}
-                icon={<GaugeIcon aria-hidden="true" />}
-                id="difficulty"
-                label="Dificuldade"
-                onChange={field.onChange}
-                options={[...difficulties]}
-                value={field.value}
-              />
-            )}
+        </div>
+      ),
+      detailCount: "5 informações",
+      key: "general",
+      label: "Informações gerais",
+    },
+    {
+      content: (
+        <div className="grid gap-5">
+          <TextField
+            error={errors.movementPattern}
+            icon={<ActivityIcon aria-hidden="true" />}
+            id="movementPattern"
+            label="Padrão de movimento"
+            placeholder="Informe o movimento"
+            {...register("movementPattern")}
           />
 
-          <div>
-            <TextField
-              error={errors.movementPattern}
-              icon={<ActivityIcon aria-hidden="true" />}
-              id="movementPattern"
-              label="Padrão de movimento"
-              placeholder="Informe o movimento"
-              {...register("movementPattern")}
-            />
-          </div>
+          <LongTextField
+            error={errors.startingPosition}
+            icon={<MapPinIcon aria-hidden="true" />}
+            id="startingPosition"
+            label="Posição inicial"
+            placeholder="Descreva a posição inicial"
+            {...register("startingPosition")}
+          />
 
-          <div>
-            <LongTextField
-              error={errors.startingPosition}
-              icon={<MapPinIcon aria-hidden="true" />}
-              id="startingPosition"
-              label="Posição inicial"
-              placeholder="Descreva a posição inicial"
-              {...register("startingPosition")}
-            />
-          </div>
+          <LongTextField
+            error={errors.movementExecution}
+            icon={<ListChecksIcon aria-hidden="true" />}
+            id="movementExecution"
+            label="Execução do movimento"
+            placeholder="Descreva como executar o movimento"
+            {...register("movementExecution")}
+          />
+        </div>
+      ),
+      detailCount: "3 instruções",
+      key: "movement",
+      label: "Movimento",
+    },
+    {
+      content: (
+        <LongTextField
+          error={errors.importantCautions}
+          icon={<TriangleAlertIcon aria-hidden="true" />}
+          id="importantCautions"
+          label="Cuidados importantes"
+          placeholder="Informe os cuidados necessários"
+          {...register("importantCautions")}
+        />
+      ),
+      detailCount: "1 orientação",
+      key: "cautions",
+      label: "Cuidados",
+    },
+  ]
 
-          <div>
-            <LongTextField
-              error={errors.movementExecution}
-              icon={<ListChecksIcon aria-hidden="true" />}
-              id="movementExecution"
-              label="Execução do movimento"
-              placeholder="Descreva como executar o movimento"
-              {...register("movementExecution")}
-            />
-          </div>
+  return (
+    <form className="space-y-5" onSubmit={handleSubmit(handleValidSubmit)}>
+      <fieldset disabled={isSubmitting}>
+        <Accordion collapsible defaultValue="general" type="single">
+          {sections.map((section, index) => (
+            <AccordionItem
+              className="data-open:bg-card"
+              key={section.key}
+              value={section.key}
+            >
+              <AccordionTrigger className="items-center bg-muted/50 px-4 py-4 hover:bg-muted hover:no-underline aria-expanded:bg-muted">
+                <span className="flex min-w-0 items-center gap-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
+                    {index + 1}
+                  </span>
+                  <span className="flex min-w-0 flex-col gap-0.5">
+                    <span>{section.label}</span>
+                    <span className="text-xs font-normal text-muted-foreground">
+                      {section.detailCount}
+                    </span>
+                  </span>
+                </span>
+              </AccordionTrigger>
 
-          <div>
-            <LongTextField
-              error={errors.importantCautions}
-              icon={<TriangleAlertIcon aria-hidden="true" />}
-              id="importantCautions"
-              label="Cuidados importantes"
-              placeholder="Informe os cuidados necessários"
-              {...register("importantCautions")}
-            />
-          </div>
-        </fieldset>
-      </div>
+              <AccordionContent className="h-auto pt-4">
+                <ScrollArea className="h-fit max-h-[min(24rem,calc(100dvh-24rem))] [&_[data-slot=scroll-area-viewport]]:max-h-[inherit]">
+                  {section.content}
+                </ScrollArea>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </fieldset>
 
-      <DialogFooter className="border-t pt-4">
+      <DialogFooter className="grid shrink-0 grid-cols-2 gap-2 sm:grid sm:grid-cols-2">
         <Button
+          className="w-full"
           disabled={isSubmitting}
           onClick={onCancel}
           type="button"
@@ -259,9 +304,9 @@ export function ExerciseForm({ exercise, onCancel, onSubmit }: Props) {
           Cancelar
         </Button>
 
-        <Button disabled={isSubmitting} type="submit">
+        <Button className="w-full" disabled={isSubmitting} type="submit">
           {isSubmitting && <LoaderCircleIcon className="animate-spin" />}
-          {isSubmitting ? "Salvando" : exercise ? "Salvar" : "Criar"}
+          {isSubmitting ? "Salvando" : exercise ? "Alterar" : "Criar"}
         </Button>
       </DialogFooter>
     </form>

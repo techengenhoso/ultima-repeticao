@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { ItemGroup } from "@/components/ui/item"
 import { useExercise } from "@/contexts/exercise-context"
 import {
   exerciseDifficultyLabel,
@@ -21,9 +22,6 @@ import {
 } from "@/modules/exercises/domain/exercise"
 import { DetailSection } from "./exercise-detail-section"
 
-const preventOutsideDismissal = (event: { preventDefault: () => void }) =>
-  event.preventDefault()
-
 export function ExerciseDetails() {
   const { details: exercise, setDetails: onClose } = useExercise()
 
@@ -31,7 +29,7 @@ export function ExerciseDetails() {
     ? [
         {
           content: (
-            <dl className="grid gap-5 sm:grid-cols-2">
+            <ItemGroup className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <DetailSection
                 title="Grupo principal"
                 value={muscleGroupLabel[exercise.muscleGroup]}
@@ -55,7 +53,7 @@ export function ExerciseDetails() {
                 title="Dificuldade"
                 value={exerciseDifficultyLabel[exercise.difficulty]}
               />
-            </dl>
+            </ItemGroup>
           ),
           detailCount: "4 informações",
           key: "general",
@@ -63,7 +61,7 @@ export function ExerciseDetails() {
         },
         {
           content: (
-            <dl className="space-y-5">
+            <ItemGroup>
               <DetailSection
                 title="Padrão de movimento"
                 value={exercise.movementPattern}
@@ -75,7 +73,7 @@ export function ExerciseDetails() {
                 title="Execução do movimento"
                 value={exercise.movementExecution}
               />
-            </dl>
+            </ItemGroup>
           ),
           detailCount: "3 instruções",
           key: "movement",
@@ -83,12 +81,12 @@ export function ExerciseDetails() {
         },
         {
           content: (
-            <dl>
+            <ItemGroup>
               <DetailSection
                 title="Cuidados importantes"
                 value={exercise.importantCautions}
               />
-            </dl>
+            </ItemGroup>
           ),
           detailCount: "1 orientação",
           key: "cautions",
@@ -99,10 +97,7 @@ export function ExerciseDetails() {
 
   return (
     <Dialog onOpenChange={open => !open && onClose(null)} open={!!exercise}>
-      <DialogContent
-        className="max-h-[calc(100dvh-2rem)] sm:max-w-xl"
-        onPointerDownOutside={preventOutsideDismissal}
-      >
+      <DialogContent className="max-h-[calc(100dvh-2rem)] sm:max-w-xl">
         <DialogHeader className="pr-12">
           <DialogTitle>{exercise?.name}</DialogTitle>
 
@@ -114,20 +109,22 @@ export function ExerciseDetails() {
         </DialogHeader>
 
         <div className="min-h-0 overflow-y-auto overscroll-contain">
-          <Accordion className="gap-3" collapsible defaultValue="general" type="single">
+          <Accordion collapsible defaultValue="general" type="single">
             {sections.map((section, index) => (
               <AccordionItem
-                className="border border-l-2 border-l-primary"
+                className="data-open:bg-card"
                 key={section.key}
                 value={section.key}
               >
-                <AccordionTrigger className="items-center bg-muted/50 px-4 py-3 hover:no-underline">
+                <AccordionTrigger className="items-center bg-muted/50 px-4 py-4 hover:bg-muted hover:no-underline aria-expanded:bg-muted">
                   <span className="flex min-w-0 items-center gap-3">
-                    <span className="flex size-9 shrink-0 items-center justify-center bg-primary text-sm font-bold text-primary-foreground">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
                       {index + 1}
                     </span>
+
                     <span className="flex min-w-0 flex-col gap-0.5">
                       <span>{section.label}</span>
+
                       <span className="text-xs font-normal text-muted-foreground">
                         {section.detailCount}
                       </span>
@@ -135,7 +132,7 @@ export function ExerciseDetails() {
                   </span>
                 </AccordionTrigger>
 
-                <AccordionContent className="h-auto border-t bg-card px-4 pt-4">
+                <AccordionContent className="h-auto pt-4">
                   {section.content}
                 </AccordionContent>
               </AccordionItem>

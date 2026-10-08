@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { FormProvider, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import type { z } from "zod"
+import { Skeletons } from "@/components/skeleton"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -82,6 +83,7 @@ function SessionConfirmationDialog({
           <DialogTitle>{details?.title}</DialogTitle>
           <DialogDescription>{details?.description}</DialogDescription>
         </DialogHeader>
+
         <DialogFooter>
           <Button onClick={onConfirm} type="button" variant={details?.variant}>
             {details?.confirmLabel}
@@ -460,7 +462,9 @@ function LoadedSession({
           )}
         </div>
       </header>
-      {!session && !hasLoadError && <output>Carregando treino</output>}
+
+      {!session && !hasLoadError && <Skeletons />}
+
       {session &&
         (session.status === "inProgress" ? (
           <SessionEditor
