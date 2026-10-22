@@ -47,14 +47,13 @@ export function calculateWeeklyVolume(days: WorkoutDay[]) {
 }
 
 export function estimateSessionMinutes(day: WorkoutDay) {
-  // Cinco minutos iniciais, quatro segundos por repetição e um minuto entre exercícios.
-  let seconds = 300 + Math.max(0, day.exercises.length - 1) * 60
+  // Fórmula da base de planejamento: séries × repetições × 6 s + 120 s + séries × descanso.
+  let seconds = 0
   for (const exercise of day.exercises) {
     const repetitions = parseRepetitions(exercise.repetitions)
     if (!repetitions || exercise.restSeconds === undefined) return null
     seconds +=
-      exercise.sets * repetitions.max * 4 +
-      Math.max(0, exercise.sets - 1) * exercise.restSeconds
+      exercise.sets * repetitions.max * 6 + 120 + exercise.sets * exercise.restSeconds
   }
   return Math.ceil(seconds / 60)
 }

@@ -8,15 +8,10 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { FormProvider, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import type { z } from "zod"
+import { ConfirmationDialog } from "@/components/confirmation-dialog"
+import { Skeletons } from "@/components/skeleton"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useUser } from "@/contexts/user-context"
 import {
   type SessionFormValues,
@@ -32,6 +27,20 @@ import { hasCompletedAllWorkSets, SessionExercisePicker } from "./session-exerci
 import { SessionSummary } from "./session-summary"
 
 type SessionConfirmation = "completed" | "cancelled" | "reload"
+
+let finalizedSessionHandoff: WorkoutSession | null = null
+
+function retainFinalizedSession(session: WorkoutSession) {
+  finalizedSessionHandoff = session
+}
+
+function finalizedSessionFor(id: string) {
+  return finalizedSessionHandoff?.id === id ? finalizedSessionHandoff : null
+}
+
+function discardFinalizedSession(id: string) {
+  if (finalizedSessionHandoff?.id === id) finalizedSessionHandoff = null
+}
 
 const confirmationDetails: Record<
   SessionConfirmation,
@@ -65,31 +74,17 @@ const confirmationDetails: Record<
   },
 }
 
-function SessionConfirmationDialog({
-  confirmation,
-  onConfirm,
-  onOpenChange,
-}: {
-  confirmation: SessionConfirmation | null
-  onConfirm: () => void
-  onOpenChange: (open: boolean) => void
-}) {
-  const details = confirmation ? confirmationDetails[confirmation] : null
-  return (
-    <Dialog onOpenChange={onOpenChange} open={confirmation !== null}>
-      <DialogContent>
-        <DialogHeader className="pr-12">
-          <DialogTitle>{details?.title}</DialogTitle>
-          <DialogDescription>{details?.description}</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button onClick={onConfirm} type="button" variant={details?.variant}>
-            {details?.confirmLabel}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
+function formExercisesWithDefaultEffort(
+  exercises: WorkoutSession["exercises"]
+): SessionFormValues["exercises"] {
+  return exercises.map(exercise => ({
+    ...exercise,
+    sets: exercise.sets.map(set =>
+      set.warmup || set.completed || set.effortRating !== undefined
+        ? set
+        : { ...set, effortRating: "adequate" }
+    ),
+  }))
 }
 
 function SessionEditor({
@@ -104,7 +99,7 @@ function SessionEditor({
   session: WorkoutSession
   draftToken: string | null
   onDraftUpdated: (session: WorkoutSession) => void
-  onFinalized: () => void
+  onFinalized: (session: WorkoutSession) => void
   onUpdated: (session: WorkoutSession) => void
   onRestPrepared: (seconds?: number) => void
   onRestStarted: (seconds?: number) => void
@@ -112,7 +107,7 @@ function SessionEditor({
   const gateway = useSessionGateway()
   const form = useForm<z.input<typeof sessionFormSchema>, unknown, SessionFormValues>({
     resolver: zodResolver(sessionFormSchema),
-    defaultValues: { exercises: session.exercises },
+    defaultValues: { exercises: formExercisesWithDefaultEffort(session.exercises) },
     mode: "onBlur",
   })
   const exercises = useWatch({ control: form.control, name: "exercises" })
@@ -122,9 +117,11 @@ function SessionEditor({
   const [draftError, setDraftError] = useState("")
   const lock = useRef(false)
   const sessionRef = useRef(session)
+
   useEffect(() => {
     sessionRef.current = session
   }, [session])
+
   useEffect(() => {
     if (!draftToken || !form.formState.isDirty) return
     const draft = sessionSchema.safeParse({ ...sessionRef.current, exercises })
@@ -136,6 +133,7 @@ function SessionEditor({
       setDraftError("Não foi possível salvar o rascunho neste dispositivo")
     }
   }, [draftToken, exercises, form.formState.isDirty, onDraftUpdated])
+
   async function finalizeSession(
     status: "completed" | "cancelled",
     values: SessionFormValues
@@ -156,15 +154,17 @@ function SessionEditor({
       exercises: values.exercises,
     })
   }
+
   function handleFinalizedSession(
     status: "completed" | "cancelled",
     saved: WorkoutSession
   ) {
     form.reset({ exercises: saved.exercises })
-    if (draftToken) onFinalized()
+    onFinalized(saved)
     onUpdated(saved)
     toast.success(status === "completed" ? "Treino concluído" : "Treino cancelado")
   }
+
   function handleFinalizationFailure(failure: unknown) {
     toast.error(
       failure instanceof Error
@@ -180,6 +180,7 @@ function SessionEditor({
         : undefined
     )
   }
+
   async function save(status: "completed" | "cancelled", values: SessionFormValues) {
     if (lock.current) return
     lock.current = true
@@ -195,6 +196,7 @@ function SessionEditor({
       setPending(false)
     }
   }
+
   function selectNextUnfinishedExercise(currentIndex: number) {
     const next = [
       ...exercises.slice(currentIndex + 1),
@@ -207,10 +209,12 @@ function SessionEditor({
       .find(({ exercise }) => !hasCompletedAllWorkSets(exercise))
     setActiveExerciseIndex(next?.index ?? null)
   }
+
   function selectExercise(index: number) {
     onRestPrepared(exercises[index]?.restSeconds)
     setActiveExerciseIndex(index)
   }
+
   function reloadSavedSession() {
     setConfirmation(null)
     setPending(true)
@@ -227,6 +231,7 @@ function SessionEditor({
       )
       .finally(() => setPending(false))
   }
+
   function confirmFinalization() {
     if (confirmation === "reload") {
       reloadSavedSession()
@@ -238,6 +243,7 @@ function SessionEditor({
     }
     void form.handleSubmit(values => save("completed", values))()
   }
+
   function requestCompletion() {
     void form.handleSubmit(values => {
       if (values.exercises.every(hasCompletedAllWorkSets)) {
@@ -247,7 +253,13 @@ function SessionEditor({
       setConfirmation("completed")
     })()
   }
+
   const allExercisesCompleted = exercises.every(hasCompletedAllWorkSets)
+
+  const confirmationDetailsForCurrentState = confirmation
+    ? confirmationDetails[confirmation]
+    : null
+
   return (
     <FormProvider {...form}>
       <form className="space-y-4">
@@ -265,20 +277,17 @@ function SessionEditor({
           )}
         </fieldset>
         {activeExerciseIndex === null && (
-          <section
-            aria-labelledby="finish-workout-title"
-            className="border bg-card p-4 sm:p-5"
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <Card aria-labelledby="finish-workout-title">
+            <CardHeader>
               <div className="min-w-0 max-w-xl space-y-1">
                 <p className="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
                   Finalização
                 </p>
-                <h2 className="text-lg font-semibold" id="finish-workout-title">
+                <CardTitle className="text-lg" id="finish-workout-title">
                   {allExercisesCompleted
                     ? "Treino pronto para concluir"
                     : "Encerrar treino"}
-                </h2>
+                </CardTitle>
                 <p className="text-sm text-muted-foreground">
                   {draftToken
                     ? draftError ||
@@ -290,6 +299,8 @@ function SessionEditor({
                       : "Só treinos concluídos entram nas sugestões de carga"}
                 </p>
               </div>
+            </CardHeader>
+            <CardContent>
               <div className="grid w-full gap-2 lg:w-auto lg:shrink-0 lg:grid-cols-2">
                 <Button
                   className="w-full"
@@ -310,14 +321,21 @@ function SessionEditor({
                   Cancelar treino
                 </Button>
               </div>
-            </div>
-          </section>
+            </CardContent>
+          </Card>
         )}
       </form>
-      <SessionConfirmationDialog
-        confirmation={confirmation}
+      <ConfirmationDialog
+        cancelLabel="Voltar"
+        confirmLabel={confirmationDetailsForCurrentState?.confirmLabel ?? "Confirmar"}
+        confirmVariant={confirmationDetailsForCurrentState?.variant ?? "default"}
+        description={confirmationDetailsForCurrentState?.description ?? ""}
+        isPending={pending}
         onConfirm={confirmFinalization}
         onOpenChange={open => !open && setConfirmation(null)}
+        open={confirmation !== null}
+        pendingLabel="Salvando"
+        title={confirmationDetailsForCurrentState?.title ?? "Confirmar ação"}
       />
     </FormProvider>
   )
@@ -350,7 +368,8 @@ function LoadedSession({
   const draftStore = useSessionDraftStore()
   const pathname = usePathname()
   const router = useRouter()
-  const [session, setSession] = useState<WorkoutSession | null>(null)
+  const [initialSession] = useState(() => finalizedSessionFor(id))
+  const [session, setSession] = useState<WorkoutSession | null>(initialSession)
   const [draftToken, setDraftToken] = useState<string | null>(null)
   const [restTimer, setRestTimer] = useState({
     endsAt: null as number | null,
@@ -359,7 +378,6 @@ function LoadedSession({
   const [hasLoadError, setHasLoadError] = useState(false)
   useEffect(() => {
     let current = true
-    setSession(null)
     setDraftToken(null)
     setHasLoadError(false)
     const draft = draftStore.get(uid, id)
@@ -372,6 +390,13 @@ function LoadedSession({
         current = false
       }
     }
+    if (initialSession) {
+      discardFinalizedSession(id)
+      return () => {
+        current = false
+      }
+    }
+    setSession(null)
     gateway
       .load(id)
       .then(value => {
@@ -393,7 +418,7 @@ function LoadedSession({
     return () => {
       current = false
     }
-  }, [draftStore, gateway, id, onRetry, uid])
+  }, [draftStore, gateway, id, initialSession, onRetry, uid])
   const updateDraft = useCallback(
     (updated: WorkoutSession) => {
       if (!draftToken) return
@@ -437,37 +462,46 @@ function LoadedSession({
       router.replace(`/${section}/sessions/${encodeURIComponent(session.id)}`)
     }
   }, [pathname, router, session])
+
   return (
     <div className="mx-auto min-w-0 max-w-6xl space-y-5">
-      <header className="border-b border-border pb-4">
+      <header className={session ? "border-b border-border pb-4" : undefined}>
         <Button asChild className="-ml-3" size="sm" variant="ghost">
           <Link href={session?.status === "inProgress" ? "/workouts" : "/history"}>
             <ArrowLeftIcon aria-hidden="true" />
             {session?.status === "inProgress" ? "Treinos" : "Histórico"}
           </Link>
         </Button>
-        <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
-              {session?.workoutPlanName ?? "Treino"}
-            </p>
-            <h1 className="wrap-break-word text-2xl font-bold tracking-tight sm:text-3xl">
-              {session?.workoutDayName ?? "Treino"}
-            </h1>
+
+        {session && (
+          <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+                Ficha {session.workoutPlanName}
+              </p>
+
+              <h1 className="wrap-break-word text-2xl font-bold tracking-tight sm:text-3xl">
+                Treino {session.workoutDayName}
+              </h1>
+            </div>
+
+            {session.status === "inProgress" && (
+              <RestTimer endsAt={restTimer.endsAt} onCompleted={clearRestTimer} />
+            )}
           </div>
-          {session?.status === "inProgress" && (
-            <RestTimer endsAt={restTimer.endsAt} onCompleted={clearRestTimer} />
-          )}
-        </div>
+        )}
       </header>
-      {!session && !hasLoadError && <output>Carregando treino</output>}
+
+      {!session && !hasLoadError && <Skeletons />}
+
       {session &&
         (session.status === "inProgress" ? (
           <SessionEditor
             draftToken={draftToken}
             key={session.id}
             onDraftUpdated={updateDraft}
-            onFinalized={() => {
+            onFinalized={finalized => {
+              retainFinalizedSession(finalized)
               clearRestTimer()
               removeDraft()
             }}

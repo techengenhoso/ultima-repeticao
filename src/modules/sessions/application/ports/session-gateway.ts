@@ -16,5 +16,5 @@ export interface SessionGateway {
   ): Promise<WorkoutSession>
   suggest(
     command: Extract<SessionCommand, { action: "suggest" }>
-  ): Promise<{ suggestion: LoadSuggestion; history: WorkoutSession[] }>
+  ): Promise<{ suggestion: LoadSuggestion; latestSessionId: string | null }>
 }

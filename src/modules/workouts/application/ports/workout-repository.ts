@@ -1,5 +1,7 @@
 import type { Workout, WorkoutInput } from "@/modules/workouts/domain/workout"
 
+export class DuplicateWorkoutNameError extends Error {}
+
 export interface WorkoutRepository {
   list(uid: string): Promise<Workout[]>
   create(uid: string, input: WorkoutInput, creationId?: string): Promise<Workout>

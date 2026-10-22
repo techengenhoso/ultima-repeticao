@@ -1,16 +1,6 @@
 "use client"
 
-import { LoaderCircleIcon } from "lucide-react"
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
+import { ConfirmationDialog } from "@/components/confirmation-dialog"
 import { useWorkout } from "@/contexts/workout-context"
 
 export function WorkoutDelete() {
@@ -21,28 +11,20 @@ export function WorkoutDelete() {
     setDeleting: onClose,
   } = useWorkout()
   return (
-    <AlertDialog
+    <ConfirmationDialog
+      confirmLabel="Excluir"
+      description={
+        <>
+          A ficha “{workout?.name}” será excluída permanentemente. Esta ação não poderá ser
+          desfeita
+        </>
+      }
+      isPending={isDeleting}
+      onConfirm={onConfirm}
       onOpenChange={open => !open && !isDeleting && onClose(null)}
       open={!!workout}
-    >
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Excluir ficha</AlertDialogTitle>
-          <AlertDialogDescription>
-            A ficha “{workout?.name}” será excluída permanentemente. Esta ação não poderá
-            ser desfeita
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting} variant="secondary">
-            Cancelar
-          </AlertDialogCancel>
-          <Button disabled={isDeleting} onClick={onConfirm} variant="destructive">
-            {isDeleting && <LoaderCircleIcon className="animate-spin" />}
-            {isDeleting ? "Excluindo" : "Excluir"}
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      pendingLabel="Excluindo"
+      title="Excluir ficha"
+    />
   )
 }

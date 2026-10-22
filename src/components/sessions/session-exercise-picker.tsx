@@ -2,31 +2,31 @@
 
 import { cn } from "cn"
 import type { z } from "zod"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { sessionExerciseSchema } from "@/modules/sessions/domain/session"
 
 type SessionExerciseValue = z.input<typeof sessionExerciseSchema>
+
 type ExerciseCardState = "completed" | "inProgress" | "pending"
 
 const exerciseCardStates = {
   completed: {
-    button: "border-primary/50 bg-primary/5 hover:bg-primary/5",
-    badge: "bg-primary text-primary-foreground",
+    card: "ring-primary/30",
     label: "Concluído",
     labelStyle: "text-primary",
     progress: "[&>span]:bg-primary",
   },
   inProgress: {
-    button: "border-border bg-card hover:bg-card",
-    badge: "bg-primary/15 text-primary",
+    card: "ring-primary/20",
     label: "Em execução",
     labelStyle: "text-primary",
     progress: "[&>span]:bg-primary",
   },
   pending: {
-    button: "border-border bg-card hover:bg-card",
-    badge: "bg-muted text-muted-foreground",
+    card: "",
     label: "Pendente",
     labelStyle: "text-muted-foreground",
     progress: "",
@@ -55,55 +55,60 @@ function SessionExerciseCard({
   onSelect: (index: number) => void
 }) {
   const completed = completedWorkSets(exercise)
-  const state = exerciseCardStates[getExerciseCardState(completed, exercise.targetSets)]
+  const cardState = getExerciseCardState(completed, exercise.targetSets)
+  const state = exerciseCardStates[cardState]
 
   return (
-    <Button
-      className={cn(
-        "h-auto min-h-28 w-full justify-start p-4 text-left normal-case tracking-normal whitespace-normal",
-        state.button
-      )}
-      onClick={() => onSelect(index)}
-      type="button"
-      variant="secondary"
-    >
-      <div className="flex min-w-0 flex-1 flex-col gap-4">
-        <div className="flex min-w-0 items-start gap-3">
-          <span
-            aria-hidden="true"
-            className={cn(
-              "flex size-10 shrink-0 items-center justify-center text-sm font-semibold tabular-nums",
-              state.badge
-            )}
-          >
-            {String(index + 1).padStart(2, "0")}
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-              <p
-                className={cn(
-                  "text-xs font-semibold tracking-wider uppercase",
-                  state.labelStyle
-                )}
-              >
-                {state.label}
-              </p>
-              <p className="text-xs tabular-nums text-muted-foreground">
-                {completed} de {exercise.targetSets} séries
-              </p>
-            </div>
-            <h3 className="mt-1 wrap-break-word text-base font-semibold">
-              {exercise.exerciseSnapshot.name}
-            </h3>
-          </div>
-        </div>
+    <Card className={cn("gap-0 py-0", state.card)}>
+      <Button
+        className="h-auto min-h-28 w-full justify-start rounded-4xl p-4 text-left normal-case tracking-normal whitespace-normal"
+        onClick={() => onSelect(index)}
+        type="button"
+        variant="ghost"
+      >
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <Badge
+              aria-hidden="true"
+              className="size-10 rounded-3xl p-0 text-sm tabular-nums"
+              variant="secondary"
+            >
+              {String(index + 1).padStart(2, "0")}
+            </Badge>
 
-        <Progress
-          className={cn("h-1.5", state.progress)}
-          value={(completed / exercise.targetSets) * 100}
-        />
-      </div>
-    </Button>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                <Badge
+                  className={cn(
+                    "p-0 text-xs font-semibold tracking-wider uppercase",
+                    state.labelStyle
+                  )}
+                  variant="ghost"
+                >
+                  {state.label}
+                </Badge>
+
+                <Badge
+                  className="p-0 text-xs tabular-nums text-muted-foreground"
+                  variant="ghost"
+                >
+                  {completed} de {exercise.targetSets} séries
+                </Badge>
+              </div>
+
+              <h3 className="wrap-break-word text-base font-semibold">
+                {exercise.exerciseSnapshot.name}
+              </h3>
+            </div>
+          </div>
+
+          <Progress
+            className={cn("h-1.5", state.progress)}
+            value={(completed / exercise.targetSets) * 100}
+          />
+        </div>
+      </Button>
+    </Card>
   )
 }
 
@@ -118,28 +123,32 @@ export function SessionExercisePicker({
 
   return (
     <section aria-labelledby="session-exercises-title" className="space-y-5">
-      <div className="border bg-card p-4 sm:p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
-              Progresso do treino
-            </p>
-            <h2 className="mt-1 text-xl font-semibold" id="session-exercises-title">
-              Escolha o próximo exercício
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Registre as séries e acompanhe seu avanço
-            </p>
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+                Progresso do treino
+              </p>
+              <CardTitle className="mt-1 text-xl" id="session-exercises-title">
+                Escolha o próximo exercício
+              </CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Registre as séries e acompanhe seu avanço
+              </p>
+            </div>
+            <Badge className="h-auto px-3 py-2 text-sm tabular-nums" variant="secondary">
+              {completedExercises}/{exercises.length} concluídos
+            </Badge>
           </div>
-          <p className="border bg-muted px-3 py-2 text-sm font-semibold tabular-nums">
-            {completedExercises}/{exercises.length} concluídos
-          </p>
-        </div>
-        <Progress
-          className="mt-5 h-2"
-          value={(completedExercises / exercises.length) * 100}
-        />
-      </div>
+        </CardHeader>
+        <CardContent>
+          <Progress
+            className="h-2"
+            value={(completedExercises / exercises.length) * 100}
+          />
+        </CardContent>
+      </Card>
 
       <div className="grid gap-3 lg:grid-cols-2">
         {exercises.map((exercise, index) => (

@@ -2,15 +2,7 @@
 
 import { XIcon } from "lucide-react"
 import { useState } from "react"
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+import { ConfirmationDialog } from "@/components/confirmation-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -27,6 +19,7 @@ export function WorkoutCreateOrEdit() {
   const {
     exercises,
     exercisesByReference,
+    exerciseProgressions,
     formWorkout: workout,
     handleSaveWorkout: onSubmit,
     setFormWorkout: onClose,
@@ -41,11 +34,11 @@ export function WorkoutCreateOrEdit() {
   return (
     <>
       <Dialog
-        onOpenChange={open => !open && onClose(undefined)}
+        onOpenChange={open => !open && requestDiscard()}
         open={workout !== undefined}
       >
         <DialogContent
-          className="max-h-[calc(100dvh-2rem)] sm:max-w-xl"
+          className="max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)] overflow-hidden sm:max-w-xl"
           showCloseButton={false}
         >
           <Button
@@ -58,7 +51,7 @@ export function WorkoutCreateOrEdit() {
           >
             <XIcon aria-hidden="true" />
           </Button>
-          <DialogHeader>
+          <DialogHeader className="pr-12">
             <DialogTitle>{workout?.id ? "Editar ficha" : "Nova ficha"}</DialogTitle>
             <DialogDescription>
               Revise os dias e exercícios antes de salvar
@@ -66,6 +59,7 @@ export function WorkoutCreateOrEdit() {
           </DialogHeader>
 
           <WorkoutForm
+            exerciseProgressions={exerciseProgressions}
             exercises={exercises}
             exercisesByReference={exercisesByReference}
             onCancel={requestDiscard}
@@ -74,24 +68,15 @@ export function WorkoutCreateOrEdit() {
           />
         </DialogContent>
       </Dialog>
-      <AlertDialog onOpenChange={setIsDiscarding} open={isDiscarding}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Descartar alterações</AlertDialogTitle>
-            <AlertDialogDescription>
-              Os dados preenchidos nesta ficha não serão salvos. Esta ação não poderá ser
-              desfeita
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel variant="secondary">Continuar editando</AlertDialogCancel>
-
-            <Button onClick={discardWorkout} variant="destructive">
-              Descartar
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationDialog
+        cancelLabel="Continuar editando"
+        confirmLabel="Descartar"
+        description="Ao fechar os dados preenchidos nesta ficha não serão salvos. Esta ação não poderá ser desfeita"
+        onConfirm={discardWorkout}
+        onOpenChange={setIsDiscarding}
+        open={isDiscarding}
+        title="Descartar alterações"
+      />
     </>
   )
 }

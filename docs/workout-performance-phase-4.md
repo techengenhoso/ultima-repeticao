@@ -4,7 +4,7 @@
 
 O repositório não possuía execução de treino, armazenamento de séries nem histórico funcional. Foram criados esses recursos mínimos, preservando as fichas e os componentes das fases anteriores.
 
-Fluxo: **Fichas → detalhes da ficha → dia → Iniciar este treino**. A rota `/workouts/sessions/{id}` permite registrar carga, repetições e a avaliação de dificuldade da série, marcar séries concluídas, acrescentar até cinco aquecimentos, repetir a carga anterior e iniciar o temporizador de descanso. Sessões encerradas usam `/history/sessions/{id}`. A avaliação usa cinco níveis: muito difícil, difícil, adequado, fácil e muito fácil. Ela é opcional e nunca é preenchida por inferência.
+Fluxo: **Fichas → detalhes da ficha → dia → Iniciar este treino**. A rota `/workouts/sessions/{id}` permite registrar carga, repetições e a avaliação de dificuldade da série, marcar séries concluídas, acrescentar até cinco aquecimentos, repetir a carga anterior e iniciar o temporizador de descanso. Sessões encerradas usam `/history/sessions/{id}`. A avaliação usa cinco níveis: muito difícil, difícil, adequado, fácil e muito fácil. Novas séries de trabalho começam com “adequado” selecionado, e o usuário pode alterar a avaliação antes de concluí-las.
 
 O andamento é salvo automaticamente apenas neste dispositivo. O Firestore recebe a sessão somente ao **Concluir treino** ou **Cancelar**. Enquanto estiver em andamento, o treino pode ser retomado no mesmo navegador e perfil, mas não aparece no Histórico nem em outro dispositivo. O temporizador de descanso também preserva localmente seu horário de término e continua a contagem ao sair e retornar à sessão. **Histórico** lista as sessões encerradas, com paginação de sete registros, e permite excluí-las permanentemente após confirmação. **Evolução** dá acesso ao mesmo histórico e à análise por exercício. Ao concluir, o resumo preserva as séries incompletas e permite abrir **Evolução e sugestão** em cada exercício.
 
@@ -18,7 +18,7 @@ Os timestamps são produzidos pelo servidor e armazenados como `Timestamp`; a AP
 
 A API `/api/workout-sessions` verifica o Firebase ID Token, inclusive revogação, e usa exclusivamente seu UID. Ao iniciar, ela lê a ficha persistida e a biblioteca real no formato atual e devolve um rascunho assinado, sem escrita no Firestore. O navegador persiste esse rascunho localmente. Ao encerrar, a API verifica a assinatura e preserva metas, referências, snapshots e carga originalmente preparados; aceita somente o desempenho editável. A decisão de carga é uma operação específica, permitida após a conclusão.
 
-Schemas estritos limitam a sessão a 30 exercícios, 20 séries de trabalho e cinco de aquecimento por exercício. Carga: 0–1000 kg, até duas casas decimais; repetições: 0–100, sendo pelo menos uma em séries concluídas; avaliação: um dos cinco níveis definidos. Identificadores, estrutura, sequência, metas e estados também são verificados. O corpo da solicitação é limitado a 256 KiB.
+Schemas estritos limitam a sessão a 30 exercícios, 20 séries de trabalho e cinco de aquecimento por exercício. Carga: 0–1000 kg, até duas casas decimais; repetições: 0–500, sendo pelo menos uma em séries concluídas; avaliação: um dos cinco níveis definidos. Identificadores, estrutura, sequência, metas e estados também são verificados. O corpo da solicitação é limitado a 256 KiB.
 
 As regras novas permitem leitura somente ao proprietário e **bloqueiam toda escrita direta do cliente** na coleção de sessões. Toda escrita passa pelo serviço autenticado com Admin e pela validação integral dos arrays. Isso evita repetir a limitação de expressões das regras de fichas registrada na Fase 1. A pendência das regras de `workoutPlans` continua separada e não foi alterada nesta fase.
 
@@ -28,9 +28,9 @@ Documentos fora do formato atual não são migrados nem normalizados. Sessões i
 
 Sem histórico e com carga zero, a tela informa **Carga a definir** e orienta o registro conservador da carga realmente usada. O zero continua sendo uma carga válida para exercícios sem carga externa; não representa uma recomendação em quilogramas.
 
-A referência seguinte vem da última sessão concluída com desempenho válido para a mesma referência `source + exerciseId`, ou da decisão explícita de carga registrada nela. Quando as cargas variam, a última série de trabalho concluída serve como referência, mas não autoriza progressão automática. Uma sessão que não executou esse exercício não apaga uma referência anterior disponível no histórico consultado.
+A referência seguinte usa a última decisão explícita de evolução para a mesma referência `source + exerciseId`, mesmo que uma execução mais recente ainda não tenha uma decisão. Na ausência de decisão, usa a última série de trabalho concluída da execução mais recente. Quando as cargas variam, a última série de trabalho concluída serve como referência, mas não autoriza progressão automática.
 
-As escolhas e configurações de incremento são preservadas para o próximo treino. A carga da ficha não é alterada. Cargas informadas manualmente continuam permitidas, mesmo quando diferentes da sugestão.
+As escolhas e configurações de incremento são preservadas para o próximo treino. Ao selecionar um exercício já evoluído na criação ou edição de ficha, séries, repetições e carga recebem os valores da última evolução como ponto de partida, sem modificar fichas existentes. Cargas e repetições informadas manualmente continuam permitidas, mesmo quando diferentes da sugestão.
 
 ## Motor determinístico
 
@@ -39,21 +39,21 @@ O motor não chama IA nem envia desempenho a provedores. As consultas consideram
 1. Sem dados válidos, prescrição diferente, séries de trabalho incompletas ou cargas variadas, retorna `insufficientData`
 2. Com todas as séries fáceis ou muito fáceis e abaixo do limite superior, indica mais uma repetição para o próximo treino; se todas foram muito fáceis, indica duas
 3. A avaliação mais difícil registrada prevalece. Adequado, difícil ou muito difícil mantém a carga e as repetições
-4. Ao atingir o limite superior da faixa em todas as séries, com avaliação ao menos adequada, indica aumento conservador de carga e retorno ao limite inferior de repetições
+4. Ao atingir o limite superior da faixa em todas as séries, com todas as avaliações como fácil ou muito fácil, indica aumento conservador de carga e retorno ao limite inferior de repetições
 5. Séries abaixo do mínimo não indicam perda de força nem reduzem a carga automaticamente
 6. Avaliação ausente nunca é deduzida; a sugestão pede registrar todas as avaliações e fica com confiança menor
 
-Incrementos seguem a prioridade: incremento escolhido pelo usuário, incremento do equipamento, percentual conservador. O percentual padrão é 2,5%, configurável entre 0,5% e 5%. O arredondamento usa o equipamento, o incremento informado ou a unidade configurável de arredondamento (padrão de 0,5 kg). A interface pede conferir se a carga resultante está disponível. Reduções acima de 10% após arredondar são recusadas; aumentos acima de 10% também são recusados quando não há incremento expressamente escolhido pelo usuário. Nesses casos, sugere manutenção e permite escolha manual.
+Incrementos seguem a prioridade: incremento escolhido pelo usuário, incremento do equipamento, percentual conservador. O percentual padrão é 2,5%, configurável entre 0,5% e 5%. A progressão automática soma à carga atual um aumento de 3 ou 6 kg e indica o próximo peso disponível. Reduções acima de 10% após arredondar são recusadas. Nesses casos, sugere manutenção e permite escolha manual.
 
-O retorno inclui ação, carga atual, eventual carga ou repetições sugeridas, motivo, confiança e IDs das sessões utilizadas. A API recalcula a sugestão ao aceitar e rejeita confirmação se a sugestão mudou. A decisão só pode ser registrada na sessão concluída mais recente daquele exercício.
+O retorno inclui ação, carga atual, eventual carga ou repetições sugeridas, motivo, confiança e IDs das sessões utilizadas. A sugestão usa as configurações padrão ou as preservadas do treino anterior, sem campos de ajuste na tela. A API recalcula a sugestão ao aceitar e rejeita confirmação se a sugestão mudou. A criação de uma decisão só ocorre na sessão concluída mais recente daquele exercício.
 
 ## Histórico e decisões
 
-A análise consulta no máximo as 20 sessões concluídas mais recentes que contêm a referência exata, ordenadas por início. O índice composto está em `firestore.indexes.json`. A listagem geral é paginada; o recorte analítico de 20 sessões é mostrado explicitamente na interface.
+A sugestão consulta somente a última sessão concluída que contém a referência exata, ordenada pela conclusão. Ao preparar a execução, a busca da última evolução percorre as decisões já registradas para essa referência e usa a mais recente pelo instante da decisão. O índice composto está em `firestore.indexes.json`. A listagem geral do histórico continua paginada; a sugestão não carrega nem exibe sessões anteriores do exercício.
 
-Por exercício são exibidos data, cargas, repetições, séries concluídas, avaliação, variação de carga no período, melhor série e sugestão atual. “Melhor série” significa maior carga, com repetições como desempate; não estima 1RM nem afirma melhora clínica. Se a referência aparece mais de uma vez na mesma sessão, o motor não mistura as duas execuções.
+Por exercício, a sugestão exibe a carga atual, a eventual próxima carga ou repetição e o motivo da decisão. Ela não estima 1RM nem afirma melhora clínica. Se a referência aparece mais de uma vez na mesma sessão, o motor não mistura as duas execuções.
 
-**Aceitar sugestão**, **Manter carga atual** e **Confirmar minha carga** gravam uma decisão individual, incluindo carga, escolha, configuração, sugestão e dados utilizados. Nenhuma sugestão é aplicada sem uma dessas ações explícitas.
+**Aceitar sugestão**, **Manter carga atual** e **Confirmar minha carga** gravam uma decisão individual, incluindo carga, escolha, configuração, sugestão e dados utilizados. Enquanto registrada, a decisão não pode ser substituída por outra. A Evolução do exercício exibe um histórico próprio das decisões, sem tratá-las como carga efetivamente realizada. O histórico permite excluir somente a decisão, preservando as séries concluídas. Nenhuma sugestão é aplicada sem uma dessas ações explícitas.
 
 ## Concorrência e recuperação
 

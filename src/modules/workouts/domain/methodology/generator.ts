@@ -46,7 +46,7 @@ function makeExercise(
     sets,
     repetitions: rules.repetitions[0],
     restSeconds: rules.restSeconds.min,
-    initialLoad: Number.NaN,
+    initialLoad: 0,
   }
 }
 
@@ -150,6 +150,158 @@ function planFrom(
   }
 }
 
+function scheduledConsecutively(
+  first: number,
+  second: number,
+  trainingWeekdays: number[]
+) {
+  const firstWeekday = trainingWeekdays[first]
+  const secondWeekday = trainingWeekdays[second]
+  return (
+    (firstWeekday + 1) % 7 === secondWeekday || (secondWeekday + 1) % 7 === firstWeekday
+  )
+}
+
+function groupVolume(exercises: Pack, group: MuscleGroup) {
+  return exercises
+    .filter(exercise => exercise.exerciseSnapshot.muscleGroup === group)
+    .reduce((sum, exercise) => sum + exercise.sets, 0)
+}
+
+function rulesFor(item: AvailableExercise, prescription: WorkoutPrescription) {
+  return item.kind === "compound"
+    ? prescription.compoundExerciseRules
+    : prescription.isolationExerciseRules
+}
+
+function hasExercise(day: Pack, item: AvailableExercise) {
+  return day.some(
+    exercise =>
+      exercise.exerciseReference.source === item.source &&
+      exercise.exerciseReference.exerciseId === item.exerciseId
+  )
+}
+
+function createCompletionMetrics(days: Pack[]) {
+  const volume = new Map<MuscleGroup, number>()
+  const usage = new Map<string, number>()
+  for (const day of days)
+    for (const exercise of day) {
+      const group = exercise.exerciseSnapshot.muscleGroup
+      volume.set(group, (volume.get(group) ?? 0) + exercise.sets)
+      const exerciseKey = `${exercise.exerciseReference.source}:${exercise.exerciseReference.exerciseId}`
+      usage.set(exerciseKey, (usage.get(exerciseKey) ?? 0) + 1)
+    }
+  return { volume, usage }
+}
+
+type DurationCandidate = {
+  item: AvailableExercise
+  sets: number
+  minutes: number
+}
+
+function durationCandidateFor(
+  day: Pack,
+  dayIndex: number,
+  days: Pack[],
+  item: AvailableExercise,
+  prescription: WorkoutPrescription,
+  volume: Map<MuscleGroup, number>
+) {
+  if (
+    !eligible(item.muscleGroup, prescription.suggestedSplit[dayIndex]) ||
+    hasExercise(day, item)
+  )
+    return null
+
+  const rules = rulesFor(item, prescription)
+  const remainingWeeklyVolume =
+    prescription.weeklyVolumeByMuscleGroup[item.muscleGroup].max -
+    (volume.get(item.muscleGroup) ?? 0)
+
+  for (
+    let sets = Math.min(rules.sets.max, remainingWeeklyVolume);
+    sets >= rules.sets.min;
+    sets--
+  ) {
+    const proposedVolume = groupVolume(day, item.muscleGroup) + sets
+    const overloadsConsecutiveSession =
+      proposedVolume >= 3 &&
+      days.some(
+        (otherDay, index) =>
+          index !== dayIndex &&
+          scheduledConsecutively(index, dayIndex, prescription.trainingWeekdays) &&
+          groupVolume(otherDay, item.muscleGroup) >= 3
+      )
+    if (overloadsConsecutiveSession) continue
+
+    const minutes = estimateSessionMinutes({
+      id: "candidate",
+      name: "Dia",
+      order: dayIndex,
+      muscleGroups: [],
+      exercises: [...day, makeExercise(item, sets, prescription)],
+    })
+    if (minutes !== null && minutes <= prescription.durationMinutes)
+      return { item, sets, minutes }
+  }
+
+  return null
+}
+
+function compareDurationCandidates(
+  input: WorkoutGenerationInput,
+  available: AvailableExercise[],
+  volume: Map<MuscleGroup, number>,
+  usage: Map<string, number>,
+  variant: number
+) {
+  return (a: DurationCandidate, b: DurationCandidate) => {
+    const aKey = key(a.item)
+    const bKey = key(b.item)
+    return (
+      b.minutes - a.minutes ||
+      Number(input.preferredExercises.includes(bKey)) -
+        Number(input.preferredExercises.includes(aKey)) ||
+      (volume.get(a.item.muscleGroup) ?? 0) - (volume.get(b.item.muscleGroup) ?? 0) ||
+      (usage.get(aKey) ?? 0) - (usage.get(bKey) ?? 0) ||
+      ((available.indexOf(a.item) + variant) % available.length) -
+        ((available.indexOf(b.item) + variant) % available.length)
+    )
+  }
+}
+
+function completeSessionsToTargetDuration(
+  days: Pack[],
+  input: WorkoutGenerationInput,
+  prescription: WorkoutPrescription,
+  available: AvailableExercise[],
+  variant: number
+) {
+  const { volume, usage } = createCompletionMetrics(days)
+
+  for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
+    while (days[dayIndex].length < prescription.maxExercisesPerDay) {
+      const candidate = [...available]
+        .map(item =>
+          durationCandidateFor(days[dayIndex], dayIndex, days, item, prescription, volume)
+        )
+        .filter((item): item is DurationCandidate => item !== null)
+        .sort(compareDurationCandidates(input, available, volume, usage, variant))[0]
+      if (!candidate) break
+      const exercise = makeExercise(candidate.item, candidate.sets, prescription)
+      days[dayIndex].push(exercise)
+      volume.set(
+        candidate.item.muscleGroup,
+        (volume.get(candidate.item.muscleGroup) ?? 0) + exercise.sets
+      )
+      const itemKey = key(candidate.item)
+      usage.set(itemKey, (usage.get(itemKey) ?? 0) + 1)
+    }
+  }
+}
+
 // Tenta primeiro a distribuição dos alvos; usa uma montagem adaptada se necessário.
 export function buildWorkout(
   input: WorkoutGenerationInput,
@@ -211,7 +363,15 @@ export function buildWorkout(
     return null
   }
   function validatedPlan() {
-    const plan = planFrom(days, input, prescription, classifications)
+    const completedDays = days.map(day => [...day])
+    completeSessionsToTargetDuration(
+      completedDays,
+      input,
+      prescription,
+      available,
+      variant
+    )
+    const plan = planFrom(completedDays, input, prescription, classifications)
     return validateWorkoutPlan(plan, prescription, classifications).some(
       issue => issue.severity === "error"
     )
@@ -308,6 +468,7 @@ export function buildAdaptedWorkout(
     if (!exercises.length) return null
     days.push(exercises)
   }
+  completeSessionsToTargetDuration(days, input, prescription, available, variant)
   const plan = planFrom(
     days,
     input,
@@ -317,7 +478,6 @@ export function buildAdaptedWorkout(
   plan.days.forEach((day, index) => {
     day.name = `Treino ${index + 1}`
   })
-  plan.description =
-    "Ficha adaptada ao tempo e aos exercícios disponíveis, revise os avisos antes de salvar"
+  plan.description = "Ficha criada automaticamente"
   return plan
 }

@@ -25,7 +25,10 @@ export function createAuthenticationUseCases(
   return {
     observe: listener => gateway.observe(listener),
     signIn: (email, password) => gateway.signIn(email, password),
-    signUp: (fullName, email, password) => gateway.signUp(fullName, email, password),
+    async signUp(fullName, email, password) {
+      await gateway.signUp(fullName, email, password)
+      await gateway.signOut()
+    },
     requestPasswordReset: email => gateway.sendPasswordReset(email),
     signOut: () => gateway.signOut(),
     async deleteAccount(user, password) {

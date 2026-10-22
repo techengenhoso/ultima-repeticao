@@ -11,7 +11,9 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { useFormContext, useWatch } from "react-hook-form"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
@@ -101,6 +103,9 @@ export function SessionExerciseForm({
     selectedSetIndex === -1
       ? undefined
       : errors.exercises?.[index]?.sets?.[selectedSetIndex]
+  const hasSelectedSetInputErrors = Boolean(
+    selectedSetErrors?.load || selectedSetErrors?.performedRepetitions
+  )
   const workSetIndexes = exercise.sets
     .map((set, setIndex) => (!set.warmup ? setIndex : null))
     .filter((setIndex): setIndex is number => setIndex !== null)
@@ -146,14 +151,14 @@ export function SessionExerciseForm({
         </span>
       </div>
 
-      <div className="border border-border border-l-2 border-l-primary bg-card">
-        <div className="flex items-center gap-3 p-4">
-          <h2 className="min-w-0 wrap-break-word text-lg font-semibold">
+      <Card className="border-l-2 border-l-primary">
+        <CardHeader>
+          <CardTitle className="min-w-0 wrap-break-word text-lg">
             {exercise.exerciseSnapshot.name}
-          </h2>
-        </div>
+          </CardTitle>
+        </CardHeader>
 
-        <div className="space-y-5 border-t border-border p-4">
+        <CardContent className="space-y-5 border-t border-border pt-(--card-spacing)">
           <WorkSetNavigator
             editingSetIndex={editingSetIndex}
             nextWorkSetIndex={nextWorkSetIndex}
@@ -172,8 +177,6 @@ export function SessionExerciseForm({
                   <Input
                     id={`exercises.${index}.sets.${selectedSetIndex}-load`}
                     inputMode="decimal"
-                    max={1000}
-                    min={0}
                     step={0.01}
                     type="number"
                     {...register(`exercises.${index}.sets.${selectedSetIndex}.load`, {
@@ -191,8 +194,6 @@ export function SessionExerciseForm({
                   <Input
                     id={`exercises.${index}.sets.${selectedSetIndex}-repetitions`}
                     inputMode="numeric"
-                    max={100}
-                    min={0}
                     step={1}
                     type="number"
                     {...register(
@@ -231,7 +232,7 @@ export function SessionExerciseForm({
                           value={value}
                         />
                         <label
-                          className="flex min-h-20 cursor-pointer flex-col items-center justify-center gap-1 border px-1 py-2 text-center text-[0.65rem] leading-3 whitespace-normal outline-none peer-focus-visible:border-ring peer-focus-visible:ring-2 peer-focus-visible:ring-ring/50 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground sm:text-xs"
+                          className="flex min-h-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-3xl border px-1 py-2 text-center text-[0.65rem] leading-3 whitespace-normal outline-none peer-focus-visible:border-ring peer-focus-visible:ring-2 peer-focus-visible:ring-ring/50 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground sm:text-xs"
                           htmlFor={id}
                         >
                           <Icon aria-hidden="true" className="size-5 shrink-0" />
@@ -249,6 +250,7 @@ export function SessionExerciseForm({
                 <Button
                   aria-pressed={selectedSet.completed}
                   className="sm:order-2 sm:ml-auto"
+                  disabled={hasSelectedSetInputErrors}
                   onClick={() => handleCompletedChange(selectedSetIndex, true)}
                   size="sm"
                   type="button"
@@ -264,18 +266,18 @@ export function SessionExerciseForm({
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-3 bg-muted/40 p-4">
+            <Alert>
               <CheckIcon aria-hidden="true" className="size-5 text-primary" />
-              <div>
-                <h3 className="font-semibold">Exercício concluído</h3>
-                <p className="text-sm text-muted-foreground">
-                  Você pode voltar à lista ou revisar uma série acima
-                </p>
-              </div>
-            </div>
+
+              <AlertTitle>Exercício concluído</AlertTitle>
+
+              <AlertDescription>
+                Você pode voltar à lista ou revisar uma série acima
+              </AlertDescription>
+            </Alert>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </section>
   )
 }

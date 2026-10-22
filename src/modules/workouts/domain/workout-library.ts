@@ -8,7 +8,7 @@ export interface WorkoutFilters {
   search: string
   daysPerWeek: "" | "1" | "2" | "3" | "4" | "5+"
   muscleGroup: "" | MuscleGroup
-  exerciseSearch: string
+  exerciseReference: string
   daySearch: string
   estimatedDuration: WorkoutDuration
 }
@@ -17,7 +17,7 @@ export const emptyWorkoutFilters: WorkoutFilters = {
   search: "",
   daysPerWeek: "",
   muscleGroup: "",
-  exerciseSearch: "",
+  exerciseReference: "",
   daySearch: "",
   estimatedDuration: "",
 }
@@ -40,7 +40,6 @@ function matchesEstimatedDuration(minutes: number, duration: WorkoutDuration) {
 
 export function filterWorkouts(workouts: Workout[], filters: WorkoutFilters) {
   const normalizedSearch = normalizeText(filters.search)
-  const normalizedExerciseSearch = normalizeText(filters.exerciseSearch)
   const normalizedDaySearch = normalizeText(filters.daySearch)
   const muscleGroup = filters.muscleGroup
 
@@ -52,12 +51,12 @@ export function filterWorkouts(workouts: Workout[], filters: WorkoutFilters) {
           ? workout.days.length >= 5
           : workout.days.length === Number(filters.daysPerWeek))) &&
       (!muscleGroup || workout.days.some(day => day.muscleGroups.includes(muscleGroup))) &&
-      (!normalizedExerciseSearch ||
+      (!filters.exerciseReference ||
         workout.days.some(day =>
-          day.exercises.some(exercise =>
-            normalizeText(exercise.exerciseSnapshot.name).includes(
-              normalizedExerciseSearch
-            )
+          day.exercises.some(
+            exercise =>
+              `${exercise.exerciseReference.source}:${exercise.exerciseReference.exerciseId}` ===
+              filters.exerciseReference
           )
         )) &&
       (!normalizedDaySearch ||

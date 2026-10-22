@@ -7,8 +7,7 @@ import {
   RepeatIcon,
   Trash2Icon,
 } from "lucide-react"
-import { useState } from "react"
-import { useFormContext } from "react-hook-form"
+import { useController, useFormContext } from "react-hook-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,6 +17,14 @@ import {
 } from "@/components/ui/collapsible"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemHeader,
+  ItemTitle,
+} from "@/components/ui/item"
 import { type Exercise, muscleGroupLabel } from "@/modules/exercises/domain/exercise"
 import type { WorkoutFormValues } from "@/modules/workouts/domain/workout"
 
@@ -30,7 +37,9 @@ interface Props {
   dayIndex: number
   exerciseIndex: number
   exercisesByReference: Map<string, Exercise>
+  isOpen: boolean
   total: number
+  onOpenChange: (open: boolean) => void
   onDown: () => void
   onRemove: () => void
   onReplace: () => void
@@ -41,13 +50,16 @@ export function WorkoutExerciseForm({
   dayIndex,
   exerciseIndex,
   exercisesByReference,
+  isOpen,
   total,
+  onOpenChange,
   onDown,
   onRemove,
   onReplace,
   onUp,
 }: Props) {
   const {
+    control,
     register,
     getValues,
     formState: { errors },
@@ -63,33 +75,36 @@ export function WorkoutExerciseForm({
         issue.path.every((part, index) => part === [...path, field][index])
     )
   const item = getValues(`days.${dayIndex}.exercises.${exerciseIndex}`)
+  const initialLoad = useController({
+    control,
+    name: `days.${dayIndex}.exercises.${exerciseIndex}.initialLoad`,
+  })
 
   const current = exercisesByReference.get(
     `${item.exerciseReference.source}:${item.exerciseReference.exerciseId}`
   )
-  const [isOpen, setIsOpen] = useState(true)
 
   return (
-    <Collapsible onOpenChange={setIsOpen} open={isOpen}>
-      <article className="min-w-0 border bg-background">
-        <header
-          className={`flex flex-wrap items-center justify-between gap-3 bg-muted/30 p-3 ${isOpen ? "border-b" : ""}`}
+    <Collapsible onOpenChange={onOpenChange} open={isOpen}>
+      <Item className="min-w-0 gap-0 overflow-hidden p-0" size="sm" variant="outline">
+        <ItemHeader
+          className={`grid grid-cols-[auto_minmax(0,1fr)_auto] items-stretch gap-x-3 gap-y-2 bg-muted/50 px-3 py-3 sm:flex sm:items-center sm:gap-3 ${isOpen ? "border-b" : ""}`}
         >
+          <div className="row-span-2 flex w-8 items-center justify-center bg-primary text-xs font-bold text-primary-foreground sm:size-8 sm:self-auto">
+            {exerciseIndex + 1}
+          </div>
           <CollapsibleTrigger asChild>
             <button
               aria-label={`${isOpen ? "Ocultar" : "Exibir"} detalhes do exercício ${current?.name ?? item.exerciseSnapshot.name}`}
-              className="group flex min-w-0 flex-1 items-center gap-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="col-start-2 flex min-w-0 items-center text-left outline-none focus-visible:ring-2 focus-visible:ring-ring sm:col-auto sm:flex-1"
               type="button"
             >
-              <span className="flex size-8 shrink-0 items-center justify-center bg-primary text-xs font-bold text-primary-foreground">
-                {exerciseIndex + 1}
-              </span>
-              <div className="min-w-0">
-                <p className="wrap-break-word font-semibold">
+              <ItemContent className="min-w-0">
+                <ItemTitle className="line-clamp-none wrap-break-word">
                   {current?.name ?? item.exerciseSnapshot.name}
-                </p>
+                </ItemTitle>
 
-                <p className="text-xs text-muted-foreground">
+                <ItemDescription>
                   {
                     muscleGroupLabel[
                       current?.muscleGroup ?? item.exerciseSnapshot.muscleGroup
@@ -99,23 +114,31 @@ export function WorkoutExerciseForm({
                   {item.exerciseReference.source === "default"
                     ? "Padrão"
                     : "Personalizado"}
-                </p>
+                </ItemDescription>
 
                 {!current && (
                   <Badge className="mt-2 self-start" variant="secondary">
                     Indisponível
                   </Badge>
                 )}
-              </div>
+              </ItemContent>
+            </button>
+          </CollapsibleTrigger>
 
+          <CollapsibleTrigger asChild>
+            <button
+              aria-label={`${isOpen ? "Ocultar" : "Exibir"} detalhes do exercício ${current?.name ?? item.exerciseSnapshot.name}`}
+              className="group col-start-3 row-span-2 row-start-1 flex size-8 shrink-0 self-center items-center justify-center rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring sm:col-auto sm:row-auto"
+              type="button"
+            >
               <ChevronDownIcon
                 aria-hidden="true"
-                className="size-4 ml-auto shrink-0 transition-transform group-aria-expanded:rotate-180"
+                className="size-4 transition-transform group-aria-expanded:rotate-180"
               />
             </button>
           </CollapsibleTrigger>
 
-          <div className="flex shrink-0 gap-1">
+          <ItemActions className="col-start-2 justify-start gap-1 sm:ml-auto sm:w-auto sm:justify-end">
             <Button
               aria-label="Substituir exercício"
               onClick={onReplace}
@@ -157,14 +180,14 @@ export function WorkoutExerciseForm({
             >
               <Trash2Icon />
             </Button>
-          </div>
-        </header>
+          </ItemActions>
+        </ItemHeader>
 
-        <CollapsibleContent>
+        <CollapsibleContent className="basis-full">
           <div className="px-4 pt-2">
             <WorkoutReviewMessages path={path} />
           </div>
-          <div className="grid min-w-0 gap-4 p-4 sm:grid-cols-2 *:min-w-0">
+          <div className="grid min-w-0 gap-4 px-4 py-4 sm:grid-cols-2 *:min-w-0">
             <Field>
               <FieldLabel htmlFor={`sets-${dayIndex}-${exerciseIndex}`}>Séries</FieldLabel>
 
@@ -220,9 +243,15 @@ export function WorkoutExerciseForm({
                 placeholder="20,00"
                 step={0.01}
                 type="number"
-                {...register(`days.${dayIndex}.exercises.${exerciseIndex}.initialLoad`, {
-                  setValueAs: value => (value === "" ? Number.NaN : Number(value)),
-                })}
+                {...initialLoad.field}
+                onChange={event =>
+                  initialLoad.field.onChange(
+                    event.target.value === "" ? Number.NaN : Number(event.target.value)
+                  )
+                }
+                value={
+                  Number.isFinite(initialLoad.field.value) ? initialLoad.field.value : ""
+                }
               />
 
               <FieldError
@@ -254,7 +283,7 @@ export function WorkoutExerciseForm({
             </Field>
           </div>
         </CollapsibleContent>
-      </article>
+      </Item>
     </Collapsible>
   )
 }

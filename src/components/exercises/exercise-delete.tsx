@@ -1,16 +1,6 @@
 "use client"
 
-import { LoaderCircleIcon } from "lucide-react"
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
+import { ConfirmationDialog } from "@/components/confirmation-dialog"
 import { useExercise } from "@/contexts/exercise-context"
 
 export function ExerciseDelete() {
@@ -22,31 +12,15 @@ export function ExerciseDelete() {
   } = useExercise()
 
   return (
-    <AlertDialog
+    <ConfirmationDialog
+      closeOnConfirm
+      confirmLabel="Excluir"
+      description="Este exercício será excluído permanentemente sem possibilidade de recuperação"
+      isPending={isDeleting}
+      onConfirm={() => void onConfirm()}
       onOpenChange={open => !open && !isDeleting && onClose(null)}
       open={!!exercise}
-    >
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Excluir exercício</AlertDialogTitle>
-
-          <AlertDialogDescription>
-            O exercício “{exercise?.name}” será excluído permanentemente. Esta ação não
-            poderá ser desfeita!
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting} variant="secondary">
-            Cancelar
-          </AlertDialogCancel>
-
-          <Button disabled={isDeleting} onClick={onConfirm} variant="destructive">
-            {isDeleting && <LoaderCircleIcon className="animate-spin" />}
-            {isDeleting ? "Excluindo" : "Excluir"}
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      title="Exclusão permanente"
+    />
   )
 }

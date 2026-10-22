@@ -7,18 +7,13 @@ import {
   type Control,
   type FieldPath,
   FormProvider,
+  type UseFormReturn,
   useForm,
   useWatch,
 } from "react-hook-form"
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+import { ConfirmationDialog } from "@/components/confirmation-dialog"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -27,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { useProfile } from "@/contexts/profile-context"
 import { useWorkout } from "@/contexts/workout-context"
 import {
@@ -35,6 +31,7 @@ import {
   workoutGeneratorInputSchema,
 } from "@/modules/workouts/application/workout-generation-schema"
 import { WorkoutGenerationError } from "@/modules/workouts/application/workout-generation-use-cases"
+import { normalizeWorkoutName } from "@/modules/workouts/domain/workout-name"
 import { useWorkoutGenerationUseCases } from "@/modules/workouts/presentation/workout-generation-use-cases-context"
 import {
   WorkoutGenerationBasics,
@@ -71,8 +68,6 @@ const steps: { title: string; fields: FieldPath<WorkoutGeneratorInput>[] }[] = [
   },
 ]
 
-const dialogHeightByStep = ["", "sm:h-[50rem]", ""] as const
-
 function generationError(error: unknown, signal: AbortSignal) {
   if (signal.aborted) return "A geração demorou mais que o esperado, tente novamente"
   if (error instanceof WorkoutGenerationError) return error.message
@@ -96,8 +91,7 @@ function useSafetyBlock(
   })
 }
 
-function submitLabel(pending: boolean, step: number) {
-  if (pending) return "Gerando ficha"
+function submitLabel(step: number) {
   return step < 2 ? "Continuar" : "Gerar sugestão"
 }
 
@@ -106,17 +100,135 @@ interface WorkoutGenerationAssistantProps {
   onOpenChange(open: boolean): void
 }
 
+interface WorkoutGenerationFormProps {
+  error: string
+  exercises: ReturnType<typeof useWorkout>["exercises"]
+  form: UseFormReturn<WorkoutGeneratorInput>
+  heading: React.RefObject<HTMLHeadingElement | null>
+  onGenerate(input: WorkoutGeneratorInput): Promise<void>
+  onNext(): Promise<void>
+  onRequestClose(): void
+  pending: boolean
+  safetyBlock: (input: WorkoutGeneratorInput) => string | null
+  setError(error: string): void
+  setGenerationAttempted(attempted: boolean): void
+  setStep(step: number): void
+  step: number
+  submitDisabled: boolean
+  visibleSafety: string | null
+}
+
+function WorkoutGenerationForm({
+  error,
+  exercises,
+  form,
+  heading,
+  onGenerate,
+  onNext,
+  onRequestClose,
+  pending,
+  safetyBlock,
+  setError,
+  setGenerationAttempted,
+  setStep,
+  step,
+  submitDisabled,
+  visibleSafety,
+}: WorkoutGenerationFormProps) {
+  return (
+    <FormProvider {...form}>
+      <form
+        className="space-y-5"
+        onSubmit={event => {
+          if (submitDisabled) {
+            event.preventDefault()
+            return
+          }
+          if (step < 2) {
+            event.preventDefault()
+            void onNext()
+          } else {
+            setGenerationAttempted(true)
+            if (safetyBlock(form.getValues())) {
+              event.preventDefault()
+              setError("")
+              return
+            }
+            void form.handleSubmit(onGenerate, errors => {
+              setError("")
+              const invalidStep = steps.findIndex(item =>
+                item.fields.some(field => field in errors)
+              )
+              setStep(Math.max(0, invalidStep))
+            })(event)
+          }
+        }}
+      >
+        <div className="flex justify-start">
+          <Badge
+            aria-live="polite"
+            className="h-auto flex-col items-start gap-0 p-0 text-left text-muted-foreground leading-tight whitespace-normal"
+            variant="ghost"
+          >
+            <span className="font-medium">{steps[step].title}</span>
+            <span>
+              Etapa {step + 1} de {steps.length}
+            </span>
+          </Badge>
+        </div>
+        <h2 className="sr-only" ref={heading} tabIndex={-1}>
+          {steps[step].title}
+        </h2>
+
+        <fieldset className="min-w-0 space-y-5" disabled={pending}>
+          {step === 0 && <WorkoutGenerationBasics />}
+          {step === 1 && <WorkoutGenerationPreferences exercises={exercises} />}
+          {step === 2 && <WorkoutGenerationSafety />}
+        </fieldset>
+
+        {visibleSafety && (
+          <Alert variant="destructive">
+            <AlertDescription>{visibleSafety}</AlertDescription>
+          </Alert>
+        )}
+
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+          <Button
+            disabled={pending}
+            onClick={() => (step ? setStep(step - 1) : onRequestClose())}
+            type="button"
+            variant="secondary"
+          >
+            {step ? "Voltar" : "Cancelar"}
+          </Button>
+          <Button disabled={submitDisabled} type="submit">
+            {pending && <LoaderCircleIcon aria-hidden="true" className="animate-spin" />}
+            {pending ? "Gerando ficha" : submitLabel(step)}
+          </Button>
+        </div>
+      </form>
+    </FormProvider>
+  )
+}
+
 export function WorkoutGenerationAssistant({
   open,
   onOpenChange,
 }: WorkoutGenerationAssistantProps) {
   const { profile } = useProfile()
-  const { exercises } = useWorkout()
+  const { exercises, workouts } = useWorkout()
   const workoutGenerationUseCases = useWorkoutGenerationUseCases()
   const [step, setStep] = useState(0)
   const [result, setResult] = useState<WorkoutGeneratorResult | null>(null)
   const [originalInput, setOriginalInput] = useState<WorkoutGeneratorInput | null>(null)
   const [revision, setRevision] = useState(0)
+  const [reviewDayOpen, setReviewDayOpen] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [saving, setSaving] = useState(false)
   const [discarding, setDiscarding] = useState(false)
@@ -127,7 +239,7 @@ export function WorkoutGenerationAssistant({
   const wasOpen = useRef(false)
   const form = useForm<WorkoutGeneratorInput>({
     mode: "onSubmit",
-    reValidateMode: "onChange",
+    reValidateMode: "onSubmit",
     resolver: zodResolver(workoutGeneratorInputSchema, {
       error: () => "Confira o valor informado",
     }),
@@ -150,10 +262,9 @@ export function WorkoutGenerationAssistant({
     generationAttempted,
     workoutGenerationUseCases.safetyBlock
   )
-  const visibleSafety = step === 2 ? safety : null
-  const hasFieldError = steps[step].fields.some(field => field in form.formState.errors)
+  const visibleSafety = step === 2 && generationAttempted ? safety : null
   const pending = form.formState.isSubmitting || generating || saving
-  const submitDisabled = pending || Boolean(error || visibleSafety) || hasFieldError
+  const submitDisabled = pending
   useEffect(() => {
     const subscription = form.watch(() => setError(""))
     return () => subscription.unsubscribe()
@@ -173,6 +284,17 @@ export function WorkoutGenerationAssistant({
   }, [open, step, result])
 
   async function next() {
+    const name = form.getValues("name")
+    if (
+      step === 0 &&
+      workouts.some(
+        workout => normalizeWorkoutName(workout.name) === normalizeWorkoutName(name)
+      )
+    ) {
+      form.setError("name", { message: "Você já possui uma ficha com esse nome" })
+      return
+    }
+    form.clearErrors(steps[step].fields)
     if (await form.trigger(steps[step].fields, { shouldFocus: true })) {
       setError("")
       setStep(Math.min(step + 1, 2))
@@ -205,6 +327,7 @@ export function WorkoutGenerationAssistant({
       )
       setOriginalInput(input)
       setResult(generated)
+      setReviewDayOpen(false)
       setRevision(value => value + 1)
     } catch (failure) {
       setError(generationError(failure, controller.signal))
@@ -220,6 +343,7 @@ export function WorkoutGenerationAssistant({
     setDiscarding(false)
     setResult(null)
     setOriginalInput(null)
+    setReviewDayOpen(false)
     setError("")
     setStep(0)
     setGenerationAttempted(false)
@@ -228,9 +352,10 @@ export function WorkoutGenerationAssistant({
 
   function requestClose() {
     if (pending) return
-    if (result || form.formState.isDirty) setDiscarding(true)
-    else discard()
+    setDiscarding(true)
   }
+
+  const reviewNeedsScroll = reviewDayOpen || (result?.plan.days.length ?? 0) > 2
 
   return (
     <>
@@ -242,21 +367,19 @@ export function WorkoutGenerationAssistant({
         open={open}
       >
         <DialogContent
-          className={`max-h-[calc(100dvh-2rem)] sm:max-w-xl ${dialogHeightByStep[step]}`}
+          className={`flex min-h-0 max-h-[calc(100dvh-2rem)] flex-col gap-4 sm:max-w-xl ${reviewNeedsScroll ? "h-[calc(100dvh-2rem)] sm:h-[min(50rem,calc(100dvh-2rem))]" : ""}`}
           showCloseButton={!pending}
         >
           <DialogHeader className="pr-12">
             <DialogTitle>Nova ficha automática</DialogTitle>
 
-            <DialogDescription>
-              Uma sugestão montada por regras a partir das suas respostas e da biblioteca.
-              Revise sua ficha. Informe a carga de cada exercício ou ajuste durante o
-              treino
+            <DialogDescription className="sr-only">
+              Assistente para criar uma ficha automática
             </DialogDescription>
           </DialogHeader>
 
-          <div className="min-h-0 w-full min-w-0 overflow-x-hidden overflow-y-auto overscroll-contain">
-            {result && originalInput ? (
+          {result && originalInput ? (
+            <div className="min-h-0 w-full min-w-0 flex-1 overflow-hidden">
               <WorkoutGenerationReview
                 busy={pending}
                 error={error}
@@ -264,122 +387,46 @@ export function WorkoutGenerationAssistant({
                 input={originalInput}
                 key={revision}
                 onCancel={requestClose}
+                onOpenDayChange={value => setReviewDayOpen(value !== "")}
                 onRegenerate={() => generate(originalInput)}
                 onSaved={discard}
                 onSavingChange={setSaving}
                 result={result}
               />
-            ) : (
-              <FormProvider {...form}>
-                <form
-                  className="space-y-5"
-                  onSubmit={event => {
-                    if (submitDisabled) {
-                      event.preventDefault()
-                      return
-                    }
-                    if (step < 2) {
-                      event.preventDefault()
-                      void next()
-                    } else {
-                      setGenerationAttempted(true)
-                      if (workoutGenerationUseCases.safetyBlock(form.getValues())) {
-                        event.preventDefault()
-                        setError("")
-                        return
-                      }
-                      void form.handleSubmit(generate, errors => {
-                        setError("")
-                        const invalidStep = steps.findIndex(item =>
-                          item.fields.some(field => field in errors)
-                        )
-                        setStep(Math.max(0, invalidStep))
-                      })(event)
-                    }
-                  }}
-                >
-                  <div>
-                    <h2 className="font-semibold outline-none" ref={heading} tabIndex={-1}>
-                      {steps[step].title}
-                    </h2>
-
-                    <p aria-live="polite" className="text-xs text-muted-foreground">
-                      Etapa {step + 1} de {steps.length}
-                    </p>
-                  </div>
-
-                  <fieldset className="min-w-0 space-y-5" disabled={pending}>
-                    {step === 0 && <WorkoutGenerationBasics />}
-                    {step === 1 && <WorkoutGenerationPreferences exercises={exercises} />}
-                    {step === 2 && <WorkoutGenerationSafety />}
-                  </fieldset>
-
-                  {visibleSafety && (
-                    <p
-                      className="border border-destructive p-3 text-sm text-destructive"
-                      role="alert"
-                    >
-                      {visibleSafety}
-                    </p>
-                  )}
-                  {error && (
-                    <p className="text-sm text-destructive" role="alert">
-                      {error}
-                    </p>
-                  )}
-                  {pending && (
-                    <output className="flex items-start gap-2 text-sm text-muted-foreground">
-                      <LoaderCircleIcon className="size-4 shrink-0 animate-spin" />A
-                      geração pode levar alguns segundos, aguarde
-                    </output>
-                  )}
-                  <div className="flex flex-col-reverse gap-3 border-t pt-4 sm:flex-row sm:justify-between">
-                    <Button
-                      disabled={pending}
-                      onClick={() =>
-                        step ? setStep(current => current - 1) : requestClose()
-                      }
-                      type="button"
-                      variant="secondary"
-                    >
-                      {step ? "Voltar" : "Cancelar"}
-                    </Button>
-                    <Button disabled={submitDisabled} type="submit">
-                      {submitLabel(pending, step)}
-                    </Button>
-                  </div>
-                </form>
-              </FormProvider>
-            )}
-
-            <p className="mt-6 text-xs leading-relaxed text-muted-foreground">
-              A ficha gerada é uma sugestão educativa e não substitui a avaliação de um
-              profissional de educação física, médico ou fisioterapeuta. Em caso de dor,
-              lesão ou condição de saúde, procure orientação profissional
-            </p>
-          </div>
+            </div>
+          ) : (
+            <ScrollArea className="min-h-0 flex-1 [&_[data-slot=scroll-area-viewport]]:max-h-[inherit]">
+              <WorkoutGenerationForm
+                error={error}
+                exercises={exercises}
+                form={form}
+                heading={heading}
+                onGenerate={generate}
+                onNext={next}
+                onRequestClose={requestClose}
+                pending={pending}
+                safetyBlock={workoutGenerationUseCases.safetyBlock}
+                setError={setError}
+                setGenerationAttempted={setGenerationAttempted}
+                setStep={setStep}
+                step={step}
+                submitDisabled={submitDisabled}
+                visibleSafety={visibleSafety}
+              />
+            </ScrollArea>
+          )}
         </DialogContent>
       </Dialog>
 
-      <AlertDialog onOpenChange={setDiscarding} open={discarding}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Descartar criação da ficha</AlertDialogTitle>
-
-            <AlertDialogDescription>
-              Suas respostas e a ficha temporária serão descartadas
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel variant="secondary">Continuar editando</AlertDialogCancel>
-
-            <Button onClick={discard} type="button" variant="destructive">
-              Descartar
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationDialog
+        cancelLabel="Continuar editando"
+        confirmLabel="Descartar"
+        description="Ao fechar os dados preenchidos nesta ficha não serão salvos. Esta ação não poderá ser desfeita"
+        onConfirm={discard}
+        onOpenChange={setDiscarding}
+        open={discarding}
+        title="Descartar alterações"
+      />
     </>
   )
 }

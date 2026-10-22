@@ -15,6 +15,7 @@ export interface ExerciseUseCases {
     input: ExerciseInput
   ): Promise<Exercise>
   remove(uid: string, exerciseId: string): Promise<void>
+  restoreDefault(uid: string, exerciseId: string): Promise<void>
 }
 
 export function createExerciseUseCases(
@@ -37,5 +38,6 @@ export function createExerciseUseCases(
       return repository.createCustom(uid, input)
     },
     remove: (uid, exerciseId) => repository.deleteCustom(uid, exerciseId),
+    restoreDefault: (uid, exerciseId) => repository.deleteDefaultOverride(uid, exerciseId),
   }
 }

@@ -1,22 +1,26 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { AlignLeftIcon, DumbbellIcon } from "lucide-react"
+import { AlignLeftIcon, DumbbellIcon, LoaderCircleIcon } from "lucide-react"
 import { type RefObject, useMemo, useRef, useState } from "react"
 import { FormProvider, useFieldArray, useForm, useWatch } from "react-hook-form"
+import { ConfirmationDialog } from "@/components/confirmation-dialog"
 import { TextField } from "@/components/text-field"
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+import { Accordion } from "@/components/ui/accordion"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { DialogFooter } from "@/components/ui/dialog"
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemTitle,
+} from "@/components/ui/item"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { useWorkout } from "@/contexts/workout-context"
 import { muscleGroupLabel } from "@/modules/exercises/domain/exercise"
+import { DuplicateWorkoutNameError } from "@/modules/workouts/application/ports/workout-repository"
 import type {
   WorkoutGeneratorInput,
   WorkoutGeneratorResult,
@@ -34,6 +38,7 @@ export function WorkoutGenerationReview({
   busy,
   error,
   onCancel,
+  onOpenDayChange,
   onRegenerate,
   onSavingChange,
   onSaved,
@@ -44,11 +49,12 @@ export function WorkoutGenerationReview({
   busy: boolean
   error: string
   onCancel: () => void
+  onOpenDayChange: (value: string) => void
   onRegenerate: () => Promise<void>
   onSavingChange: (value: boolean) => void
   onSaved: (workout: Workout) => void
 }) {
-  const { exercises, createGeneratedWorkout } = useWorkout()
+  const { exercises, exerciseProgressions, createGeneratedWorkout } = useWorkout()
   const workoutGenerationUseCases = useWorkoutGenerationUseCases()
   const prescription = useMemo(
     () => workoutGenerationUseCases.prescribe(input),
@@ -64,7 +70,16 @@ export function WorkoutGenerationReview({
   )
   const form = useForm<WorkoutFormValues>({
     resolver: zodResolver(workoutFormSchema),
-    defaultValues: result.plan,
+    defaultValues: {
+      ...result.plan,
+      days: result.plan.days.map(day => ({
+        ...day,
+        exercises: day.exercises.map(exercise => ({
+          ...exercise,
+          initialLoad: Number.NaN,
+        })),
+      })),
+    },
     mode: "onChange",
   })
   const values = useWatch({ control: form.control }) as WorkoutFormValues
@@ -72,34 +87,31 @@ export function WorkoutGenerationReview({
     () => workoutGenerationUseCases.review(values, prescription, library),
     [values, prescription, library, workoutGenerationUseCases]
   )
-  const volume = workoutGenerationUseCases.weeklyVolume(review.plan.days)
-  const errors = review.issues.filter(item => item.severity === "error")
-  const warnings = review.issues.filter(item => item.severity === "warning")
   const days = useFieldArray({ control: form.control, name: "days" })
-  const [openDayId, setOpenDayId] = useState<string | null>(
-    () => days.fields[0]?.id ?? null
+  const missingInitialLoadCount = values.days.reduce(
+    (total, day) =>
+      total +
+      day.exercises.filter(exercise => !Number.isFinite(exercise.initialLoad)).length,
+    0
   )
+  const [openDayId, setOpenDayId] = useState("")
   const [target, setTarget] = useState<{
     dayIndex: number
     exerciseIndex?: number
   } | null>(null)
-  const [confirmation, setConfirmation] = useState<"regenerate" | "warnings" | null>(null)
+  const [confirmation, setConfirmation] = useState<"regenerate" | null>(null)
   const [saveError, setSaveError] = useState("")
   const saving = useRef(false)
   const creationId = useRef<string | null>(null)
   const pending = busy || form.formState.isSubmitting
 
-  async function save(acceptWarnings = false) {
+  async function save() {
     if (saving.current || busy) return
     const final = workoutGenerationUseCases.review(form.getValues(), prescription, library)
     if (final.issues.some(item => item.severity === "error")) {
       setConfirmation(null)
       setSaveError("Corrija os erros indicados antes de salvar")
       await form.trigger(undefined, { shouldFocus: true })
-      return
-    }
-    if (!acceptWarnings && final.issues.some(item => item.severity === "warning")) {
-      setConfirmation("warnings")
       return
     }
     saving.current = true
@@ -114,9 +126,11 @@ export function WorkoutGenerationReview({
         creationId.current
       )
       onSaved(saved)
-    } catch {
+    } catch (error) {
       setSaveError(
-        "Não foi possível confirmar o salvamento, sua ficha foi mantida para nova tentativa"
+        error instanceof DuplicateWorkoutNameError
+          ? "Você já possui uma ficha com esse nome"
+          : "Não foi possível confirmar o salvamento, sua ficha foi mantida para nova tentativa"
       )
     } finally {
       saving.current = false
@@ -127,134 +141,127 @@ export function WorkoutGenerationReview({
   return (
     <WorkoutReviewContext.Provider value={{ prescription, issues: review.issues }}>
       <FormProvider {...form}>
-        <form className="min-w-0 space-y-5" onSubmit={form.handleSubmit(() => save())}>
-          <fieldset className="min-w-0 space-y-5" disabled={pending}>
-            <TextField
-              error={form.formState.errors.name}
-              icon={<DumbbellIcon />}
-              id="generator-plan-name"
-              label="Nome da ficha"
-              {...form.register("name")}
-            />
-            <WorkoutReviewMessages path={["name"]} />
-            <TextField
-              error={form.formState.errors.description}
-              icon={<AlignLeftIcon />}
-              id="generator-plan-description"
-              label="Descrição"
-              {...form.register("description")}
-            />
-            <WorkoutReviewMessages path={["description"]} />
-            <section aria-label="Divisão semanal" className="space-y-3">
-              <h3 className="font-semibold">
-                Divisão semanal · {values.days.length} dias
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                A recuperação considera esta sequência semanal
-              </p>
-              <ol className="grid gap-2 sm:grid-cols-2">
-                {review.plan.days.map((day, index) => {
-                  const minutes = workoutGenerationUseCases.estimateDuration(day)
-                  return (
-                    <li
-                      className="min-w-0 border p-3 text-sm wrap-break-word"
-                      key={day.id}
-                    >
-                      <p className="font-medium">
-                        {
-                          [
-                            "Segunda",
-                            "Terça",
-                            "Quarta",
-                            "Quinta",
-                            "Sexta",
-                            "Sábado",
-                            "Domingo",
-                          ][prescription.trainingWeekdays[index]]
-                        }{" "}
-                        · {day.name}
-                      </p>
-                      <p>
-                        {day.exercises.length} exercícios ·{" "}
-                        {minutes !== null && Number.isFinite(minutes)
-                          ? `${minutes} min estimados`
-                          : "Duração a calcular"}
-                      </p>
-                      <p className="text-muted-foreground">
-                        {day.muscleGroups.map(group => muscleGroupLabel[group]).join(", ")}
-                      </p>
-                    </li>
-                  )
-                })}
-              </ol>
-            </section>
-            <WorkoutReviewMessages path={["days"]} />
-            {days.fields.map((day, index) => (
-              <WorkoutDayForm
-                canRemove={false}
-                exercisesByReference={library}
-                index={index}
-                isOpen={openDayId === day.id}
-                key={day.id}
-                onAddExercise={() => setTarget({ dayIndex: index })}
-                onDown={() => days.move(index, index + 1)}
-                onDuplicate={() => undefined}
-                onOpenChange={open => setOpenDayId(open ? day.id : null)}
-                onRemove={() => undefined}
-                onReplaceExercise={exerciseIndex =>
-                  setTarget({ dayIndex: index, exerciseIndex })
-                }
-                onUp={() => days.move(index, index - 1)}
-                total={days.fields.length}
+        <form
+          className="flex h-full min-h-0 min-w-0 flex-col gap-5"
+          onSubmit={form.handleSubmit(() => save())}
+        >
+          <ScrollArea className="min-h-0 flex-1 [&_[data-slot=scroll-area-viewport]]:max-h-[inherit]">
+            <fieldset className="min-w-0 space-y-5" disabled={pending}>
+              <TextField
+                error={form.formState.errors.name}
+                icon={<DumbbellIcon />}
+                id="generator-plan-name"
+                label="Nome da ficha"
+                {...form.register("name")}
               />
-            ))}
-            <section aria-label="Volume semanal" className="space-y-3">
-              <h3 className="font-semibold">Séries semanais por grupo muscular</h3>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {Object.entries(prescription.weeklyVolumeByMuscleGroup).map(
-                  ([key, range]) => {
-                    const group = key as keyof typeof volume
-                    if (!range.max && !volume[group]) return null
+              <WorkoutReviewMessages path={["name"]} />
+              <TextField
+                error={form.formState.errors.description}
+                icon={<AlignLeftIcon />}
+                id="generator-plan-description"
+                label="Descrição"
+                {...form.register("description")}
+              />
+              <WorkoutReviewMessages path={["description"]} />
+              <section aria-label="Divisão semanal" className="space-y-3">
+                <h3 className="font-semibold">
+                  Divisão semanal · {values.days.length} dia{values.days.length > 1 && "s"}
+                </h3>
+
+                <ItemGroup className="gap-2">
+                  {review.plan.days.map((day, index) => {
+                    const minutes = workoutGenerationUseCases.estimateDuration(day)
                     return (
-                      <div className="min-w-0 border p-3 text-sm" key={group}>
-                        <p className="font-medium">
-                          {muscleGroupLabel[group]} ·{" "}
-                          {Number.isFinite(volume[group]) ? volume[group] : "A calcular"}
-                        </p>
-                        <p className="text-muted-foreground">
-                          Faixa {range.min}–{range.max} · Alvo {range.target}
-                        </p>
-                        <WorkoutReviewMessages
-                          path={["weeklyVolumeByMuscleGroup", group]}
-                        />
-                      </div>
+                      <Item asChild key={day.id} size="sm" variant="muted">
+                        <li>
+                          <ItemContent className="min-w-0">
+                            <ItemTitle className="line-clamp-none wrap-break-word">
+                              {
+                                [
+                                  "Segunda",
+                                  "Terça",
+                                  "Quarta",
+                                  "Quinta",
+                                  "Sexta",
+                                  "Sábado",
+                                  "Domingo",
+                                ][prescription.trainingWeekdays[index]]
+                              }{" "}
+                              · {day.name}
+                            </ItemTitle>
+                            <ItemDescription>
+                              {day.exercises.length} exercícios ·{" "}
+                              {minutes !== null && Number.isFinite(minutes)
+                                ? `${minutes} min`
+                                : "Duração a calcular"}
+                            </ItemDescription>
+                            <ItemDescription className="line-clamp-none">
+                              {day.muscleGroups
+                                .map(group => muscleGroupLabel[group])
+                                .join(", ")}
+                            </ItemDescription>
+                          </ItemContent>
+                        </li>
+                      </Item>
                     )
-                  }
-                )}
-              </div>
-            </section>
-          </fieldset>
-          <p aria-live="polite" className="text-sm">
-            {errors.length
-              ? `${errors.length} erro(s) impedem o salvamento`
-              : warnings.length
-                ? `${warnings.length} aviso(s) precisam de confirmação para salvar`
-                : null}
-          </p>
+                  })}
+                </ItemGroup>
+              </section>
+              <WorkoutReviewMessages path={["days"]} />
+              <Accordion
+                collapsible
+                onValueChange={value => {
+                  setOpenDayId(value)
+                  onOpenDayChange(value)
+                }}
+                type="single"
+                value={openDayId}
+              >
+                {days.fields.map((day, index) => (
+                  <WorkoutDayForm
+                    canRemove={false}
+                    exercisesByReference={library}
+                    index={index}
+                    key={day.id}
+                    numberOffset={1}
+                    onAddExercise={() => setTarget({ dayIndex: index })}
+                    onDown={() => days.move(index, index + 1)}
+                    onRemove={() => undefined}
+                    onReplaceExercise={exerciseIndex =>
+                      setTarget({ dayIndex: index, exerciseIndex })
+                    }
+                    onUp={() => days.move(index, index - 1)}
+                    total={days.fields.length}
+                    value={day.id}
+                  />
+                ))}
+              </Accordion>
+            </fieldset>
+          </ScrollArea>
           {(error || saveError) && (
             <p className="text-sm text-destructive" role="alert">
               {error || saveError}
             </p>
           )}
-          {pending && (
-            <output className="block text-sm text-muted-foreground">
-              {saving.current ? "Salvando ficha" : "Gerando uma nova ficha, aguarde"}
-            </output>
+
+          {form.formState.isSubmitted && missingInitialLoadCount > 0 && (
+            <Alert variant="destructive">
+              <AlertDescription>
+                Informe a carga de todos os exercícios, inclusive 0 kg
+              </AlertDescription>
+            </Alert>
           )}
-          <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:flex-wrap">
-            <Button disabled={pending} onClick={onCancel} type="button" variant="outline">
+
+          <DialogFooter className="shrink-0 gap-3 sm:flex-row sm:flex-wrap">
+            <Button
+              disabled={pending}
+              onClick={onCancel}
+              type="button"
+              variant="secondary"
+            >
               Cancelar
             </Button>
+
             <Button
               disabled={pending}
               onClick={() => {
@@ -262,66 +269,45 @@ export function WorkoutGenerationReview({
                 else void onRegenerate()
               }}
               type="button"
-              variant="outline"
+              variant="secondary"
             >
-              Gerar nova ficha
+              {pending && !saving.current && (
+                <LoaderCircleIcon aria-hidden="true" className="animate-spin" />
+              )}
+              {pending && !saving.current ? "Gerando ficha" : "Gerar nova ficha"}
             </Button>
-            <Button disabled={pending || errors.length > 0} type="submit">
+
+            <Button
+              disabled={
+                pending || (form.formState.isSubmitted && missingInitialLoadCount > 0)
+              }
+              type="submit"
+            >
+              {pending && saving.current && (
+                <LoaderCircleIcon aria-hidden="true" className="animate-spin" />
+              )}
               Confirmar e salvar
             </Button>
-          </div>
+          </DialogFooter>
         </form>
         <WorkoutExerciseSelector
+          exerciseProgressions={exerciseProgressions}
           exercises={available}
           onClose={() => setTarget(null)}
           target={target}
         />
-        <AlertDialog
+        <ConfirmationDialog
+          cancelLabel="Continuar editando"
+          confirmLabel="Gerar nova ficha"
+          description="A nova geração usará suas respostas originais e substituirá as edições somente se for concluída com sucesso"
+          onConfirm={() => {
+            setConfirmation(null)
+            void onRegenerate()
+          }}
           onOpenChange={open => !open && setConfirmation(null)}
           open={confirmation !== null}
-        >
-          <AlertDialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                {confirmation === "regenerate"
-                  ? "Substituir suas edições"
-                  : "Salvar com avisos"}
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                {confirmation === "regenerate"
-                  ? "A nova geração usará suas respostas originais e substituirá as edições somente se for concluída com sucesso"
-                  : "A ficha está dentro dos limites permitidos, mas possui recomendações pendentes"}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            {confirmation === "warnings" && (
-              <ul className="list-inside list-disc space-y-2 text-sm">
-                {warnings.map(issue => (
-                  <li key={`${issue.path.join(".")}:${issue.code}`}>
-                    {issue.path[0] === "weeklyVolumeByMuscleGroup"
-                      ? `${muscleGroupLabel[issue.path[1] as keyof typeof muscleGroupLabel]}: `
-                      : ""}
-                    {issue.message}
-                  </li>
-                ))}
-              </ul>
-            )}
-            <AlertDialogFooter>
-              <AlertDialogCancel variant="secondary">Continuar editando</AlertDialogCancel>
-              <Button
-                onClick={() => {
-                  if (confirmation === "warnings") void save(true)
-                  else {
-                    setConfirmation(null)
-                    void onRegenerate()
-                  }
-                }}
-                type="button"
-              >
-                {confirmation === "warnings" ? "Confirmar e salvar" : "Gerar nova ficha"}
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          title="Substituir suas edições"
+        />
       </FormProvider>
     </WorkoutReviewContext.Provider>
   )

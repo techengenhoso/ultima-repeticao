@@ -11,10 +11,7 @@ import { useSessionDraftStore } from "@/modules/sessions/presentation/session-dr
 import { useSessionGateway } from "@/modules/sessions/presentation/session-gateway-context"
 
 function isHiddenPath(pathname: string) {
-  return (
-    pathname === "/" ||
-    ["/history", "/workouts/sessions"].some(prefix => pathname.startsWith(prefix))
-  )
+  return pathname === "/" || pathname.startsWith("/workouts/sessions")
 }
 
 export function OngoingSession() {

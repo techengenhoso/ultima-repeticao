@@ -1,54 +1,66 @@
 "use client"
 
-import { ChevronDownIcon } from "lucide-react"
+import type { ReactNode } from "react"
 import { StartSessionButton } from "@/components/sessions/start-session-button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Item, ItemContent, ItemDescription, ItemGroup } from "@/components/ui/item"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { useWorkout } from "@/contexts/workout-context"
 import { muscleGroupLabel, muscleLabel } from "@/modules/exercises/domain/exercise"
 import { WorkoutBadgeList } from "./workout-badge-list"
-import { WorkoutDetailField } from "./workout-detail-field"
 import { WorkoutExerciseDetails } from "./workout-exercise-details"
 
+function WorkoutDayDetail({ children, label }: { children: ReactNode; label: string }) {
+  return (
+    <Item className="items-start" size="sm" variant="muted">
+      <ItemContent className="min-w-0">
+        <ItemDescription className="leading-tight">{label}</ItemDescription>
+        <div className="mt-1">{children}</div>
+      </ItemContent>
+    </Item>
+  )
+}
+
 export function WorkoutDetails() {
-  const { details: workout, exercisesByReference, setDetails: onClose } = useWorkout()
+  const {
+    activateWorkout,
+    deactivateWorkout,
+    details: workout,
+    exercisesByReference,
+    isActivating,
+    setDetails: onClose,
+  } = useWorkout()
+  const days = workout
+    ? [...workout.days].sort((left, right) => left.order - right.order)
+    : []
 
   return (
     <Dialog onOpenChange={open => !open && onClose(null)} open={!!workout}>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] sm:max-w-xl">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden sm:max-w-xl">
         <DialogHeader className="pr-12">
-          <div className="flex items-start justify-between gap-3 pr-14">
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <DialogTitle className="normal-case tracking-normal">
-                {workout?.name}
-              </DialogTitle>
-              {workout && (
-                <span className="text-sm text-muted-foreground">
-                  {workout.days.length} {workout.days.length === 1 ? "dia" : "dias"}
-                </span>
-              )}
-            </div>
-            <Badge variant={workout?.isActive ? "default" : "secondary"}>
-              {workout?.isActive ? "Ativa" : "Inativa"}
-            </Badge>
-          </div>
-          <DialogDescription className="mt-4">
-            {workout?.description && `${workout.description} · `}
+          <DialogTitle>{workout?.name}</DialogTitle>
+
+          <DialogDescription>
             {workout && (
               <>
-                Última atualização em{" "}
+                {workout.days.length} {workout.days.length === 1 ? "dia" : "dias"} de
+                treino
+                {workout.description && ` · ${workout.description}`}
+                {" · Última atualização em "}
                 {new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" }).format(
                   new Date(workout.updatedAt)
                 )}
@@ -56,130 +68,109 @@ export function WorkoutDetails() {
             )}
           </DialogDescription>
         </DialogHeader>
+
         {workout && (
-          <div className="min-h-0 space-y-6 overflow-y-auto">
-            <div className="space-y-4">
-              {[...workout.days]
-                .sort((a, b) => a.order - b.order)
-                .map((day, dayIndex) => {
-                  const currentExercises = day.exercises.flatMap(exercise => {
-                    const current = exercisesByReference.get(
-                      `${exercise.exerciseReference.source}:${exercise.exerciseReference.exerciseId}`
-                    )
-                    return current ? [current] : []
-                  })
-                  const primaryMuscles = [
-                    ...new Set(
-                      currentExercises.flatMap(exercise => exercise.primaryMuscles)
-                    ),
-                  ]
-                  const secondaryMuscles = [
-                    ...new Set(
-                      currentExercises.flatMap(exercise => exercise.secondaryMuscles)
-                    ),
-                  ]
-
-                  return (
-                    <Collapsible className="group" defaultOpen key={day.id}>
-                      <Card
-                        className="gap-0 border border-border border-l-2 border-l-primary py-0 shadow-none"
-                        size="sm"
-                      >
-                        <CardHeader className="border-b bg-muted/40 py-4 [.border-b]:pb-4 group-data-[state=closed]:border-b-0">
-                          <CollapsibleTrigger className="group flex w-full items-center gap-3 text-left">
-                            <span className="flex size-9 shrink-0 items-center justify-center bg-primary text-sm font-bold text-primary-foreground">
-                              {dayIndex + 1}
-                            </span>
-                            <span className="min-w-0 flex-1">
-                              <CardTitle className="text-base">{day.name}</CardTitle>
-                              <span className="block text-xs text-muted-foreground">
-                                {day.exercises.length}{" "}
-                                {day.exercises.length === 1 ? "exercício" : "exercícios"}
-                              </span>
-                            </span>
-                            <ChevronDownIcon
-                              aria-hidden="true"
-                              className="size-4 shrink-0 text-muted-foreground transition-transform group-aria-expanded:rotate-180"
-                            />
-                          </CollapsibleTrigger>
-                        </CardHeader>
-                        <CollapsibleContent>
-                          <CardContent className="space-y-6 py-5">
-                            <StartSessionButton dayId={day.id} planId={workout.id} />
-                            <div>
-                              <h3 className="font-semibold">Configuração do dia</h3>
-                              <p className="text-xs text-muted-foreground">
-                                Músculos trabalhados neste treino
-                              </p>
-                            </div>
-                            <WorkoutDetailField label="Grupos musculares">
-                              <WorkoutBadgeList
-                                emptyLabel="Nenhum grupo muscular"
-                                labels={day.muscleGroups.map(
-                                  group => muscleGroupLabel[group]
-                                )}
-                              />
-                            </WorkoutDetailField>
-                            <div className="space-y-5">
-                              <WorkoutDetailField label="Músculos principais">
-                                <WorkoutBadgeList
-                                  emptyLabel="Nenhum músculo principal"
-                                  labels={primaryMuscles.map(
-                                    muscle => muscleLabel[muscle]
-                                  )}
-                                />
-                              </WorkoutDetailField>
-
-                              <WorkoutDetailField label="Músculos secundários">
-                                <WorkoutBadgeList
-                                  emptyLabel="Nenhum músculo secundário"
-                                  labels={secondaryMuscles.map(
-                                    muscle => muscleLabel[muscle]
-                                  )}
-                                />
-                              </WorkoutDetailField>
-                            </div>
-
-                            <Collapsible defaultOpen>
-                              <div className="-mx-(--card-spacing) border-t px-(--card-spacing) pt-5">
-                                <CollapsibleTrigger className="group flex w-full items-center gap-3 text-left">
-                                  <ChevronDownIcon
-                                    aria-hidden="true"
-                                    className="size-4 shrink-0 text-muted-foreground transition-transform group-aria-expanded:rotate-180"
-                                  />
-                                  <span className="min-w-0">
-                                    <span className="block font-semibold">
-                                      Exercícios do treino
-                                    </span>
-                                    <span className="block text-xs text-muted-foreground">
-                                      Sequência, séries, repetições e carga
-                                    </span>
-                                  </span>
-                                </CollapsibleTrigger>
-                              </div>
-                              <CollapsibleContent className="pt-5">
-                                <div className="space-y-3">
-                                  {[...day.exercises]
-                                    .sort((a, b) => a.order - b.order)
-                                    .map((exercise, exerciseIndex) => (
-                                      <WorkoutExerciseDetails
-                                        exercise={exercise}
-                                        exercisesByReference={exercisesByReference}
-                                        index={exerciseIndex}
-                                        key={exercise.id}
-                                      />
-                                    ))}
-                                </div>
-                              </CollapsibleContent>
-                            </Collapsible>
-                          </CardContent>
-                        </CollapsibleContent>
-                      </Card>
-                    </Collapsible>
+          <ScrollArea className="h-full min-h-0">
+            <Accordion collapsible type="single">
+              {days.map((day, dayIndex) => {
+                const currentExercises = day.exercises.flatMap(exercise => {
+                  const current = exercisesByReference.get(
+                    `${exercise.exerciseReference.source}:${exercise.exerciseReference.exerciseId}`
                   )
-                })}
-            </div>
-          </div>
+                  return current ? [current] : []
+                })
+                const primaryMuscles = [
+                  ...new Set(
+                    currentExercises.flatMap(exercise => exercise.primaryMuscles)
+                  ),
+                ]
+                const secondaryMuscles = [
+                  ...new Set(
+                    currentExercises.flatMap(exercise => exercise.secondaryMuscles)
+                  ),
+                ]
+
+                return (
+                  <AccordionItem className="data-open:bg-card" key={day.id} value={day.id}>
+                    <AccordionTrigger className="items-center bg-muted/50 px-4 py-4 hover:bg-muted hover:no-underline aria-expanded:bg-muted">
+                      <span className="flex min-w-0 items-center gap-3">
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
+                          {dayIndex + 1}
+                        </span>
+                        <span className="flex min-w-0 flex-col gap-0.5">
+                          <span>{day.name}</span>
+                          <span className="text-xs font-normal text-muted-foreground">
+                            {day.exercises.length}{" "}
+                            {day.exercises.length === 1 ? "exercício" : "exercícios"}
+                          </span>
+                        </span>
+                      </span>
+                    </AccordionTrigger>
+
+                    <AccordionContent className="h-auto pt-4">
+                      <div className="space-y-5">
+                        <StartSessionButton dayId={day.id} planId={workout.id} />
+
+                        <ItemGroup>
+                          <WorkoutDayDetail label="Grupos musculares">
+                            <WorkoutBadgeList
+                              emptyLabel="Nenhum grupo muscular"
+                              labels={day.muscleGroups.map(
+                                group => muscleGroupLabel[group]
+                              )}
+                            />
+                          </WorkoutDayDetail>
+
+                          <WorkoutDayDetail label="Músculos principais">
+                            <WorkoutBadgeList
+                              emptyLabel="Nenhum músculo principal"
+                              labels={primaryMuscles.map(muscle => muscleLabel[muscle])}
+                            />
+                          </WorkoutDayDetail>
+
+                          <WorkoutDayDetail label="Músculos secundários">
+                            <WorkoutBadgeList
+                              emptyLabel="Nenhum músculo secundário"
+                              labels={secondaryMuscles.map(muscle => muscleLabel[muscle])}
+                            />
+                          </WorkoutDayDetail>
+                        </ItemGroup>
+
+                        <div className="space-y-3">
+                          {[...day.exercises]
+                            .sort((left, right) => left.order - right.order)
+                            .map((exercise, exerciseIndex) => (
+                              <WorkoutExerciseDetails
+                                exercise={exercise}
+                                exercisesByReference={exercisesByReference}
+                                index={exerciseIndex}
+                                key={exercise.id}
+                              />
+                            ))}
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )
+              })}
+            </Accordion>
+          </ScrollArea>
+        )}
+
+        {workout && (
+          <DialogFooter className="shrink-0 sm:justify-end">
+            <Button
+              disabled={isActivating}
+              onClick={() =>
+                workout.isActive ? deactivateWorkout(workout) : activateWorkout(workout)
+              }
+              size="sm"
+              type="button"
+              variant="secondary"
+            >
+              {workout.isActive ? "Desativar ficha" : "Ativar ficha"}
+            </Button>
+          </DialogFooter>
         )}
       </DialogContent>
     </Dialog>

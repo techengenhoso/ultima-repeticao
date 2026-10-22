@@ -65,7 +65,7 @@ service cloud.firestore {
             && validExerciseContent(data);
         }
 
-        allow read: if isOwner();
+        allow read, delete: if isOwner();
         allow create: if isOwner() && validOverride(request.resource.data);
         allow update: if isOwner() && validOverride(request.resource.data);
       }

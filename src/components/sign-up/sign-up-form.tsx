@@ -45,8 +45,7 @@ export function SignUpForm() {
     try {
       await authentication.signUp(data.fullName, data.email, data.password)
 
-      router.replace("/")
-      router.refresh()
+      router.replace("/sign-in")
     } catch (error) {
       const message = authentication.publicError(
         error,

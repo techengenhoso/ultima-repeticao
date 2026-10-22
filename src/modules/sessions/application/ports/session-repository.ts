@@ -1,4 +1,4 @@
-import type { SessionExercise, WorkoutSession } from "../../domain/session"
+import type { LoadDecision, SessionExercise, WorkoutSession } from "../../domain/session"
 
 export interface SessionRepository {
   find(uid: string, id: string): Promise<WorkoutSession | null>
@@ -7,10 +7,14 @@ export interface SessionRepository {
     uid: string,
     cursor?: string
   ): Promise<{ sessions: WorkoutSession[]; nextCursor: string | null }>
-  listCompletedForExercise(
+  findLatestCompletedForExercise(
     uid: string,
     exercise: SessionExercise
-  ): Promise<WorkoutSession[]>
+  ): Promise<WorkoutSession | null>
+  findLatestDecisionForExercise(
+    uid: string,
+    exercise: SessionExercise
+  ): Promise<LoadDecision | null>
   createIfAbsent(uid: string, session: WorkoutSession): Promise<WorkoutSession>
   updateIfVersion(
     uid: string,

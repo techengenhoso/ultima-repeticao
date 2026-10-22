@@ -14,6 +14,7 @@ import { useUser } from "@/contexts/user-context"
 import { DuplicateExerciseNameError } from "@/modules/exercises/application/ports/exercise-repository"
 import type {
   CustomExercise,
+  DefaultExercise,
   Exercise,
   ExerciseInput,
 } from "@/modules/exercises/domain/exercise"
@@ -35,6 +36,8 @@ function useExerciseState() {
   const [formExercise, setFormExercise] = useState<Exercise | null | undefined>()
   const [details, setDetails] = useState<Exercise | null>(null)
   const [deleting, setDeleting] = useState<CustomExercise | null>(null)
+  const [restoring, setRestoring] = useState<DefaultExercise | null>(null)
+  const [isRestoring, setIsRestoring] = useState(false)
 
   const loadExercises = useCallback(async () => {
     setIsLoading(true)
@@ -102,6 +105,21 @@ function useExerciseState() {
     if (await saveExercise(formExercise, values)) setFormExercise(undefined)
   }
 
+  async function restoreDefaultExercise(exercise: DefaultExercise) {
+    setIsRestoring(true)
+    try {
+      await exerciseUseCases.restoreDefault(user.uid, exercise.id)
+      await loadExercises()
+      toast.success("Exercício padrão restaurado")
+      return true
+    } catch {
+      toast.error("Não foi possível restaurar o exercício padrão")
+      return false
+    } finally {
+      setIsRestoring(false)
+    }
+  }
+
   function handleSetFilters(nextFilters: ExerciseFilters) {
     setFilters(nextFilters)
     setPage(1)
@@ -111,8 +129,13 @@ function useExerciseState() {
     if (deleting && (await removeExercise(deleting))) setDeleting(null)
   }
 
+  async function confirmRestore() {
+    if (restoring && (await restoreDefaultExercise(restoring))) setRestoring(null)
+  }
+
   return {
     confirmDelete,
+    confirmRestore,
     deleting,
     details,
     filteredExercises,
@@ -120,12 +143,15 @@ function useExerciseState() {
     handleSaveExercise,
     isDeleting,
     isLoading,
+    isRestoring,
     page,
     setDeleting,
     setDetails,
     setFilters: handleSetFilters,
     setFormExercise,
     setPage,
+    setRestoring,
+    restoring,
   }
 }
 

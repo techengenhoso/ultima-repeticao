@@ -15,11 +15,7 @@ import { WorkoutCard } from "./workout-card"
 
 export function WorkoutList() {
   const {
-    activateWorkout,
-    deactivateWorkout,
-    duplicateWorkout,
     filteredWorkouts,
-    isActivating,
     isLoading,
     loadingError,
     loadWorkouts,
@@ -39,7 +35,7 @@ export function WorkoutList() {
           <EmptyDescription>Verifique sua conexão e tente novamente</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
-          <Button onClick={loadWorkouts} variant="outline">
+          <Button onClick={loadWorkouts} variant="secondary">
             <RefreshCwIcon />
             Tentar novamente
           </Button>
@@ -73,13 +69,9 @@ export function WorkoutList() {
     <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
       {filteredWorkouts.map(workout => (
         <WorkoutCard
-          isActivating={isActivating}
           key={workout.id}
-          onActivate={activateWorkout}
-          onDeactivate={deactivateWorkout}
           onDelete={setDeleting}
           onDetails={setDetails}
-          onDuplicate={duplicateWorkout}
           onEdit={setFormWorkout}
           workout={workout}
         />

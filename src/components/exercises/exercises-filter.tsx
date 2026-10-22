@@ -7,10 +7,17 @@ import {
   SlidersHorizontalIcon,
 } from "lucide-react"
 import { useState } from "react"
-import { SelectField } from "@/components/select-field"
+import { ComboboxField } from "@/components/combobox-field"
 import { TextField } from "@/components/text-field"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   Sheet,
   SheetContent,
@@ -52,7 +59,7 @@ function ExerciseFilterFields({ filters, onFiltersChange }: ExerciseFilterFields
         value={filters.search}
       />
 
-      <SelectField
+      <ComboboxField
         icon={<SearchIcon aria-hidden="true" />}
         id="muscleGroup"
         label="Grupo muscular"
@@ -61,7 +68,7 @@ function ExerciseFilterFields({ filters, onFiltersChange }: ExerciseFilterFields
         value={filters.muscle}
       />
 
-      <SelectField
+      <ComboboxField
         icon={<BicepsFlexedIcon aria-hidden="true" />}
         id="primaryMuscles"
         label="Músculo principal"
@@ -70,7 +77,7 @@ function ExerciseFilterFields({ filters, onFiltersChange }: ExerciseFilterFields
         value={filters.primaryMuscle}
       />
 
-      <SelectField
+      <ComboboxField
         icon={<BicepsFlexedIcon aria-hidden="true" />}
         id="secondaryMuscles"
         label="Músculo secundário"
@@ -79,7 +86,7 @@ function ExerciseFilterFields({ filters, onFiltersChange }: ExerciseFilterFields
         value={filters.secondaryMuscle}
       />
 
-      <SelectField
+      <ComboboxField
         icon={<GaugeIcon aria-hidden="true" />}
         id="difficulty"
         label="Dificuldade"
@@ -90,7 +97,7 @@ function ExerciseFilterFields({ filters, onFiltersChange }: ExerciseFilterFields
         value={filters.difficulty}
       />
 
-      <SelectField
+      <ComboboxField
         icon={<SearchIcon aria-hidden="true" />}
         id="source"
         label="Origem"
@@ -152,11 +159,19 @@ export function ExercisesFilter() {
   return (
     <>
       <Card className="md:hidden">
-        <CardContent className="grid grid-cols-2 gap-5">
-          <div className="col-span-2 grid grid-cols-2 gap-3">
+        <CardHeader>
+          <CardTitle>Filtrar exercícios</CardTitle>
+
+          <CardDescription>
+            Refine a lista para encontrar o exercício desejado
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="grid gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <Sheet onOpenChange={handleSheetOpenChange} open={isSheetOpen}>
               <SheetTrigger asChild>
-                <Button type="button" variant="secondary">
+                <Button className="w-full" type="button" variant="secondary">
                   <SlidersHorizontalIcon aria-hidden="true" />
                   Filtros
                 </Button>
@@ -165,6 +180,7 @@ export function ExercisesFilter() {
               <SheetContent className="data-[side=right]:w-[min(100%,24rem)]">
                 <SheetHeader>
                   <SheetTitle>Filtrar exercícios</SheetTitle>
+
                   <SheetDescription>
                     Refine a lista para encontrar o exercício desejado
                   </SheetDescription>
@@ -203,11 +219,7 @@ export function ExercisesFilter() {
             </Button>
           </div>
 
-          <Badge
-            aria-live="polite"
-            className="col-span-2 justify-self-center"
-            variant="secondary"
-          >
+          <Badge aria-live="polite" className="justify-self-center" variant="secondary">
             {resultCount}
             {" resultado"}
             {resultCount !== 1 && "s"}
@@ -216,6 +228,14 @@ export function ExercisesFilter() {
       </Card>
 
       <Card className="hidden md:block">
+        <CardHeader className="mb-5">
+          <CardTitle>Filtrar exercícios</CardTitle>
+
+          <CardDescription>
+            Refine a lista para encontrar o exercício desejado
+          </CardDescription>
+        </CardHeader>
+
         <CardContent className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           <ExerciseFilterFields filters={filters} onFiltersChange={updateFilters} />
         </CardContent>
@@ -231,7 +251,7 @@ export function ExercisesFilter() {
             {resultCount !== 1 && "s"}
           </Badge>
 
-          <div className="order-1 grid w-full grid-cols-2 gap-5 lg:order-2 lg:flex lg:w-auto">
+          <div className="order-1 flex w-full justify-end gap-3 lg:order-2 lg:w-auto">
             <Button
               disabled={!hasFilters}
               onClick={clearFilters}
@@ -240,13 +260,7 @@ export function ExercisesFilter() {
             >
               Limpar
             </Button>
-
-            <Button
-              onClick={() => {
-                onCreate(null)
-              }}
-              type="button"
-            >
+            <Button onClick={() => onCreate(null)} type="button">
               Novo exercício
             </Button>
           </div>

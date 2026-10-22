@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { auth } from "@/infrastructure/firebase/client"
+import { documentIdSchema } from "@/lib/schemas-zod"
 import type { SessionGateway } from "../../application/ports/session-gateway"
 import {
   preparedSessionSchema,
@@ -68,7 +69,10 @@ export const httpSessionGateway: SessionGateway = {
   },
   async suggest(command) {
     return z
-      .object({ suggestion: suggestionSchema, history: z.array(sessionSchema).max(20) })
+      .object({
+        suggestion: suggestionSchema,
+        latestSessionId: documentIdSchema.nullable(),
+      })
       .parse(await request(command))
   },
 }

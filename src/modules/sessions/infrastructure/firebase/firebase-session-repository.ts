@@ -3,6 +3,7 @@ import { getAdminFirestore } from "@/modules/shared/infrastructure/firebase-admi
 import type { SessionRepository } from "../../application/ports/session-repository"
 import { SessionConcurrencyError } from "../../application/session-use-cases"
 import {
+  type LoadDecision,
   referenceKey,
   type SessionExercise,
   type WorkoutSession,
@@ -47,14 +48,36 @@ export class FirebaseSessionRepository implements SessionRepository {
     }
   }
 
-  async listCompletedForExercise(uid: string, exercise: SessionExercise) {
+  async findLatestCompletedForExercise(uid: string, exercise: SessionExercise) {
     const snapshot = await sessions(uid)
       .where("exerciseKeys", "array-contains", referenceKey(exercise.exerciseReference))
       .where("status", "==", "completed")
-      .orderBy("startedAt", "desc")
-      .limit(20)
+      .orderBy("completedAt", "desc")
+      .limit(1)
       .get()
-    return snapshot.docs.map(item => decodeFirebaseSession(item.id, item.data()))
+    const latest = snapshot.docs[0]
+    return latest ? decodeFirebaseSession(latest.id, latest.data()) : null
+  }
+
+  async findLatestDecisionForExercise(
+    uid: string,
+    exercise: SessionExercise
+  ): Promise<LoadDecision | null> {
+    const key = referenceKey(exercise.exerciseReference)
+    const snapshot = await sessions(uid)
+      .where("exerciseKeys", "array-contains", key)
+      .where("status", "==", "completed")
+      .orderBy("completedAt", "desc")
+      .get()
+    let latest: LoadDecision | null = null
+
+    for (const document of snapshot.docs)
+      for (const item of decodeFirebaseSession(document.id, document.data()).exercises) {
+        if (referenceKey(item.exerciseReference) !== key || !item.decision) continue
+        if (!latest || item.decision.decidedAt > latest.decidedAt) latest = item.decision
+      }
+
+    return latest
   }
 
   async createIfAbsent(uid: string, session: WorkoutSession) {

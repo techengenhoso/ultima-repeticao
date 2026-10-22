@@ -1,17 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { ConfirmationDialog } from "@/components/confirmation-dialog"
 import { Skeletons } from "@/components/skeleton"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -121,7 +112,9 @@ export function BodyAssessmentsSection() {
           </p>
         </div>
 
-        <Button onClick={() => setChoosingType(true)}>Nova avaliação</Button>
+        <Button className="w-full sm:w-auto" onClick={() => setChoosingType(true)}>
+          Nova avaliação
+        </Button>
       </div>
 
       <Dialog onOpenChange={setChoosingType} open={choosingType}>
@@ -233,53 +226,25 @@ export function BodyAssessmentsSection() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
+      <ConfirmationDialog
+        closeOnConfirm
+        confirmLabel="Excluir"
+        description="Esta avaliação corporal será excluída permanentemente sem possibilidade de recuperação"
+        onConfirm={() => void remove()}
         onOpenChange={open => !open && setDeleting(null)}
         open={Boolean(deleting)}
-      >
-        <AlertDialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
-          <AlertDialogHeader className="sm:group-data-[size=default]/alert-dialog-content:place-items-center sm:group-data-[size=default]/alert-dialog-content:text-center">
-            <AlertDialogTitle>Exclusão permanente</AlertDialogTitle>
+        title="Exclusão permanente"
+      />
 
-            <AlertDialogDescription>
-              Esta avaliação corporal será excluída permanentemente sem possibilidade de
-              recuperação
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <AlertDialogFooter className="w-full gap-3 sm:justify-stretch sm:*:flex-1">
-            <AlertDialogCancel variant="secondary">Cancelar</AlertDialogCancel>
-
-            <AlertDialogAction onClick={() => void remove()} variant="destructive">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog
+      <ConfirmationDialog
+        cancelLabel="Continuar editando"
+        confirmLabel="Descartar"
+        description="Os dados preenchidos nesta avaliação não serão salvos. Esta ação não poderá ser desfeita"
+        onConfirm={discardChanges}
         onOpenChange={open => !open && setConfirmingClose(null)}
         open={Boolean(confirmingClose)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Descartar alterações</AlertDialogTitle>
-
-            <AlertDialogDescription>
-              Os dados preenchidos nesta avaliação não serão salvos. Esta ação não poderá
-              ser desfeita
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel variant="secondary">Continuar editando</AlertDialogCancel>
-
-            <Button onClick={discardChanges} variant="destructive">
-              Descartar
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title="Descartar alterações"
+      />
     </div>
   )
 }
@@ -297,7 +262,7 @@ function AssessmentDialog({
 }) {
   return (
     <Dialog onOpenChange={open => !open && onOpenChange()} open>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] sm:max-w-xl">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)] overflow-hidden sm:max-w-xl">
         <DialogHeader className="pr-12">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

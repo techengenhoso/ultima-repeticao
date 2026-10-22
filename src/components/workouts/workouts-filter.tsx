@@ -8,12 +8,19 @@ import {
   SearchIcon,
   SlidersHorizontalIcon,
 } from "lucide-react"
-import { useState } from "react"
-import { SelectField } from "@/components/select-field"
+import { useMemo, useState } from "react"
+import { ComboboxField } from "@/components/combobox-field"
 import { TextField } from "@/components/text-field"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   Sheet,
   SheetContent,
@@ -33,11 +40,16 @@ import {
 } from "@/modules/workouts/domain/workout-library"
 
 interface WorkoutFilterFieldsProps {
+  exerciseOptions: readonly { label: string; value: string }[]
   filters: WorkoutFilters
   onFiltersChange: (values: Partial<WorkoutFilters>) => void
 }
 
-function WorkoutFilterFields({ filters, onFiltersChange }: WorkoutFilterFieldsProps) {
+function WorkoutFilterFields({
+  exerciseOptions,
+  filters,
+  onFiltersChange,
+}: WorkoutFilterFieldsProps) {
   return (
     <>
       <TextField
@@ -50,25 +62,6 @@ function WorkoutFilterFields({ filters, onFiltersChange }: WorkoutFilterFieldsPr
         value={filters.search}
       />
 
-      <SelectField
-        icon={<BicepsFlexedIcon aria-hidden="true" />}
-        id="workoutMuscleGroup"
-        label="Grupo muscular"
-        onChange={value => onFiltersChange({ muscleGroup: value as "" | MuscleGroup })}
-        options={muscleGroups}
-        value={filters.muscleGroup}
-      />
-
-      <TextField
-        icon={<DumbbellIcon aria-hidden="true" />}
-        id="workoutExercise"
-        label="Exercício incluído"
-        onChange={event => onFiltersChange({ exerciseSearch: event.target.value })}
-        placeholder="Buscar pelo exercício"
-        type="text"
-        value={filters.exerciseSearch}
-      />
-
       <TextField
         icon={<SearchIcon aria-hidden="true" />}
         id="workoutDay"
@@ -79,7 +72,25 @@ function WorkoutFilterFields({ filters, onFiltersChange }: WorkoutFilterFieldsPr
         value={filters.daySearch}
       />
 
-      <SelectField
+      <ComboboxField
+        icon={<DumbbellIcon aria-hidden="true" />}
+        id="workoutExercises"
+        label="Nome do exercício"
+        onChange={exerciseReference => onFiltersChange({ exerciseReference })}
+        options={exerciseOptions}
+        value={filters.exerciseReference}
+      />
+
+      <ComboboxField
+        icon={<BicepsFlexedIcon aria-hidden="true" />}
+        id="workoutMuscleGroup"
+        label="Grupo muscular"
+        onChange={value => onFiltersChange({ muscleGroup: value as "" | MuscleGroup })}
+        options={muscleGroups}
+        value={filters.muscleGroup}
+      />
+
+      <ComboboxField
         icon={<CalendarDaysIcon aria-hidden="true" />}
         id="workoutDaysPerWeek"
         label="Dias de treino"
@@ -96,7 +107,7 @@ function WorkoutFilterFields({ filters, onFiltersChange }: WorkoutFilterFieldsPr
         value={filters.daysPerWeek}
       />
 
-      <SelectField
+      <ComboboxField
         icon={<Clock3Icon aria-hidden="true" />}
         id="workoutEstimatedDuration"
         label="Duração por treino"
@@ -118,11 +129,21 @@ function WorkoutFilterFields({ filters, onFiltersChange }: WorkoutFilterFieldsPr
 }
 
 export function WorkoutsFilter() {
-  const { filteredWorkouts, setFilters: onFiltersChange } = useWorkout()
+  const { exercises, filteredWorkouts, setFilters: onFiltersChange } = useWorkout()
 
   const [filters, setFilters] = useState(emptyWorkoutFilters)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [sheetFilters, setSheetFilters] = useState(emptyWorkoutFilters)
+  const exerciseOptions = useMemo(
+    () =>
+      [...exercises]
+        .sort((left, right) => left.name.localeCompare(right.name, "pt-BR"))
+        .map(exercise => ({
+          label: exercise.name,
+          value: `${exercise.source}:${exercise.id}`,
+        })),
+    [exercises]
+  )
   const hasFilters = Object.values(filters).some(Boolean)
   const hasSheetFilters = Object.values(sheetFilters).some(Boolean)
   const resultCount = filteredWorkouts.length
@@ -162,6 +183,14 @@ export function WorkoutsFilter() {
   return (
     <>
       <Card className="md:hidden">
+        <CardHeader>
+          <CardTitle>Filtrar treinos</CardTitle>
+
+          <CardDescription>
+            Consulte os treinos e gerencie suas personalizações
+          </CardDescription>
+        </CardHeader>
+
         <CardContent className="grid grid-cols-2 gap-5">
           <div className="col-span-2 grid grid-cols-2 gap-3">
             <Sheet onOpenChange={handleSheetOpenChange} open={isSheetOpen}>
@@ -183,6 +212,7 @@ export function WorkoutsFilter() {
                 <div className="min-h-0 flex-1 overflow-y-auto px-8 pb-5">
                   <div className="grid gap-5">
                     <WorkoutFilterFields
+                      exerciseOptions={exerciseOptions}
                       filters={sheetFilters}
                       onFiltersChange={updateSheetFilters}
                     />
@@ -224,8 +254,20 @@ export function WorkoutsFilter() {
       </Card>
 
       <Card className="hidden md:block">
+        <CardHeader className="mb-5">
+          <CardTitle>Filtrar treinos</CardTitle>
+
+          <CardDescription>
+            Consulte os treinos e gerencie suas personalizações
+          </CardDescription>
+        </CardHeader>
+
         <CardContent className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          <WorkoutFilterFields filters={filters} onFiltersChange={updateFilters} />
+          <WorkoutFilterFields
+            exerciseOptions={exerciseOptions}
+            filters={filters}
+            onFiltersChange={updateFilters}
+          />
         </CardContent>
 
         <CardFooter className="mt-3 flex-col items-stretch gap-5 lg:flex-row lg:items-center lg:justify-between">

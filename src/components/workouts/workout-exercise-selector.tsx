@@ -3,7 +3,7 @@
 import { BicepsFlexedIcon, GaugeIcon, SearchIcon } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useFormContext } from "react-hook-form"
-import { SelectField } from "@/components/select-field"
+import { ComboboxField } from "@/components/combobox-field"
 import { TextField } from "@/components/text-field"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -15,7 +15,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { useScrollPadding } from "@/hooks/use-scroll-padding"
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemTitle,
+} from "@/components/ui/item"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { difficulties, muscleGroups, muscles, origins } from "@/lib/options-select"
 import {
   type Exercise,
@@ -28,6 +36,7 @@ import {
   emptyExerciseFilters,
   filterExercises,
 } from "@/modules/exercises/domain/exercise-library"
+import type { ExerciseLoadProgression } from "@/modules/progress/domain/performance"
 import type { WorkoutFormValues } from "@/modules/workouts/domain/workout"
 import { useWorkoutGenerationUseCases } from "@/modules/workouts/presentation/workout-generation-use-cases-context"
 import { useWorkoutReview } from "./generator/workout-review-context"
@@ -52,10 +61,12 @@ function referenceOf(exercise: Exercise) {
 
 export function WorkoutExerciseSelector({
   exercises,
+  exerciseProgressions,
   onClose,
   target,
 }: {
   exercises: Exercise[]
+  exerciseProgressions?: Map<string, ExerciseLoadProgression>
   onClose: () => void
   target: { dayIndex: number; exerciseIndex?: number } | null
 }) {
@@ -64,7 +75,6 @@ export function WorkoutExerciseSelector({
   const { getValues, setValue } = useFormContext<WorkoutFormValues>()
   const [filters, setFilters] = useState<ExerciseFilters>(emptyExerciseFilters)
   const [selectedReferences, setSelectedReferences] = useState<string[]>([])
-  const { hasVerticalOverflow, ref: scrollRef } = useScrollPadding()
 
   const results = useMemo(() => filterExercises(exercises, filters), [exercises, filters])
   const exercisesByReference = useMemo(
@@ -78,6 +88,20 @@ export function WorkoutExerciseSelector({
     0,
     (review?.prescription.maxExercisesPerDay ?? 30) - currentExerciseCount
   )
+
+  function defaultsFor(exercise: Exercise) {
+    const defaults = workoutGenerationUseCases.exerciseDefaults(
+      exercise,
+      review?.prescription
+    )
+    const progression = exerciseProgressions?.get(referenceOf(exercise))
+    return {
+      ...defaults,
+      initialLoad: Number.NaN,
+      repetitions: progression?.suggestedRepetitions?.toString() ?? defaults.repetitions,
+      sets: progression?.sets ?? defaults.sets,
+    }
+  }
 
   function close() {
     setFilters(emptyExerciseFilters)
@@ -103,7 +127,7 @@ export function WorkoutExerciseSelector({
           order: current.length + index,
           exerciseReference: { source: exercise.source, exerciseId: exercise.id },
           exerciseSnapshot: { name: exercise.name, muscleGroup: exercise.muscleGroup },
-          ...workoutGenerationUseCases.exerciseDefaults(exercise, review?.prescription),
+          ...defaultsFor(exercise),
         })),
       ],
       { shouldDirty: true, shouldValidate: true }
@@ -128,7 +152,7 @@ export function WorkoutExerciseSelector({
       order: target.exerciseIndex ?? current.length,
       exerciseReference: { source: exercise.source, exerciseId: exercise.id },
       exerciseSnapshot: { name: exercise.name, muscleGroup: exercise.muscleGroup },
-      ...workoutGenerationUseCases.exerciseDefaults(exercise, review?.prescription),
+      ...defaultsFor(exercise),
     }
     const next = [...current]
     if (target.exerciseIndex === undefined) next.push(nextExercise)
@@ -172,7 +196,7 @@ export function WorkoutExerciseSelector({
           />
 
           <div className="hidden sm:block">
-            <SelectField
+            <ComboboxField
               icon={<GaugeIcon aria-hidden="true" />}
               id="exercise-difficulty"
               label="Dificuldade"
@@ -188,7 +212,7 @@ export function WorkoutExerciseSelector({
           </div>
 
           <div className="hidden sm:block">
-            <SelectField
+            <ComboboxField
               icon={<SearchIcon aria-hidden="true" />}
               id="exercise-source"
               label="Origem"
@@ -203,7 +227,7 @@ export function WorkoutExerciseSelector({
             />
           </div>
 
-          <SelectField
+          <ComboboxField
             icon={<SearchIcon aria-hidden="true" />}
             id="exercise-group"
             label="Grupo muscular"
@@ -218,7 +242,7 @@ export function WorkoutExerciseSelector({
           />
 
           <div className="hidden sm:block">
-            <SelectField
+            <ComboboxField
               icon={<BicepsFlexedIcon aria-hidden="true" />}
               id="exercise-primary-muscle"
               label="Músculo principal"
@@ -234,7 +258,7 @@ export function WorkoutExerciseSelector({
           </div>
 
           <div className="hidden sm:block">
-            <SelectField
+            <ComboboxField
               icon={<BicepsFlexedIcon aria-hidden="true" />}
               id="exercise-secondary-muscle"
               label="Músculo secundário"
@@ -250,11 +274,8 @@ export function WorkoutExerciseSelector({
           </div>
         </div>
 
-        <div
-          className={`min-h-0 flex-1 overflow-y-auto${hasVerticalOverflow ? " pr-3" : ""}`}
-          ref={scrollRef}
-        >
-          <div className="space-y-2">
+        <ScrollArea className="h-fit max-h-[min(24rem,calc(100dvh-24rem))] [&_[data-slot=scroll-area-viewport]]:max-h-[inherit]">
+          <ItemGroup className="gap-2">
             {results.map(exercise => {
               const reference = referenceOf(exercise)
               const isAlreadyAdded = target
@@ -272,37 +293,50 @@ export function WorkoutExerciseSelector({
                 isAdding && !isPending && selectedReferences.length >= remainingSelections
 
               return (
-                <button
+                <Item
+                  asChild
                   className={
                     isSelected
-                      ? "flex w-full items-center justify-between gap-4 border border-primary bg-muted p-3 text-left"
-                      : "flex w-full items-center justify-between gap-4 border p-3 text-left hover:bg-muted"
+                      ? "border-primary"
+                      : "hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
                   }
-                  disabled={isAlreadyAdded || isSelectionLimitReached}
                   key={`${exercise.source}:${exercise.id}`}
-                  onClick={() => (isAdding ? toggleExercise(exercise) : select(exercise))}
-                  type="button"
+                  size="sm"
+                  variant="muted"
                 >
-                  <span className="min-w-0">
-                    <span className="block wrap-break-word font-semibold">
-                      {exercise.name}
-                    </span>
-                    <span className="block text-xs text-muted-foreground">
-                      {muscleGroupLabel[exercise.muscleGroup]} ·{" "}
-                      {exercise.primaryMuscles
-                        .map(muscle => muscleLabel[muscle])
-                        .join(", ")}{" "}
-                      · {exerciseDifficultyLabel[exercise.difficulty]}
-                    </span>
-                  </span>
-                  <Badge variant={isSelected ? "default" : "secondary"}>
-                    {exerciseBadgeLabel({
-                      isAlreadyAdded,
-                      isPending,
-                      source: exercise.source,
-                    })}
-                  </Badge>
-                </button>
+                  <button
+                    aria-pressed={isAdding ? isPending : undefined}
+                    disabled={isAlreadyAdded || isSelectionLimitReached}
+                    onClick={() =>
+                      isAdding ? toggleExercise(exercise) : select(exercise)
+                    }
+                    type="button"
+                  >
+                    <ItemContent className="min-w-0">
+                      <ItemTitle className="line-clamp-none wrap-break-word">
+                        {exercise.name}
+                      </ItemTitle>
+
+                      <ItemDescription>
+                        {muscleGroupLabel[exercise.muscleGroup]} ·{" "}
+                        {exercise.primaryMuscles
+                          .map(muscle => muscleLabel[muscle])
+                          .join(", ")}{" "}
+                        · {exerciseDifficultyLabel[exercise.difficulty]}
+                      </ItemDescription>
+                    </ItemContent>
+
+                    <ItemActions className="shrink-0">
+                      <Badge variant={isSelected ? "default" : "secondary"}>
+                        {exerciseBadgeLabel({
+                          isAlreadyAdded,
+                          isPending,
+                          source: exercise.source,
+                        })}
+                      </Badge>
+                    </ItemActions>
+                  </button>
+                </Item>
               )
             })}
 
@@ -311,11 +345,11 @@ export function WorkoutExerciseSelector({
                 Nenhum exercício encontrado
               </p>
             )}
-          </div>
-        </div>
+          </ItemGroup>
+        </ScrollArea>
 
         {target?.exerciseIndex === undefined && (
-          <DialogFooter className="border-t pt-4">
+          <DialogFooter>
             <p aria-live="polite" className="mr-auto text-sm text-muted-foreground">
               {selectedReferences.length === 0
                 ? "Selecione os exercícios que deseja adicionar"

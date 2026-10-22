@@ -7,12 +7,15 @@ import {
   ComboboxChip,
   ComboboxChips,
   ComboboxChipsInput,
+  ComboboxClear,
   ComboboxContent,
   ComboboxEmpty,
   ComboboxItem,
   ComboboxList,
   ComboboxTrigger,
+  ComboboxValue,
   useComboboxAnchor,
+  useComboboxPortalContainer,
 } from "@/components/ui/combobox"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
 import { InputGroup, InputGroupAddon } from "@/components/ui/input-group"
@@ -33,6 +36,8 @@ interface Props {
   error?: { message?: string }
   description?: ReactNode
   onChange: (value: string[]) => void
+  showClear?: boolean
+  showRemove?: boolean
 }
 
 function MultiSelectInputGroup({ ...props }: ComboboxPrimitive.InputGroup.Props) {
@@ -50,8 +55,11 @@ export function MultiSelectField({
   error,
   description,
   onChange,
+  showClear = true,
+  showRemove = true,
 }: Props) {
   const anchor = useComboboxAnchor()
+  const portalContainer = useComboboxPortalContainer(anchor)
   const selectedOptions = options.filter(option => value.includes(option.value))
 
   return (
@@ -65,28 +73,40 @@ export function MultiSelectField({
         onValueChange={selected => onChange(selected.map(option => option.value))}
         value={selectedOptions}
       >
-        <MultiSelectInputGroup className="h-auto min-h-11" ref={anchor}>
+        <MultiSelectInputGroup className="h-auto min-h-9" ref={anchor}>
           <InputGroupAddon>{icon}</InputGroupAddon>
 
-          <ComboboxChips className="order-2 h-full min-w-0 flex-1 border-0 px-3 py-1.5 focus-within:border-0 has-data-[slot=combobox-chip]:px-3">
-            {selectedOptions.map(option => (
-              <ComboboxChip key={option.value}>{option.label}</ComboboxChip>
-            ))}
+          <ComboboxChips className="order-2 h-full min-w-0 flex-1 border-0 bg-transparent px-3 py-1.5 focus-within:border-0 has-data-[slot=combobox-chip]:px-3">
+            <ComboboxValue>
+              {selectedOptions.map(option => (
+                <ComboboxChip key={option.value} showRemove={showRemove}>
+                  {option.label}
+                </ComboboxChip>
+              ))}
+            </ComboboxValue>
 
             <ComboboxChipsInput
-              aria-invalid={!!error}
               disabled={disabled}
               id={id}
               placeholder={value.length === 0 ? placeholder : undefined}
             />
           </ComboboxChips>
 
-          <InputGroupAddon align="inline-end" className="h-11 self-start pr-3">
-            <ComboboxTrigger disabled={disabled} />
+          <InputGroupAddon align="inline-end" className="h-9 self-center pr-3">
+            {showClear && selectedOptions.length > 0 && (
+              <ComboboxClear
+                aria-label={`Limpar ${label ?? "seleções"}`}
+                disabled={disabled}
+              />
+            )}
+            <ComboboxTrigger
+              className="group-has-data-[slot=combobox-clear]/input-group:hidden"
+              disabled={disabled}
+            />
           </InputGroupAddon>
         </MultiSelectInputGroup>
 
-        <ComboboxContent anchor={anchor}>
+        <ComboboxContent anchor={anchor} container={portalContainer}>
           <ComboboxEmpty>Nenhuma opção encontrada</ComboboxEmpty>
 
           <ComboboxList>

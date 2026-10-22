@@ -1,3 +1,5 @@
+import { Item, ItemContent, ItemDescription, ItemTitle } from "@/components/ui/item"
+
 interface Props {
   label: string
   value: string
@@ -5,9 +7,11 @@ interface Props {
 
 export function WorkoutExerciseMetric({ label, value }: Props) {
   return (
-    <div className="space-y-2">
-      <p className="font-medium">{label}</p>
-      <p className="flex min-h-9 items-center border bg-muted/20 px-3 text-sm">{value}</p>
-    </div>
+    <Item className="min-w-0" size="sm" variant="muted">
+      <ItemContent className="min-w-0">
+        <ItemDescription>{label}</ItemDescription>
+        <ItemTitle className="line-clamp-none wrap-break-word">{value}</ItemTitle>
+      </ItemContent>
+    </Item>
   )
 }

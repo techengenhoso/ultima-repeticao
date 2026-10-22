@@ -4,22 +4,20 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   BicepsFlexedIcon,
-  ChevronDownIcon,
-  CopyIcon,
   DumbbellIcon,
   Trash2Icon,
 } from "lucide-react"
-import { useEffect, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form"
+import { ConfirmationDialog } from "@/components/confirmation-dialog"
 import { MultiSelectField } from "@/components/multi-select-field"
 import { TextField } from "@/components/text-field"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import { Button } from "@/components/ui/button"
 import { FieldError } from "@/components/ui/field"
 import { muscleGroups, muscles } from "@/lib/options-select"
 import { type Exercise } from "@/modules/exercises/domain/exercise"
@@ -33,29 +31,27 @@ import { WorkoutExerciseForm } from "./workout-exercise-form"
 export function WorkoutDayForm({
   exercisesByReference,
   index,
-  isOpen,
   total,
+  value,
   canRemove,
   onAddExercise,
   onDown,
-  onDuplicate,
-  onOpenChange,
   onRemove,
   onReplaceExercise,
   onUp,
+  numberOffset = 2,
 }: {
   exercisesByReference: Map<string, Exercise>
   index: number
-  isOpen: boolean
   total: number
+  value: string
   canRemove: boolean
   onAddExercise: () => void
   onDown: () => void
-  onDuplicate: () => void
-  onOpenChange: (open: boolean) => void
   onRemove: () => void
   onReplaceExercise: (exerciseIndex: number) => void
   onUp: () => void
+  numberOffset?: number
 }) {
   const review = useWorkoutReview()
   const {
@@ -66,10 +62,13 @@ export function WorkoutDayForm({
     formState: { errors },
   } = useFormContext<WorkoutFormValues>()
   const exercises = useFieldArray({ control, name: `days.${index}.exercises` })
+  const [openExercises, setOpenExercises] = useState<Record<string, boolean>>({})
+  const [removingExerciseIndex, setRemovingExerciseIndex] = useState<number | null>(null)
   const selectedExercises = useWatch({
     control,
     name: `days.${index}.exercises`,
   })
+  const dayName = useWatch({ control, name: `days.${index}.name` })
   const automaticMuscleGroups = useMemo(
     () => [
       ...new Set(selectedExercises.map(exercise => exercise.exerciseSnapshot.muscleGroup)),
@@ -116,220 +115,207 @@ export function WorkoutDayForm({
   }, [automaticMuscleGroups, getValues, index, setValue])
 
   return (
-    <Collapsible onOpenChange={onOpenChange} open={isOpen}>
-      <Card
-        className="min-w-0 gap-0 border border-border border-l-primary py-0 shadow-none ring-0"
-        size="sm"
-      >
-        <CardHeader
-          className={`bg-muted/40 py-4 [.border-b]:pb-4 ${isOpen ? "border-b" : ""}`}
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <CollapsibleTrigger asChild>
-              <button
-                aria-label={`${isOpen ? "Ocultar" : "Exibir"} dia ${index + 1}`}
-                className="group flex min-w-0 flex-1 items-center gap-3 text-left"
-                type="button"
-              >
-                <span className="flex size-9 shrink-0 items-center justify-center bg-primary text-sm font-bold text-primary-foreground">
-                  {index + 1}
+    <AccordionItem className="data-open:bg-card" value={value}>
+      <div className="flex items-center gap-1 bg-muted/50 hover:bg-muted">
+        <div className="min-w-0 flex-1">
+          <AccordionTrigger className="items-center px-4 py-4 hover:no-underline">
+            <span className="flex min-w-0 items-center gap-3">
+              <span className="flex size-9 shrink-0 items-center justify-center bg-primary text-sm font-bold text-primary-foreground">
+                {index + numberOffset}
+              </span>
+
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span>{dayName || "Treino"}</span>
+
+                <span className="block text-xs text-muted-foreground">
+                  {selectedExercises.length === 0
+                    ? "Nenhum exercício"
+                    : `${selectedExercises.length} ${selectedExercises.length === 1 ? "exercício" : "exercícios"}`}
                 </span>
-                <span className="min-w-0 flex-1">
-                  <CardTitle className="text-base">Treino</CardTitle>
+              </span>
+            </span>
+          </AccordionTrigger>
+        </div>
 
-                  <span className="block text-xs text-muted-foreground">
-                    {selectedExercises.length === 0
-                      ? "Nenhum exercício"
-                      : `${selectedExercises.length} ${selectedExercises.length === 1 ? "exercício" : "exercícios"}`}
-                  </span>
-                </span>
+        <div className="mr-3 flex shrink-0 gap-1">
+          <Button
+            aria-label="Mover dia para cima"
+            disabled={index === 0}
+            onClick={onUp}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+          >
+            <ArrowUpIcon />
+          </Button>
 
-                <ChevronDownIcon
-                  aria-hidden="true"
-                  className="size-4 shrink-0 text-muted-foreground transition-transform group-aria-expanded:rotate-180"
-                />
-              </button>
-            </CollapsibleTrigger>
+          <Button
+            aria-label="Mover dia para baixo"
+            disabled={index === total - 1}
+            onClick={onDown}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+          >
+            <ArrowDownIcon />
+          </Button>
 
-            <div className="flex shrink-0 gap-1">
-              <Button
-                aria-label="Mover dia para cima"
-                disabled={index === 0}
-                onClick={onUp}
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-              >
-                <ArrowUpIcon />
-              </Button>
+          {!review && (
+            <Button
+              aria-label="Remover dia"
+              disabled={!canRemove}
+              onClick={onRemove}
+              size="icon-sm"
+              type="button"
+              variant="destructive"
+            >
+              <Trash2Icon />
+            </Button>
+          )}
+        </div>
+      </div>
 
-              <Button
-                aria-label="Mover dia para baixo"
-                disabled={index === total - 1}
-                onClick={onDown}
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-              >
-                <ArrowDownIcon />
-              </Button>
+      <AccordionContent className="h-auto pt-4">
+        <div className="min-w-0 space-y-6 pb-1">
+          <WorkoutReviewMessages path={["days", index]} />
 
-              {!review && (
-                <Button
-                  aria-label="Duplicar dia"
-                  onClick={onDuplicate}
-                  size="icon-sm"
-                  type="button"
-                  variant="ghost"
-                >
-                  <CopyIcon />
-                </Button>
-              )}
+          <div className="space-y-5">
+            <TextField
+              error={errors.days?.[index]?.name}
+              icon={<DumbbellIcon />}
+              id={`day-${index}-name`}
+              label="Nome do treino"
+              placeholder="Segunda-feira"
+              {...register(`days.${index}.name`)}
+            />
 
-              {!review && (
-                <Button
-                  aria-label="Remover dia"
-                  disabled={!canRemove}
-                  onClick={onRemove}
-                  size="icon-sm"
-                  type="button"
-                  variant="destructive"
-                >
-                  <Trash2Icon />
-                </Button>
-              )}
-            </div>
+            <WorkoutReviewMessages path={["days", index, "name"]} />
           </div>
-        </CardHeader>
 
-        <CollapsibleContent>
-          <CardContent className="min-w-0 space-y-6 py-5">
-            <WorkoutReviewMessages path={["days", index]} />
-            <WorkoutReviewMessages path={["days", index, "muscleGroups"]} />
-            <div>
-              <h4 className="font-semibold">Configuração do dia de treino</h4>
+          <Button
+            disabled={
+              exercises.fields.length >= (review?.prescription.maxExercisesPerDay ?? 30)
+            }
+            onClick={onAddExercise}
+            size="sm"
+            type="button"
+            variant="secondary"
+          >
+            Adicionar exercício
+          </Button>
 
-              <p className="text-xs text-muted-foreground">
-                Defina o nome e confira os músculos trabalhados, os músculos são carregados
-                automaticamente depois de adicionar um exercício
-              </p>
-            </div>
+          <WorkoutReviewMessages path={["days", index, "exercises"]} />
+          {exercises.fields.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 border border-dashed bg-muted/20 px-5 py-8 text-center">
+              <span className="flex size-10 items-center justify-center bg-muted">
+                <DumbbellIcon
+                  aria-hidden="true"
+                  className="size-5 text-muted-foreground"
+                />
+              </span>
 
-            <div className="space-y-5">
-              <TextField
-                error={errors.days?.[index]?.name}
-                icon={<DumbbellIcon />}
-                id={`day-${index}-name`}
-                label="Nome do dia"
-                placeholder="Segunda-feira"
-                {...register(`days.${index}.name`)}
-              />
-              <WorkoutReviewMessages path={["days", index, "name"]} />
-
-              <MultiSelectField
-                disabled
-                icon={<DumbbellIcon aria-hidden="true" />}
-                id={`day-${index}-groups`}
-                label="Grupos musculares"
-                onChange={() => undefined}
-                options={muscleGroups}
-                placeholder="Seleção automática"
-                value={automaticMuscleGroups}
-              />
-            </div>
-
-            <div className="space-y-5">
-              <MultiSelectField
-                disabled
-                icon={<BicepsFlexedIcon aria-hidden="true" />}
-                id={`day-${index}-primary-muscles`}
-                label="Músculos principais"
-                onChange={() => undefined}
-                options={muscles}
-                placeholder="Seleção automática"
-                value={primaryMuscles}
-              />
-
-              <MultiSelectField
-                disabled
-                icon={<BicepsFlexedIcon aria-hidden="true" />}
-                id={`day-${index}-secondary-muscles`}
-                label="Músculos secundários"
-                onChange={() => undefined}
-                options={muscles}
-                placeholder="Seleção automática"
-                value={secondaryMuscles}
-              />
-            </div>
-
-            <div className="-mx-(--card-spacing) flex flex-wrap items-center justify-between gap-3 border-t px-(--card-spacing) pt-5">
               <div>
-                <h4 className="font-semibold">Exercícios do treino</h4>
+                <p className="text-sm font-medium">Seu treino ainda está vazio</p>
 
                 <p className="text-xs text-muted-foreground">
-                  Organize a sequência e ajuste séries e repetições de cada exercício
+                  Adicione o primeiro exercício para montar a sequência
                 </p>
               </div>
-
-              <Button
-                disabled={
-                  exercises.fields.length >=
-                  (review?.prescription.maxExercisesPerDay ?? 30)
-                }
-                onClick={onAddExercise}
-                size="sm"
-                type="button"
-                variant="secondary"
-              >
-                Adicionar exercício
-              </Button>
             </div>
+          ) : (
+            <div className="space-y-3">
+              {exercises.fields.map((exercise, exerciseIndex) => {
+                const exerciseStateId = selectedExercises[exerciseIndex]?.id ?? exercise.id
 
-            <WorkoutReviewMessages path={["days", index, "exercises"]} />
-            {exercises.fields.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 border border-dashed bg-muted/20 px-5 py-8 text-center">
-                <span className="flex size-10 items-center justify-center bg-muted">
-                  <DumbbellIcon
-                    aria-hidden="true"
-                    className="size-5 text-muted-foreground"
-                  />
-                </span>
-
-                <div>
-                  <p className="text-sm font-medium">Seu treino ainda está vazio</p>
-
-                  <p className="text-xs text-muted-foreground">
-                    Adicione o primeiro exercício para montar a sequência
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {exercises.fields.map((exercise, exerciseIndex) => (
+                return (
                   <WorkoutExerciseForm
                     dayIndex={index}
                     exerciseIndex={exerciseIndex}
                     exercisesByReference={exercisesByReference}
+                    isOpen={openExercises[exerciseStateId] ?? true}
                     key={exercise.id}
                     onDown={() => exercises.move(exerciseIndex, exerciseIndex + 1)}
-                    onRemove={() => exercises.remove(exerciseIndex)}
+                    onOpenChange={open =>
+                      setOpenExercises(current => ({
+                        ...current,
+                        [exerciseStateId]: open,
+                      }))
+                    }
+                    onRemove={() => setRemovingExerciseIndex(exerciseIndex)}
                     onReplace={() => onReplaceExercise(exerciseIndex)}
                     onUp={() => exercises.move(exerciseIndex, exerciseIndex - 1)}
                     total={exercises.fields.length}
                   />
-                ))}
-              </div>
-            )}
+                )
+              })}
+            </div>
+          )}
 
-            <FieldError
-              errors={[
-                errors.days?.[index]?.exercises,
-                errors.days?.[index]?.exercises?.root,
-              ]}
+          <FieldError errors={[errors.days?.[index]?.exercises]} />
+
+          <div className="space-y-5">
+            <WorkoutReviewMessages path={["days", index, "muscleGroups"]} />
+            <MultiSelectField
+              disabled
+              icon={<DumbbellIcon aria-hidden="true" />}
+              id={`day-${index}-groups`}
+              label="Grupos musculares"
+              onChange={() => undefined}
+              options={muscleGroups}
+              placeholder="Seleção automática"
+              showClear={false}
+              showRemove={false}
+              value={automaticMuscleGroups}
             />
-          </CardContent>
-        </CollapsibleContent>
-      </Card>
-    </Collapsible>
+
+            <MultiSelectField
+              disabled
+              icon={<BicepsFlexedIcon aria-hidden="true" />}
+              id={`day-${index}-primary-muscles`}
+              label="Músculos principais"
+              onChange={() => undefined}
+              options={muscles}
+              placeholder="Seleção automática"
+              showClear={false}
+              showRemove={false}
+              value={primaryMuscles}
+            />
+
+            <MultiSelectField
+              disabled
+              icon={<BicepsFlexedIcon aria-hidden="true" />}
+              id={`day-${index}-secondary-muscles`}
+              label="Músculos secundários"
+              onChange={() => undefined}
+              options={muscles}
+              placeholder="Seleção automática"
+              showClear={false}
+              showRemove={false}
+              value={secondaryMuscles}
+            />
+          </div>
+        </div>
+      </AccordionContent>
+
+      <ConfirmationDialog
+        confirmLabel="Excluir"
+        description={
+          <>
+            O exercício “
+            {removingExerciseIndex === null
+              ? ""
+              : selectedExercises[removingExerciseIndex]?.exerciseSnapshot.name}
+            ” será excluído deste treino. Esta ação não poderá ser desfeita
+          </>
+        }
+        onConfirm={() => {
+          if (removingExerciseIndex !== null) exercises.remove(removingExerciseIndex)
+          setRemovingExerciseIndex(null)
+        }}
+        onOpenChange={open => !open && setRemovingExerciseIndex(null)}
+        open={removingExerciseIndex !== null}
+        title="Excluir exercício do treino"
+      />
+    </AccordionItem>
   )
 }

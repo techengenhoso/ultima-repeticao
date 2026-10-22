@@ -14,7 +14,7 @@ O filtro de exercícios é compartilhado entre a montagem automática e a revis�
 
 Após cada edição, a ordem visual é normalizada, os snapshots são reconstruídos a partir da biblioteca carregada, e o motor da Fase 1 verifica estrutura, duplicidades, volume, distribuição, recuperação, duração e parâmetros dos exercícios. Não há chamada externa para validar edições. Referências ausentes ou incompatíveis bloqueiam o salvamento.
 
-Cards mostram a divisão semanal, grupos musculares, quantidade de exercícios, duração estimada e séries semanais por grupo. Erros aparecem junto ao dia, exercício ou campo correspondente e impedem salvar. Avisos dentro dos limites permitidos exigem confirmação explícita. Campos estruturalmente inválidos devem ser corrigidos antes que o motor possa concluir a análise metodológica completa.
+Itens mostram a divisão semanal, grupos musculares, quantidade de exercícios e duração estimada. Erros aparecem junto ao dia, exercício ou campo correspondente e impedem salvar. Avisos dentro dos limites permitidos exigem confirmação explícita. Campos estruturalmente inválidos devem ser corrigidos antes que o motor possa concluir a análise metodológica completa.
 
 ## Regeneração e cancelamento
 
@@ -24,7 +24,7 @@ Cancelar, fechar pelo botão, clicar fora ou usar Escape pede confirmação quan
 
 ## Persistência
 
-Somente **Confirmar e salvar**, ou a confirmação posterior dos avisos, chama `createWorkoutRepository`, também usado pela criação manual. A validação é repetida imediatamente antes da persistência. O UID vem do contexto autenticado e é comparado com o usuário atual do Firebase; as regras de acesso do Firestore continuam sendo a autoridade para acesso à coleção do proprietário.
+Somente **Confirmar e salvar**, ou a confirmação posterior dos avisos, chama `createWorkoutRepository`, também usado pela criação manual. A validação é repetida imediatamente antes da persistência. O nome é normalizado para impedir fichas diferentes com o mesmo nome. O UID vem do contexto autenticado e é comparado com o usuário atual do Firebase; as regras de acesso do Firestore continuam sendo a autoridade para acesso à coleção do proprietário.
 
 O schema compartilhado remove campos estranhos à ficha antes da escrita em `users/{uid}/workoutPlans/{id}`. Respostas de triagem, informações de saúde, preferências temporárias e metadados da geração não são enviados ao repositório. A ficha recebe `isActive: false`, `createdAt: serverTimestamp()` e `updatedAt: serverTimestamp()`.
 

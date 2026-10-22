@@ -138,3 +138,10 @@ export async function saveDefaultExerciseOverrideRepository(
 export async function deleteCustomExerciseRepository(uid: string, exerciseId: string) {
   await deleteDoc(doc(exercisesCollection(uid), exerciseId))
 }
+
+export async function deleteDefaultExerciseOverrideRepository(
+  uid: string,
+  exerciseId: string
+) {
+  await deleteDoc(doc(exerciseOverridesCollection(uid), exerciseId))
+}

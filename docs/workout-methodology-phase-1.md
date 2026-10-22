@@ -26,15 +26,15 @@ A biblioteca atual tem `movementPattern` textual, mas não classificação confi
 - Divisões são sugestões, não regras rígidas de seleção de grupos por dia. Há calendário semanal sugerido para avaliação da recuperação. Sete dias disponíveis representam seis sessões e um dia de recuperação, sem criar um dia vazio incompatível com o modelo atual
 - Três dias consideram experiência e duração. Orientações complementares consideram objetivo e prioridades. Dois estímulos por grupo são preferenciais: frequência menor gera aviso
 - Estímulo intenso é definido operacionalmente como pelo menos três séries diretas para o mesmo grupo; o validador rejeita esses estímulos em dias consecutivos, inclusive na passagem de semana
-- Duração é aproximada: cinco minutos iniciais, quatro segundos por repetição no limite superior, descanso entre séries e um minuto entre exercícios. Não é uma garantia fisiológica ou medição real
-- Limite de exercícios considera duração, descanso dos compostos e experiência. Entradas incompatíveis com o volume conservador recebem `feasibilityWarnings`; o consumidor deve revisar as condições antes de gerar. Os limites não são relaxados silenciosamente
+- Duração é aproximada pela base de planejamento: para cada exercício, séries × limite superior de repetições × seis segundos, mais 120 segundos e séries × descanso. Não é uma garantia fisiológica ou medição real
+- A duração informada é uma meta para cada dia, respeitando os limites de exercícios, descanso dos compostos e experiência. Entradas incompatíveis com o volume conservador recebem `feasibilityWarnings`; o consumidor deve revisar as condições antes de gerar. Os limites não são relaxados silenciosamente
 - Erros impedem aprovação metodológica; frequência e alvo conservador não atingidos geram avisos. O formulário manual continua usando os limites gerais do domínio, sem exigir um objetivo que ainda não coleta
 
 ## Formato atual
 
 O formato de `users/{uid}/workoutPlans/{id}` mantém dias e exercícios embutidos. `restSeconds` é opcional, entre 30 e 600, e `initialLoad` aceita zero.
 
-Repetições são texto e aceitam uma quantidade única ou uma faixa crescente de 1 a 100 (`12`, `8-12`, `8–12`).
+Repetições são texto e aceitam uma quantidade única ou uma faixa crescente de 1 a 500 (`12`, `8-12`, `8–12`).
 
 ## Pendência do Firestore
 

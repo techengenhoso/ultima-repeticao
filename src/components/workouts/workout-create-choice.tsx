@@ -43,7 +43,9 @@ export function WorkoutCreateChoice() {
             <DialogTitle>Como deseja criar sua ficha?</DialogTitle>
 
             <DialogDescription>
-              Você pode montar cada dia manualmente ou começar com uma sugestão automática
+              A ficha gerada é uma sugestão educativa e não substitui a avaliação de um
+              profissional de educação física, médico ou fisioterapeuta. Em caso de dor,
+              lesão ou condição de saúde, procure orientação profissional
             </DialogDescription>
           </DialogHeader>
 
@@ -52,7 +54,7 @@ export function WorkoutCreateChoice() {
               className="h-auto min-h-24 flex-col items-start gap-2 p-4 text-left"
               onClick={createManually}
               type="button"
-              variant="outline"
+              variant="secondary"
             >
               <SquarePenIcon />
               <span>Criar manualmente</span>

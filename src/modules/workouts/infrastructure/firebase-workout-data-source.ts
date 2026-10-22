@@ -9,8 +9,10 @@ import {
   writeBatch,
 } from "firebase/firestore"
 import { auth, db } from "@/infrastructure/firebase/client"
+import { DuplicateWorkoutNameError } from "@/modules/workouts/application/ports/workout-repository"
 import { workoutFormSchema } from "@/modules/workouts/domain/schemas"
 import type { Workout, WorkoutInput } from "@/modules/workouts/domain/workout"
+import { normalizeWorkoutName } from "@/modules/workouts/domain/workout-name"
 import { workoutDocumentSchema } from "./workout-document-schema"
 
 function workoutsCollection(uid: string) {
@@ -56,6 +58,32 @@ function cleanInput(raw: WorkoutInput) {
   }
 }
 
+function hasDuplicateWorkoutName(
+  documents: { id: string; data: () => { name?: unknown } }[],
+  name: string,
+  ignoredWorkoutId?: string
+) {
+  const normalizedName = normalizeWorkoutName(name)
+  return documents.some(item => {
+    const storedName = item.data().name
+    return (
+      item.id !== ignoredWorkoutId &&
+      typeof storedName === "string" &&
+      normalizeWorkoutName(storedName) === normalizedName
+    )
+  })
+}
+
+async function assertUniqueWorkoutName(
+  uid: string,
+  name: string,
+  ignoredWorkoutId?: string
+) {
+  const plans = await getDocs(workoutsCollection(uid))
+  if (hasDuplicateWorkoutName(plans.docs, name, ignoredWorkoutId))
+    throw new DuplicateWorkoutNameError()
+}
+
 export async function listWorkoutsRepository(uid: string) {
   const snapshot = await getDocs(workoutsCollection(uid))
   return snapshot.docs
@@ -80,6 +108,7 @@ export async function createWorkoutRepository(
     ? doc(workoutsCollection(uid), creationId)
     : doc(workoutsCollection(uid))
   const data = cleanInput(input)
+  await assertUniqueWorkoutName(uid, data.name, reference.id)
   // O mesmo identificador permite repetir uma tentativa sem criar outra ficha
   // se a escrita tiver sido concluída e apenas a leitura da resposta falhar.
   await runTransaction(db, async transaction => {
@@ -107,14 +136,19 @@ export async function updateWorkoutRepository(
   input: WorkoutInput
 ) {
   const reference = doc(workoutsCollection(uid), id)
-  const existing = await readWorkout(uid, id)
-  const batch = writeBatch(db)
-  batch.update(reference, {
-    ...cleanInput(input),
-    isActive: existing.isActive,
-    updatedAt: serverTimestamp(),
+  const data = cleanInput(input)
+  await assertUniqueWorkoutName(uid, data.name, id)
+  await runTransaction(db, async transaction => {
+    const existing = await transaction.get(reference)
+    if (!existing.exists()) throw new Error("Ficha inválida ou não encontrada")
+    const previous = parseWorkout(existing.id, existing.data())
+    if (!previous) throw new Error("Ficha inválida ou não encontrada")
+    transaction.update(reference, {
+      ...data,
+      isActive: previous.isActive,
+      updatedAt: serverTimestamp(),
+    })
   })
-  await batch.commit()
   return readWorkout(uid, id)
 }
 

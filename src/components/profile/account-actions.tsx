@@ -1,22 +1,13 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { LoaderCircleIcon, LockKeyholeIcon } from "lucide-react"
+import { LockKeyholeIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
+import { ConfirmationDialog } from "@/components/confirmation-dialog"
 import { PasswordField } from "@/components/password-field"
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -97,8 +88,17 @@ export function AccountActions() {
           {isSigningOut ? "Saindo" : "Sair da conta"}
         </Button>
 
-        <AlertDialog onOpenChange={handleDialogChange} open={isDialogOpen}>
-          <AlertDialogTrigger asChild>
+        <ConfirmationDialog
+          confirmForm="account-deletion-form"
+          confirmLabel="Excluir"
+          confirmType="submit"
+          description="Todos os seus dados como perfil, exercícios, fichas, treinos, avaliações corporais e outros serão excluídos sem possibilidade de recuperar."
+          isPending={isSubmitting}
+          onOpenChange={handleDialogChange}
+          open={isDialogOpen}
+          pendingLabel="Excluindo"
+          title="Exclusão permanente"
+          trigger={
             <Button
               disabled={isSigningOut || isSubmitting}
               size="lg"
@@ -106,42 +106,24 @@ export function AccountActions() {
             >
               Excluir conta
             </Button>
-          </AlertDialogTrigger>
-
-          <AlertDialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
-            <AlertDialogHeader className="sm:group-data-[size=default]/alert-dialog-content:place-items-center sm:group-data-[size=default]/alert-dialog-content:text-center">
-              <AlertDialogTitle>Exclusão permanente</AlertDialogTitle>
-
-              <AlertDialogDescription>
-                Todos os seus dados como perfil, exercícios, fichas, treinos, avaliações
-                corporais e outros serão excluídos sem possibilidade de recuperar.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-
-            <form className="grid gap-5" onSubmit={handleSubmit(handleDeleteAccount)}>
-              <PasswordField
-                autoComplete="current-password"
-                disabled={isSubmitting}
-                error={errors.password}
-                icon={<LockKeyholeIcon aria-hidden="true" />}
-                id="account-deletion-password"
-                placeholder="Digite sua senha"
-                {...register("password")}
-              />
-
-              <AlertDialogFooter className="w-full gap-3 sm:justify-stretch sm:*:flex-1">
-                <AlertDialogCancel disabled={isSubmitting} variant="secondary">
-                  Cancelar
-                </AlertDialogCancel>
-
-                <Button disabled={isSubmitting} type="submit" variant="destructive">
-                  {isSubmitting && <LoaderCircleIcon className="animate-spin" />}
-                  {isSubmitting ? "Excluindo" : "Excluir"}
-                </Button>
-              </AlertDialogFooter>
-            </form>
-          </AlertDialogContent>
-        </AlertDialog>
+          }
+        >
+          <form
+            className="grid gap-5"
+            id="account-deletion-form"
+            onSubmit={handleSubmit(handleDeleteAccount)}
+          >
+            <PasswordField
+              autoComplete="current-password"
+              disabled={isSubmitting}
+              error={errors.password}
+              icon={<LockKeyholeIcon aria-hidden="true" />}
+              id="account-deletion-password"
+              placeholder="Digite sua senha"
+              {...register("password")}
+            />
+          </form>
+        </ConfirmationDialog>
       </CardContent>
     </Card>
   )

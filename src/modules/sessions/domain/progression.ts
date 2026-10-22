@@ -8,20 +8,22 @@ import {
   type WorkoutSession,
 } from "./session"
 
-export function exerciseHistory(sessions: WorkoutSession[], exercise: SessionExercise) {
-  return sessions
-    .filter(session => session.status === "completed")
-    .sort((a, b) => b.startedAt - a.startedAt)
-    .flatMap(session => {
-      const items = session.exercises.filter(
-        item =>
-          referenceKey(item.exerciseReference) === referenceKey(exercise.exerciseReference)
-      )
-      return items.length === 1 ? [{ session, exercise: items[0] }] : []
-    })
+export function exerciseFromLatestSession(
+  session: WorkoutSession | null,
+  exercise: Pick<SessionExercise, "exerciseReference">
+) {
+  if (!session || session.status !== "completed") return undefined
+  const items = session.exercises.filter(
+    item =>
+      referenceKey(item.exerciseReference) === referenceKey(exercise.exerciseReference)
+  )
+  return items.length === 1 ? items[0] : undefined
 }
 
-type HistoryEntry = ReturnType<typeof exerciseHistory>[number]
+type LatestExercise = {
+  session: WorkoutSession
+  exercise: SessionExercise
+}
 const workSets = (exercise: SessionExercise) => exercise.sets.filter(set => !set.warmup)
 const effortRank: Record<EffortRating, number> = {
   veryHard: 0,
@@ -30,12 +32,15 @@ const effortRank: Record<EffortRating, number> = {
   easy: 3,
   veryEasy: 4,
 }
+const defaultRoundingStep = 3
+const automaticIncreaseStep = 3
+const maximumAutomaticIncrease = 6
 const comparable = (a: SessionExercise, b: SessionExercise) =>
   a.targetSets === b.targetSets && a.targetRepetitions === b.targetRepetitions
 
-function dataProblem(exercise: SessionExercise, latest?: HistoryEntry) {
+function dataProblem(exercise: SessionExercise, latest?: LatestExercise) {
   if (!latest || !workSets(latest.exercise).some(set => set.completed))
-    return "Sem desempenho concluído: defina a carga de forma conservadora durante o treino"
+    return "Sem desempenho concluído, defina a carga de forma conservadora durante o treino"
   if (!comparable(exercise, latest.exercise))
     return "A prescrição mudou, registre um treino com as metas atuais antes de progredir"
   const sets = workSets(latest.exercise)
@@ -58,22 +63,38 @@ function adjustedLoad(
       action: "insufficientData",
       suggestedRepetitions: undefined,
       reason:
-        "Carga zero registrada: informe uma carga executável antes de sugerir incrementos em quilogramas",
+        "Carga zero registrada, informe uma carga executável antes de sugerir incrementos em quilogramas",
     }
   const delta =
     settings.increment ??
     settings.equipmentIncrement ??
     (current * settings.percentage) / 100
   const step =
-    settings.equipmentIncrement ?? settings.increment ?? settings.roundingStep ?? 0.5
+    settings.equipmentIncrement ??
+    settings.increment ??
+    settings.roundingStep ??
+    defaultRoundingStep
+  const increaseAmount = Math.min(
+    maximumAutomaticIncrease,
+    Math.max(
+      automaticIncreaseStep,
+      Math.ceil((delta - 1e-8) / automaticIncreaseStep) * automaticIncreaseStep
+    )
+  )
   const candidate = increase
-    ? Math.ceil((current + delta - 1e-8) / step) * step
+    ? current + increaseAmount
     : Math.floor((current - delta + 1e-8) / step) * step
   const load = Math.round(candidate * 100) / 100
   const tooLarge = !increase
     ? current - load > current * 0.1
-    : settings.increment === undefined && load - current > current * 0.1
-  if (load < 0 || load > 1000 || load === current || tooLarge)
+    : load - current > maximumAutomaticIncrease
+  if (
+    load < 0 ||
+    load > 1000 ||
+    load === current ||
+    (increase && load < current) ||
+    tooLarge
+  )
     return {
       ...base,
       action: "maintain",
@@ -85,17 +106,20 @@ function adjustedLoad(
     ...base,
     action: increase ? "increase" : "decrease",
     suggestedLoad: load,
-    reason: `${base.reason} · Arredondamento em múltiplos de ${step} kg, confirme a disponibilidade no equipamento`,
+    reason: `${base.reason}, use o próximo peso disponível, aumento sugerido de ${automaticIncreaseStep} a ${maximumAutomaticIncrease} kg`,
   }
 }
 
 export function suggestLoad(
   exercise: SessionExercise,
-  sessions: WorkoutSession[],
+  latestSession: WorkoutSession | null,
   settings: IncrementSettings
 ): LoadSuggestion {
-  const history = exerciseHistory(sessions, exercise)
-  const latest = history[0]
+  const latestExercise = exerciseFromLatestSession(latestSession, exercise)
+  const latest =
+    latestSession && latestExercise
+      ? { session: latestSession, exercise: latestExercise }
+      : undefined
   const sets = latest ? workSets(latest.exercise).filter(set => set.completed) : []
   const base: LoadSuggestion = {
     currentLoad: sets.at(-1)?.load ?? 0,
@@ -155,20 +179,20 @@ function evaluateLoadSuggestion(
       suggestedLoad: base.currentLoad,
       suggestedRepetitions,
       confidence: "normal",
-      reason: `Todas as séries foram avaliadas como ${leastEasy === effortRank.veryEasy ? "muito fáceis" : "fáceis ou muito fáceis"}: faça ${suggestedRepetitions} repetições em cada série no próximo treino`,
+      reason: `As avaliações permite uma progressão no treino`,
     }
   }
 
   if (
     currentSets.every(set => set.performedRepetitions >= range.max) &&
-    leastEasy >= effortRank.adequate
+    leastEasy >= effortRank.easy
   )
     return adjustedLoad(
       {
         ...base,
         confidence: "normal",
         suggestedRepetitions: range.min,
-        reason: `Todas as séries chegaram ao limite de ${range.max} repetições: aumente a carga e recomece com ${range.min} repetições`,
+        reason: `Aumente a carga e recomece com ${range.min} repetições`,
       },
       true,
       settings
@@ -181,7 +205,7 @@ function evaluateLoadSuggestion(
     confidence: "normal",
     reason:
       leastEasy <= effortRank.hard
-        ? "A dificuldade foi alta: mantenha a carga e as repetições no próximo treino"
+        ? "A dificuldade foi alta, mantenha a carga e repetições, não altere seu treino"
         : "Mantenha a carga e avance quando todas as séries ficarem fáceis",
   }
 }

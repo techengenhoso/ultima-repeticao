@@ -4,6 +4,13 @@ import { cn } from "cn"
 import { Tooltip as TooltipPrimitive } from "radix-ui"
 import * as React from "react"
 
+type TooltipContextValue = {
+  open: boolean
+  setOpen: (open: boolean) => void
+}
+
+const TooltipContext = React.createContext<TooltipContextValue | null>(null)
+
 function TooltipProvider({
   delayDuration = 0,
   ...props
@@ -17,14 +24,51 @@ function TooltipProvider({
   )
 }
 
-function Tooltip({ ...props }: React.ComponentProps<typeof TooltipPrimitive.Root>) {
-  return <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+function Tooltip({
+  defaultOpen = false,
+  onOpenChange,
+  open: openProp,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Root>) {
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen)
+  const isControlled = openProp !== undefined
+  const open = openProp ?? uncontrolledOpen
+  const setOpen = React.useCallback(
+    (nextOpen: boolean) => {
+      if (!isControlled) setUncontrolledOpen(nextOpen)
+      onOpenChange?.(nextOpen)
+    },
+    [isControlled, onOpenChange]
+  )
+
+  return (
+    <TooltipContext.Provider value={{ open, setOpen }}>
+      <TooltipPrimitive.Root
+        data-slot="tooltip"
+        onOpenChange={setOpen}
+        open={open}
+        {...props}
+      />
+    </TooltipContext.Provider>
+  )
 }
 
 function TooltipTrigger({
+  onClick,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
-  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />
+  const tooltip = React.useContext(TooltipContext)
+
+  return (
+    <TooltipPrimitive.Trigger
+      data-slot="tooltip-trigger"
+      onClick={event => {
+        onClick?.(event)
+        if (!event.defaultPrevented) tooltip?.setOpen(!tooltip.open)
+      }}
+      {...props}
+    />
+  )
 }
 
 function TooltipContent({

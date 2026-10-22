@@ -1,6 +1,6 @@
 "use client"
 
-import { CheckCircle2Icon, CopyIcon, PencilIcon, Trash2Icon } from "lucide-react"
+import { PencilIcon, Trash2Icon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -40,26 +40,13 @@ function formatUpdatedAt(updatedAt: number, now = new Date()) {
 }
 
 interface Props {
-  isActivating: boolean
-  onActivate: (workout: Workout) => void
-  onDeactivate: (workout: Workout) => void
   onDelete: (workout: Workout) => void
   onDetails: (workout: Workout) => void
-  onDuplicate: (workout: Workout) => void
   onEdit: (workout: Workout) => void
   workout: Workout
 }
 
-export function WorkoutCard({
-  isActivating,
-  onActivate,
-  onDeactivate,
-  onDelete,
-  onDetails,
-  onDuplicate,
-  onEdit,
-  workout,
-}: Props) {
+export function WorkoutCard({ onDelete, onDetails, onEdit, workout }: Props) {
   return (
     <Card className={workout.isActive ? "border-primary" : undefined}>
       <CardHeader>
@@ -90,29 +77,6 @@ export function WorkoutCard({
           variant="secondary"
         >
           Detalhes
-        </Button>
-
-        <Button
-          aria-label={`Duplicar ${workout.name}`}
-          onClick={() => onDuplicate(workout)}
-          size="icon-sm"
-          type="button"
-          variant="secondary"
-        >
-          <CopyIcon />
-        </Button>
-
-        <Button
-          aria-label={
-            workout.isActive ? `Desativar ${workout.name}` : `Ativar ${workout.name}`
-          }
-          disabled={isActivating}
-          onClick={() => (workout.isActive ? onDeactivate(workout) : onActivate(workout))}
-          size="icon-sm"
-          type="button"
-          variant="secondary"
-        >
-          <CheckCircle2Icon />
         </Button>
 
         <Button

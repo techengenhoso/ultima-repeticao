@@ -8,8 +8,8 @@ import {
   TargetIcon,
 } from "lucide-react"
 import { Controller, useFormContext } from "react-hook-form"
+import { ComboboxField } from "@/components/combobox-field"
 import { MultiSelectField } from "@/components/multi-select-field"
-import { SelectField } from "@/components/select-field"
 import { TextField } from "@/components/text-field"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
@@ -52,7 +52,7 @@ export function WorkoutGenerationBasics() {
           icon={<DumbbellIcon />}
           id="generator-name"
           label="Nome da ficha"
-          placeholder="Ex: Treino de hipertrofia"
+          placeholder="Ex: Ficha de hipertrofia"
           {...register("name")}
         />
       </div>
@@ -61,7 +61,7 @@ export function WorkoutGenerationBasics() {
         control={control}
         name="goal"
         render={({ field }) => (
-          <SelectField
+          <ComboboxField
             disabled={isSubmitting}
             error={errors.goal}
             icon={<TargetIcon />}
@@ -78,7 +78,7 @@ export function WorkoutGenerationBasics() {
         control={control}
         name="experienceLevel"
         render={({ field }) => (
-          <SelectField
+          <ComboboxField
             disabled={isSubmitting}
             error={errors.experienceLevel}
             icon={<GaugeIcon />}
@@ -97,7 +97,7 @@ export function WorkoutGenerationBasics() {
         id="generator-days"
         inputMode="numeric"
         label="Dias por semana"
-        placeholder="Ex: 3 (de 2 a 7 dias)"
+        placeholder="Ex: 3"
         step={1}
         type="number"
         {...register("daysPerWeek", { valueAsNumber: true })}
@@ -108,8 +108,8 @@ export function WorkoutGenerationBasics() {
         icon={<ClockIcon />}
         id="generator-duration"
         inputMode="numeric"
-        label="Minutos por treino"
-        placeholder="Ex: 60 (de 20 a 180 minutos)"
+        label="Tempo desejado por treino"
+        placeholder="Ex: 60"
         type="number"
         {...register("durationMinutes", { valueAsNumber: true })}
       />

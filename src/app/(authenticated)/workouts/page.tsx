@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function WorkoutsPage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <PageHeader
         description="Monte e organize seus dias, exercícios, séries e repetições"
         title="Meus treinos"

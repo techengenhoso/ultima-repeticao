@@ -1,8 +1,7 @@
 "use client"
 
 import { CheckIcon, CircleAlertIcon } from "lucide-react"
-import { useState } from "react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -28,8 +27,21 @@ import {
   ItemTitle,
 } from "@/components/ui/item"
 import { Progress } from "@/components/ui/progress"
-import { effortRatingLabel, type WorkoutSession } from "@/modules/sessions/domain/session"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+  effortRatingLabel,
+  type LoadSuggestion,
+  resolveIncrementSettings,
+  type WorkoutSession,
+} from "@/modules/sessions/domain/session"
+import { useSessionGateway } from "@/modules/sessions/presentation/session-gateway-context"
 import { SessionProgression } from "./session-progression"
+
+type SuggestionResult = {
+  latestSessionId: string | null
+  suggestion: LoadSuggestion
+}
 
 export function SessionSummary({
   session,
@@ -38,7 +50,12 @@ export function SessionSummary({
   session: WorkoutSession
   onUpdated: (session: WorkoutSession) => void
 }) {
+  const gateway = useSessionGateway()
   const [selected, setSelected] = useState<number | null>(null)
+  const [prefetchedSuggestions, setPrefetchedSuggestions] = useState<
+    Record<number, SuggestionResult>
+  >({})
+  const [prefetching, setPrefetching] = useState(false)
   const completedSets = session.exercises
     .flatMap(exercise => exercise.sets)
     .filter(set => set.completed && !set.warmup).length
@@ -53,6 +70,51 @@ export function SessionSummary({
   ).length
   const isCompleted = session.status === "completed"
   const selectedExercise = selected === null ? null : session.exercises[selected]
+
+  useEffect(() => {
+    const exercises = session.exercises
+      .map((exercise, index) => ({ exercise, index }))
+      .filter(
+        ({ exercise }) =>
+          isCompleted &&
+          !exercise.decision &&
+          exercise.sets.filter(set => set.completed && !set.warmup).length ===
+            exercise.targetSets
+      )
+    let current = true
+    setPrefetchedSuggestions({})
+    setPrefetching(exercises.length > 0)
+
+    void Promise.all(
+      exercises.map(async ({ exercise, index }) => {
+        try {
+          const result = await gateway.suggest({
+            action: "suggest",
+            id: session.id,
+            exerciseIndex: index,
+            settings: resolveIncrementSettings(exercise.incrementSettings),
+          })
+          return [index, result] as const
+        } catch {
+          return null
+        }
+      })
+    ).then(results => {
+      if (!current) return
+      setPrefetchedSuggestions(
+        Object.fromEntries(
+          results.filter(
+            (result): result is readonly [number, SuggestionResult] => result !== null
+          )
+        )
+      )
+      setPrefetching(false)
+    })
+
+    return () => {
+      current = false
+    }
+  }, [gateway, isCompleted, session])
 
   return (
     <div className="space-y-5">
@@ -120,13 +182,7 @@ export function SessionSummary({
               </CardTitle>
 
               <CardDescription className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span className="font-medium text-foreground">
-                  {completed} de {exercise.targetSets} séries concluídas
-                </span>
-
-                <span>
-                  {exercise.targetSets} séries de {exercise.targetRepetitions} repetições
-                </span>
+                {exercise.targetSets} séries de {exercise.targetRepetitions} repetições
               </CardDescription>
             </CardHeader>
 
@@ -166,29 +222,20 @@ export function SessionSummary({
                 ))}
               </ItemGroup>
 
-              {exercise.decision && (
-                <Alert>
-                  <AlertTitle>Próxima carga registrada</AlertTitle>
-                  <AlertDescription>
-                    {exercise.decision.load} kg
-                    {exercise.decision.suggestion.suggestedRepetitions !== undefined &&
-                      ` · ${exercise.decision.suggestion.suggestedRepetitions} repetições`}
-                    {" · "}
-                    {new Date(exercise.decision.decidedAt).toLocaleString("pt-BR")}
-                  </AlertDescription>
-                </Alert>
-              )}
-
               {isCompleted && isExerciseCompleted && (
                 <div className="flex">
-                  <Button
-                    className="w-full sm:ml-auto sm:w-auto"
-                    onClick={() => setSelected(index)}
-                    size="sm"
-                    type="button"
-                  >
-                    Ver evolução e sugestão
-                  </Button>
+                  {prefetching && !prefetchedSuggestions[index] && !exercise.decision ? (
+                    <Skeleton className="h-8 w-full sm:ml-auto sm:w-28" />
+                  ) : (
+                    <Button
+                      className="w-full sm:ml-auto sm:w-auto"
+                      onClick={() => setSelected(index)}
+                      size="sm"
+                      type="button"
+                    >
+                      {exercise.decision ? "Ver evolução" : "Evoluir série"}
+                    </Button>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -197,9 +244,9 @@ export function SessionSummary({
       })}
 
       <Dialog onOpenChange={open => !open && setSelected(null)} open={selected !== null}>
-        <DialogContent className="max-h-[calc(100dvh-2rem)] sm:max-w-xl">
+        <DialogContent className="grid max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)] sm:max-w-xl">
           <DialogHeader className="pr-12">
-            <DialogTitle>Evolução e próxima carga</DialogTitle>
+            <DialogTitle>Progressão do exercício</DialogTitle>
 
             <DialogDescription>
               {selectedExercise?.exerciseSnapshot.name}
@@ -207,7 +254,15 @@ export function SessionSummary({
           </DialogHeader>
 
           {selectedExercise && selected !== null && (
-            <SessionProgression index={selected} onUpdated={onUpdated} session={session} />
+            <ScrollArea className="min-h-0 overscroll-contain [&_[data-slot=scroll-area-viewport]]:max-h-[inherit]">
+              <SessionProgression
+                index={selected}
+                onClose={() => setSelected(null)}
+                onUpdated={onUpdated}
+                prefetchedSuggestion={prefetchedSuggestions[selected]}
+                session={session}
+              />
+            </ScrollArea>
           )}
         </DialogContent>
       </Dialog>

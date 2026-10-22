@@ -5,7 +5,7 @@ export function parseRepetitions(value: string) {
   if (!match) return null
   const min = Number(match[1])
   const max = Number(match[2] ?? match[1])
-  return min >= 1 && max >= min && max <= 100 ? { min, max } : null
+  return min >= 1 && max >= min && max <= 500 ? { min, max } : null
 }
 
 export const repetitionsSchema = z
@@ -14,5 +14,5 @@ export const repetitionsSchema = z
   .max(30)
   .refine(
     value => parseRepetitions(value) !== null,
-    "Informe repetições de 1 a 100 ou uma faixa crescente, como 8-12"
+    "Informe repetições de 1 a 500 ou uma faixa crescente, como 8-12"
   )

@@ -4,21 +4,20 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { AlignLeftIcon, DumbbellIcon, LoaderCircleIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { FormProvider, useFieldArray, useForm } from "react-hook-form"
+import { ConfirmationDialog } from "@/components/confirmation-dialog"
 import { TextField } from "@/components/text-field"
 import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
 import { DialogFooter } from "@/components/ui/dialog"
 import { FieldError } from "@/components/ui/field"
-import { useScrollPadding } from "@/hooks/use-scroll-padding"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import type { Exercise, MuscleGroup } from "@/modules/exercises/domain/exercise"
+import type { ExerciseLoadProgression } from "@/modules/progress/domain/performance"
 import { workoutFormSchema } from "@/modules/workouts/domain/schemas"
 import type {
   Workout,
@@ -39,6 +38,7 @@ const createEmptyWorkoutDay = () => ({
 interface Props {
   exercises: Exercise[]
   exercisesByReference: Map<string, Exercise>
+  exerciseProgressions: Map<string, ExerciseLoadProgression>
   onCancel: () => void
   onSubmit: (values: WorkoutInput) => Promise<void>
   workout?: Workout | null
@@ -47,6 +47,7 @@ interface Props {
 export function WorkoutForm({
   exercises,
   exercisesByReference,
+  exerciseProgressions,
   onCancel,
   onSubmit,
   workout,
@@ -73,7 +74,7 @@ export function WorkoutForm({
     control,
     name: "days",
   })
-  const [openDayId, setOpenDayId] = useState<string | null>(() => fields[0]?.id ?? null)
+  const [openSection, setOpenSection] = useState("general")
   const dayIdsKey = fields.map(field => field.id).join(",")
 
   const [selectionTarget, setSelectionTarget] = useState<{
@@ -82,12 +83,12 @@ export function WorkoutForm({
   } | null>(null)
 
   const [removingDayIndex, setRemovingDayIndex] = useState<number | null>(null)
-  const { hasVerticalOverflow, ref: scrollRef } = useScrollPadding()
+  const isEditing = Boolean(workout?.id)
 
   useEffect(() => {
     const dayIds = dayIdsKey ? dayIdsKey.split(",") : []
-    setOpenDayId(current =>
-      current && dayIds.includes(current) ? current : (dayIds[0] ?? null)
+    setOpenSection(current =>
+      current === "general" || dayIds.includes(current) ? current : "general"
     )
   }, [dayIdsKey])
 
@@ -101,88 +102,83 @@ export function WorkoutForm({
   function addWorkoutDay() {
     const day = { ...createEmptyWorkoutDay(), order: fields.length }
     append(day)
-    setOpenDayId(day.id)
-  }
-
-  function duplicateWorkoutDay(index: number) {
-    const day = getValues(`days.${index}`)
-    const duplicate = {
-      ...day,
-      id: crypto.randomUUID(),
-      name: `${day.name} — Cópia`,
-      order: fields.length,
-      exercises: day.exercises.map(item => ({
-        ...item,
-        id: crypto.randomUUID(),
-      })),
-    }
-    append(duplicate)
-    setOpenDayId(duplicate.id)
+    setOpenSection(day.id)
   }
 
   return (
     <FormProvider {...form}>
       <form
-        className="flex min-h-0 min-w-0 flex-1 flex-col"
+        className="flex min-h-0 min-w-0 flex-1 flex-col gap-5"
         onSubmit={handleSubmit(handleValidSubmit)}
       >
-        <div
-          className={`max-h-[65vh] min-w-0 space-y-6 overflow-x-hidden overflow-y-auto pb-5${hasVerticalOverflow ? " pr-3" : ""}`}
-          ref={scrollRef}
-        >
-          <div className="grid gap-5 md:grid-cols-2">
-            <TextField
-              error={formState.errors.name}
-              icon={<DumbbellIcon />}
-              id="name"
-              label="Nome da ficha"
-              placeholder="Treino Hiper"
-              {...register("name")}
-            />
-            <TextField
-              error={formState.errors.description}
-              icon={<AlignLeftIcon aria-hidden="true" />}
-              id="description"
-              label="Descrição"
-              placeholder="Observações da ficha"
-              {...register("description")}
-            />
-          </div>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-lg font-bold">Dias de treino</h3>
-              <Button
-                disabled={fields.length >= 14}
-                onClick={addWorkoutDay}
-                size="sm"
-                type="button"
-              >
-                Adicionar dia
-              </Button>
-            </div>
-            {fields.map((field, index) => (
-              <WorkoutDayForm
-                canRemove={fields.length > 1}
-                exercisesByReference={exercisesByReference}
-                index={index}
-                isOpen={openDayId === field.id}
-                key={field.id}
-                onAddExercise={() => setSelectionTarget({ dayIndex: index })}
-                onDown={() => move(index, index + 1)}
-                onDuplicate={() => duplicateWorkoutDay(index)}
-                onOpenChange={open => setOpenDayId(open ? field.id : null)}
-                onRemove={() => setRemovingDayIndex(index)}
-                onReplaceExercise={exerciseIndex =>
-                  setSelectionTarget({ dayIndex: index, exerciseIndex })
-                }
-                onUp={() => move(index, index - 1)}
-                total={fields.length}
-              />
-            ))}
-            <FieldError errors={[formState.errors.days?.root]} />
-          </div>
-        </div>
-        <DialogFooter className="border-t pt-5">
+        <fieldset className="min-h-0 flex-1" disabled={formState.isSubmitting}>
+          <ScrollArea className="h-full min-h-0">
+            <Accordion
+              collapsible
+              onValueChange={setOpenSection}
+              type="single"
+              value={openSection}
+            >
+              <AccordionItem className="data-open:bg-card" value="general">
+                <AccordionTrigger className="items-center bg-muted/50 px-4 py-4 hover:bg-muted hover:no-underline aria-expanded:bg-muted">
+                  <span className="flex min-w-0 items-center gap-3">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
+                      1
+                    </span>
+                    <span className="flex min-w-0 flex-col gap-0.5">
+                      <span>Informações gerais</span>
+                      <span className="text-xs font-normal text-muted-foreground">
+                        2 informações
+                      </span>
+                    </span>
+                  </span>
+                </AccordionTrigger>
+
+                <AccordionContent className="h-auto pt-4">
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <TextField
+                      error={formState.errors.name}
+                      icon={<DumbbellIcon aria-hidden="true" />}
+                      id="name"
+                      label="Nome da ficha"
+                      placeholder="Treino Hiper"
+                      {...register("name")}
+                    />
+                    <TextField
+                      error={formState.errors.description}
+                      icon={<AlignLeftIcon aria-hidden="true" />}
+                      id="description"
+                      label="Descrição"
+                      placeholder="Observações da ficha"
+                      {...register("description")}
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {fields.map((field, index) => (
+                <WorkoutDayForm
+                  canRemove={fields.length > 1}
+                  exercisesByReference={exercisesByReference}
+                  index={index}
+                  key={field.id}
+                  onAddExercise={() => setSelectionTarget({ dayIndex: index })}
+                  onDown={() => move(index, index + 1)}
+                  onRemove={() => setRemovingDayIndex(index)}
+                  onReplaceExercise={exerciseIndex =>
+                    setSelectionTarget({ dayIndex: index, exerciseIndex })
+                  }
+                  onUp={() => move(index, index - 1)}
+                  total={fields.length}
+                  value={field.id}
+                />
+              ))}
+            </Accordion>
+            <FieldError className="mt-4" errors={[formState.errors.days?.root]} />
+          </ScrollArea>
+        </fieldset>
+
+        <DialogFooter className="shrink-0 gap-2">
           <Button
             disabled={formState.isSubmitting}
             onClick={onCancel}
@@ -191,49 +187,55 @@ export function WorkoutForm({
           >
             Cancelar
           </Button>
+
+          <Button
+            disabled={fields.length >= 30 || formState.isSubmitting}
+            onClick={addWorkoutDay}
+            type="button"
+            variant="secondary"
+          >
+            Adicionar
+          </Button>
+
           <Button disabled={formState.isSubmitting} type="submit">
             {formState.isSubmitting && <LoaderCircleIcon className="animate-spin" />}
-            {formState.isSubmitting ? "Salvando" : "Salvar ficha"}
+            {formState.isSubmitting
+              ? isEditing
+                ? "Editando"
+                : "Criando"
+              : isEditing
+                ? "Editar"
+                : "Criar"}
           </Button>
         </DialogFooter>
       </form>
+
       <WorkoutExerciseSelector
+        exerciseProgressions={exerciseProgressions}
         exercises={exercises}
         onClose={() => setSelectionTarget(null)}
         target={selectionTarget}
       />
-      <AlertDialog
+      <ConfirmationDialog
+        confirmLabel="Excluir"
+        description={
+          <>
+            O “
+            {removingDayIndex === null
+              ? ""
+              : getValues(`days.${removingDayIndex}.name`) ||
+                `Treino ${removingDayIndex + 1}`}
+            ” e todos os seus exercícios serão excluídos. Esta ação não poderá ser desfeita
+          </>
+        }
+        onConfirm={() => {
+          if (removingDayIndex !== null) remove(removingDayIndex)
+          setRemovingDayIndex(null)
+        }}
         onOpenChange={open => !open && setRemovingDayIndex(null)}
         open={removingDayIndex !== null}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir dia de treino</AlertDialogTitle>
-            <AlertDialogDescription>
-              O dia “
-              {removingDayIndex === null
-                ? ""
-                : getValues(`days.${removingDayIndex}.name`) ||
-                  `Dia ${removingDayIndex + 1}`}
-              ” e todos os seus exercícios serão excluídos. Esta ação não poderá ser
-              desfeita
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel variant="secondary">Cancelar</AlertDialogCancel>
-
-            <Button
-              onClick={() => {
-                if (removingDayIndex !== null) remove(removingDayIndex)
-                setRemovingDayIndex(null)
-              }}
-              variant="destructive"
-            >
-              Excluir
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title="Excluir dia de treino"
+      />
     </FormProvider>
   )
 }

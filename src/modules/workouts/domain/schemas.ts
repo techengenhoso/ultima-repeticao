@@ -45,7 +45,7 @@ export const workoutExerciseSchema = z.object({
 
 export const workoutDaySchema = z.object({
   id: z.string().min(1),
-  name: compactText(2, 50),
+  name: compactText(1, 50),
   order: z.number().int().min(0),
   muscleGroups: z.array(z.enum(muscleGroupValues)),
   exercises: z

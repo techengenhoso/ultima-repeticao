@@ -4,18 +4,9 @@ import { EyeIcon, Trash2Icon } from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
+import { ConfirmationDialog } from "@/components/confirmation-dialog"
 import { PageHeader } from "@/components/page-header"
 import { Skeletons } from "@/components/skeleton"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
@@ -391,34 +382,16 @@ function UserSessionHistory({ title }: { title: string }) {
         sessions={sessions}
       />
 
-      <AlertDialog
+      <ConfirmationDialog
+        closeOnConfirm
+        confirmLabel="Excluir"
+        description="Este treino será excluído permanentemente sem possibilidade de recuperação"
+        isPending={isDeleting}
+        onConfirm={() => void confirmDelete()}
         onOpenChange={open => !open && !isDeleting && setDeleting(null)}
         open={!!deleting}
-      >
-        <AlertDialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
-          <AlertDialogHeader className="sm:group-data-[size=default]/alert-dialog-content:place-items-center sm:group-data-[size=default]/alert-dialog-content:text-center">
-            <AlertDialogTitle>Exclusão permanente</AlertDialogTitle>
-
-            <AlertDialogDescription>
-              Este treino será excluído permanentemente sem possibilidade de recuperação
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <AlertDialogFooter className="w-full gap-3 sm:justify-stretch sm:*:flex-1">
-            <AlertDialogCancel disabled={isDeleting} variant="secondary">
-              Cancelar
-            </AlertDialogCancel>
-
-            <AlertDialogAction
-              disabled={isDeleting}
-              onClick={() => void confirmDelete()}
-              variant="destructive"
-            >
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title="Exclusão permanente"
+      />
     </div>
   )
 }

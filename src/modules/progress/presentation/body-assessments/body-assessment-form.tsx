@@ -15,6 +15,7 @@ import { DialogFooter } from "@/components/ui/dialog"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { InputGroup, InputGroupAddon, InputGroupButton } from "@/components/ui/input-group"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { formatIsoDateToBrazilian, parseBrazilianDate } from "@/lib/date"
 import { dateSchema } from "@/lib/schemas-zod"
 import {
@@ -161,108 +162,115 @@ export function BodyAssessmentForm({
   }
 
   return (
-    <form className="space-y-5" onSubmit={form.handleSubmit(submit)}>
-      <fieldset className="grid content-start gap-5 sm:grid-cols-2" disabled={saving}>
-        <div className="sm:col-span-2">
-          <Controller
-            control={form.control}
-            name="assessmentDate"
-            render={({ field, fieldState }) => {
-              const isoAssessmentDate = parseBrazilianDate(field.value)
-              const selectedDate = isoAssessmentDate
-                ? new Date(`${isoAssessmentDate}T00:00:00`)
-                : undefined
+    <form
+      className="flex min-h-0 min-w-0 flex-1 flex-col gap-5"
+      onSubmit={form.handleSubmit(submit)}
+    >
+      <ScrollArea className="min-h-0 flex-1">
+        <div className="space-y-5">
+          <fieldset className="grid content-start gap-5 sm:grid-cols-2" disabled={saving}>
+            <div className="sm:col-span-2">
+              <Controller
+                control={form.control}
+                name="assessmentDate"
+                render={({ field, fieldState }) => {
+                  const isoAssessmentDate = parseBrazilianDate(field.value)
+                  const selectedDate = isoAssessmentDate
+                    ? new Date(`${isoAssessmentDate}T00:00:00`)
+                    : undefined
 
-              return (
-                <Field>
-                  <FieldLabel htmlFor="assessment-date">Data da avaliação</FieldLabel>
+                  return (
+                    <Field>
+                      <FieldLabel htmlFor="assessment-date">Data da avaliação</FieldLabel>
 
-                  <InputGroup data-disabled={saving || undefined}>
-                    <InputGroupAddon>
-                      <CalendarDaysIcon aria-hidden="true" />
-                    </InputGroupAddon>
+                      <InputGroup data-disabled={saving || undefined}>
+                        <InputGroupAddon>
+                          <CalendarDaysIcon aria-hidden="true" />
+                        </InputGroupAddon>
 
-                    <Popover
-                      onOpenChange={open => {
-                        setIsAssessmentDatePickerOpen(open)
-                        if (open) setAssessmentDatePickerMonth(selectedDate ?? new Date())
-                      }}
-                      open={isAssessmentDatePickerOpen}
-                    >
-                      <PopoverTrigger asChild>
-                        <InputGroupButton
-                          aria-describedby={
-                            fieldState.error ? "assessment-date-error" : undefined
-                          }
-                          aria-invalid={Boolean(fieldState.error)}
-                          className={cn(
-                            "h-full flex-1 justify-start rounded-none px-0 pl-1.5 font-normal hover:bg-transparent",
-                            !selectedDate && "text-muted-foreground"
-                          )}
-                          data-slot="input-group-control"
-                          disabled={saving}
-                          id="assessment-date"
-                          size="sm"
-                        >
-                          {selectedDate
-                            ? format(selectedDate, "dd 'de' MMMM 'de' yyyy", {
-                                locale: ptBR,
-                              })
-                            : "Selecione a data da avaliação"}
-                        </InputGroupButton>
-                      </PopoverTrigger>
-
-                      <PopoverContent align="start" className="w-auto p-0">
-                        <Calendar
-                          captionLayout="dropdown"
-                          disabled={{ after: new Date() }}
-                          endMonth={new Date()}
-                          locale={ptBR}
-                          mode="single"
-                          month={assessmentDatePickerMonth}
-                          onMonthChange={setAssessmentDatePickerMonth}
-                          onSelect={date => {
-                            field.onChange(date ? format(date, "dd/MM/yyyy") : "")
-                            setIsAssessmentDatePickerOpen(false)
+                        <Popover
+                          onOpenChange={open => {
+                            setIsAssessmentDatePickerOpen(open)
+                            if (open)
+                              setAssessmentDatePickerMonth(selectedDate ?? new Date())
                           }}
-                          selected={selectedDate}
-                          startMonth={new Date(1900, 0)}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </InputGroup>
+                          open={isAssessmentDatePickerOpen}
+                        >
+                          <PopoverTrigger asChild>
+                            <InputGroupButton
+                              aria-describedby={
+                                fieldState.error ? "assessment-date-error" : undefined
+                              }
+                              aria-invalid={Boolean(fieldState.error)}
+                              className={cn(
+                                "h-full flex-1 justify-start rounded-none px-0 pl-1.5 font-normal hover:bg-transparent",
+                                !selectedDate && "text-muted-foreground"
+                              )}
+                              data-slot="input-group-control"
+                              disabled={saving}
+                              id="assessment-date"
+                              size="sm"
+                            >
+                              {selectedDate
+                                ? format(selectedDate, "dd 'de' MMMM 'de' yyyy", {
+                                    locale: ptBR,
+                                  })
+                                : "Selecione a data da avaliação"}
+                            </InputGroupButton>
+                          </PopoverTrigger>
 
-                  <FieldError errors={[fieldState.error]} id="assessment-date-error" />
-                </Field>
-              )
-            }}
-          />
-        </div>
-        <BodyAssessmentGroupsAccordion
-          className="sm:col-span-2"
-          groups={visibleGroups.map(assessmentGroup => {
-            const groupFields = fieldsFor(assessmentGroup)
-            return {
-              key: assessmentGroup,
-              label:
-                groups.find(groupItem => groupItem.key === assessmentGroup)?.label ??
-                assessmentGroup,
-              measureCount: groupFields.length,
-            }
-          })}
-          renderContent={assessmentGroup => (
-            <div className="grid gap-5 sm:grid-cols-2">
-              {fieldsFor(assessmentGroup).map(renderField)}
+                          <PopoverContent align="start" className="w-auto p-0">
+                            <Calendar
+                              captionLayout="dropdown"
+                              disabled={{ after: new Date() }}
+                              endMonth={new Date()}
+                              locale={ptBR}
+                              mode="single"
+                              month={assessmentDatePickerMonth}
+                              onMonthChange={setAssessmentDatePickerMonth}
+                              onSelect={date => {
+                                field.onChange(date ? format(date, "dd/MM/yyyy") : "")
+                                setIsAssessmentDatePickerOpen(false)
+                              }}
+                              selected={selectedDate}
+                              startMonth={new Date(1900, 0)}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </InputGroup>
+
+                      <FieldError errors={[fieldState.error]} id="assessment-date-error" />
+                    </Field>
+                  )
+                }}
+              />
             </div>
+            <BodyAssessmentGroupsAccordion
+              className="sm:col-span-2"
+              groups={visibleGroups.map(assessmentGroup => {
+                const groupFields = fieldsFor(assessmentGroup)
+                return {
+                  key: assessmentGroup,
+                  label:
+                    groups.find(groupItem => groupItem.key === assessmentGroup)?.label ??
+                    assessmentGroup,
+                  measureCount: groupFields.length,
+                }
+              })}
+              renderContent={assessmentGroup => (
+                <div className="grid gap-5 sm:grid-cols-2">
+                  {fieldsFor(assessmentGroup).map(renderField)}
+                </div>
+              )}
+            />
+          </fieldset>
+          {(failure || form.formState.errors.root?.message) && (
+            <p className="text-sm text-destructive" role="alert">
+              {failure || form.formState.errors.root?.message}
+            </p>
           )}
-          scrollContent
-        />
-      </fieldset>
-      {(failure || form.formState.errors.root?.message) && (
-        <p className="text-sm text-destructive" role="alert">
-          {failure || form.formState.errors.root?.message}
-        </p>
-      )}
+        </div>
+      </ScrollArea>
       <DialogFooter className="grid shrink-0 grid-cols-2 gap-2 sm:grid sm:grid-cols-2">
         <Button
           className="w-full"

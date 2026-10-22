@@ -13,6 +13,9 @@ import { toast } from "sonner"
 import { useUser } from "@/contexts/user-context"
 import type { Exercise } from "@/modules/exercises/domain/exercise"
 import { useExerciseUseCases } from "@/modules/exercises/presentation/exercise-use-cases-context"
+import type { ExerciseLoadProgression } from "@/modules/progress/domain/performance"
+import { useProgressUseCases } from "@/modules/progress/presentation/progress-use-cases-context"
+import { DuplicateWorkoutNameError } from "@/modules/workouts/application/ports/workout-repository"
 import type { Workout, WorkoutInput } from "@/modules/workouts/domain/workout"
 import { emptyWorkoutFilters } from "@/modules/workouts/domain/workout-library"
 import { useWorkoutUseCases } from "@/modules/workouts/presentation/workout-use-cases-context"
@@ -20,9 +23,13 @@ import { useWorkoutUseCases } from "@/modules/workouts/presentation/workout-use-
 function useWorkoutState() {
   const { user } = useUser()
   const exerciseUseCases = useExerciseUseCases()
+  const progressUseCases = useProgressUseCases()
   const workoutUseCases = useWorkoutUseCases()
   const [workouts, setWorkouts] = useState<Workout[]>([])
   const [exercises, setExercises] = useState<Exercise[]>([])
+  const [exerciseProgressions, setExerciseProgressions] = useState<
+    Map<string, ExerciseLoadProgression>
+  >(() => new Map())
   const [isLoading, setIsLoading] = useState(true)
   const [loadingError, setLoadingError] = useState(false)
   const [filters, setFilters] = useState(emptyWorkoutFilters)
@@ -36,18 +43,22 @@ function useWorkoutState() {
     setIsLoading(true)
     setLoadingError(false)
     try {
-      const [loadedWorkouts, loadedExercises] = await Promise.all([
+      const [loadedWorkouts, loadedExercises, performanceSessions] = await Promise.all([
         workoutUseCases.list(user.uid),
         exerciseUseCases.list(user.uid),
+        progressUseCases.listPerformanceSessions().catch(() => []),
       ])
       setWorkouts(loadedWorkouts)
       setExercises(loadedExercises)
+      setExerciseProgressions(
+        progressUseCases.latestExerciseProgressions(performanceSessions)
+      )
     } catch {
       setLoadingError(true)
     } finally {
       setIsLoading(false)
     }
-  }, [exerciseUseCases, user.uid, workoutUseCases])
+  }, [exerciseUseCases, progressUseCases, user.uid, workoutUseCases])
 
   useEffect(() => {
     void loadWorkouts()
@@ -70,8 +81,12 @@ function useWorkoutState() {
       setWorkouts(current => workoutUseCases.replace(current, saved))
       toast.success(workout?.id ? "Ficha atualizada" : "Ficha criada")
       return true
-    } catch {
-      toast.error("Não foi possível salvar a ficha")
+    } catch (error) {
+      toast.error(
+        error instanceof DuplicateWorkoutNameError
+          ? "Você já possui uma ficha com esse nome"
+          : "Não foi possível salvar a ficha"
+      )
       return false
     }
   }
@@ -88,6 +103,9 @@ function useWorkoutState() {
     try {
       await workoutUseCases.activate(user.uid, workout.id)
       setWorkouts(current => workoutUseCases.activateInList(current, workout.id))
+      setDetails(current =>
+        current?.id === workout.id ? { ...current, isActive: true } : current
+      )
       toast.success("Ficha definida como ativa")
     } catch {
       toast.error("Não foi possível ativar a ficha")
@@ -101,29 +119,15 @@ function useWorkoutState() {
     try {
       await workoutUseCases.deactivate(user.uid, workout.id)
       setWorkouts(current => workoutUseCases.deactivateInList(current, workout.id))
+      setDetails(current =>
+        current?.id === workout.id ? { ...current, isActive: false } : current
+      )
       toast.success("Ficha desativada")
     } catch {
       toast.error("Não foi possível desativar a ficha")
     } finally {
       setIsActivating(false)
     }
-  }
-
-  function duplicateWorkout(workout: Workout) {
-    setFormWorkout({
-      ...workout,
-      id: "",
-      name: `${workout.name} — Cópia`,
-      isActive: false,
-      days: workout.days.map(day => ({
-        ...day,
-        id: crypto.randomUUID(),
-        exercises: day.exercises.map(exercise => ({
-          ...exercise,
-          id: crypto.randomUUID(),
-        })),
-      })),
-    })
   }
 
   async function removeWorkout(workout: Workout) {
@@ -156,9 +160,9 @@ function useWorkoutState() {
     deactivateWorkout,
     deleting,
     details,
-    duplicateWorkout,
     exercises,
     exercisesByReference,
+    exerciseProgressions,
     filteredWorkouts,
     formWorkout,
     handleSaveWorkout,

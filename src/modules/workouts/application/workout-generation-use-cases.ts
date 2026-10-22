@@ -74,8 +74,7 @@ export function createWorkoutGenerationUseCases(): WorkoutGenerationUseCases {
     weeklyVolume: calculateWeeklyVolume,
     estimateDuration: estimateSessionMinutes,
     exerciseDefaults(exercise, prescription) {
-      if (!prescription)
-        return { sets: Number.NaN, repetitions: "", initialLoad: Number.NaN }
+      if (!prescription) return { sets: Number.NaN, repetitions: "", initialLoad: 0 }
       const rules =
         classifyMovement(exercise.movementPattern) === "compound"
           ? prescription.compoundExerciseRules
@@ -83,7 +82,7 @@ export function createWorkoutGenerationUseCases(): WorkoutGenerationUseCases {
       return {
         sets: rules.sets.min,
         repetitions: rules.repetitions[0],
-        initialLoad: Number.NaN,
+        initialLoad: 0,
         restSeconds: rules.restSeconds.min,
       }
     },

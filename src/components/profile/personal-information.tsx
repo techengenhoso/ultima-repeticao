@@ -174,7 +174,7 @@ export function PersonalInformation() {
                             ? format(selectedDate, "dd 'de' MMMM 'de' yyyy", {
                                 locale: ptBR,
                               })
-                            : "Selecione sua data de nascimento"}
+                            : "Selecione uma data"}
                         </InputGroupButton>
                       </PopoverTrigger>
 

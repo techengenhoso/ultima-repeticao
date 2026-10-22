@@ -37,7 +37,7 @@ export const completedSetSchema = z
       .number({ error: "Informe as repetições realizadas" })
       .int()
       .min(0)
-      .max(100),
+      .max(500),
     load: loadSchema,
     effortRating: effortRatingSchema.optional(),
     completed: z.boolean(),
@@ -52,6 +52,21 @@ export const incrementSchema = z
     percentage: z.number().min(0.5).max(5).default(2.5),
   })
   .strict()
+export type IncrementSettings = z.infer<typeof incrementSchema>
+export const defaultIncrementSettings: IncrementSettings = {
+  percentage: 2.5,
+  roundingStep: 3,
+}
+
+export function resolveIncrementSettings(settings?: IncrementSettings): IncrementSettings {
+  const usesLegacyDefault =
+    settings?.percentage === 2.5 &&
+    settings.roundingStep === 0.5 &&
+    settings.increment === undefined &&
+    settings.equipmentIncrement === undefined
+
+  return !settings || usesLegacyDefault ? defaultIncrementSettings : settings
+}
 export const suggestionSchema = z
   .object({
     action: z.enum([
@@ -63,7 +78,7 @@ export const suggestionSchema = z
     ]),
     currentLoad: loadSchema,
     suggestedLoad: loadSchema.optional(),
-    suggestedRepetitions: z.number().int().min(1).max(100).optional(),
+    suggestedRepetitions: z.number().int().min(1).max(500).optional(),
     reason: z.string().max(1000),
     basedOnSessionIds: z.array(documentIdSchema).max(20),
     confidence: z.enum(["low", "normal"]),
@@ -73,6 +88,7 @@ export const decisionSchema = z
   .object({
     choice: z.enum(["accept", "maintain", "custom"]),
     load: loadSchema,
+    repetitions: z.number().int().min(1).max(500).optional(),
     settings: incrementSchema,
     suggestion: suggestionSchema,
     decidedAt: z.number().int().positive(),
@@ -206,13 +222,22 @@ export const sessionCommandSchema = z.discriminatedUnion("action", [
       settings: incrementSchema,
       choice: z.enum(["accept", "maintain", "custom"]),
       load: loadSchema,
+      repetitions: z.number().int().min(1).max(500).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      action: z.literal("removeDecision"),
+      id: documentIdSchema,
+      version: z.number().int().min(0),
+      exerciseIndex: z.number().int().min(0).max(29),
     })
     .strict(),
 ])
 export type WorkoutSession = z.infer<typeof sessionSchema>
 export type SessionExercise = z.infer<typeof sessionExerciseSchema>
 export type LoadSuggestion = z.infer<typeof suggestionSchema>
-export type IncrementSettings = z.infer<typeof incrementSchema>
+export type LoadDecision = z.infer<typeof decisionSchema>
 export type SessionCommand = z.infer<typeof sessionCommandSchema>
 export type SessionFormValues = z.infer<typeof sessionFormSchema>
 export type PreparedSession = z.infer<typeof preparedSessionSchema>
