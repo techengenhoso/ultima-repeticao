@@ -86,7 +86,7 @@ A Fase 4 não precisa de chave de IA para executar sessões ou calcular progress
 - Interface em cards, sem tabelas largas, campos em coluna no celular, labels e avisos acessíveis; barra inferior preservada
 - Conferência visual da execução completa em 320 px e gravações reais continuam pendentes da configuração de Admin, índice e sessão autenticada disponível
 - O autosave local não é sincronizado entre navegadores ou dispositivos e depende de o armazenamento local estar disponível
-- O painel inicial ainda contém os indicadores provisórios anteriores; o desempenho real está em Histórico/Evolução
+- O painel inicial mostra as fichas, o total de sessões concluídas e até 100 sessões finalizadas carregadas para desempenho. Os indicadores de período e as atividades recentes não substituem o Histórico paginado
 - A progressão é uma sugestão simples, não considera técnica, fadiga geral, idade do histórico, pausas prolongadas ou mudanças de equipamento
 - Para expansão futura: histórico analítico paginado por exercício, tratamento explícito de troca de equipamento e salvamento automático com recuperação de conflitos
 

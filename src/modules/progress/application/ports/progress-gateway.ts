@@ -5,6 +5,7 @@ import type {
 import type { WorkoutSession } from "@/modules/sessions/domain/session"
 
 export interface ProgressGateway {
+  completedSessionCount(): Promise<number>
   listAssessments(): Promise<BodyAssessment[]>
   createAssessment(input: BodyAssessmentInput): Promise<BodyAssessment>
   updateAssessment(id: string, input: BodyAssessmentInput): Promise<BodyAssessment>

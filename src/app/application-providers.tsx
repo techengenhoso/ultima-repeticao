@@ -11,7 +11,10 @@ import { createExerciseUseCases } from "@/modules/exercises/application/exercise
 import { firebaseExerciseRepository } from "@/modules/exercises/infrastructure/firebase-exercise-repository"
 import { ExerciseUseCasesProvider } from "@/modules/exercises/presentation/exercise-use-cases-context"
 import { createProgressUseCases } from "@/modules/progress/application/progress-use-cases"
-import { loadPerformanceSessions } from "@/modules/progress/infrastructure/http-performance-gateway"
+import {
+  loadCompletedSessionCount,
+  loadPerformanceSessions,
+} from "@/modules/progress/infrastructure/http-performance-gateway"
 import { createHttpProgressGateway } from "@/modules/progress/infrastructure/http-progress-gateway"
 import { ProgressUseCasesProvider } from "@/modules/progress/presentation/progress-use-cases-context"
 import { localSessionDraftStore } from "@/modules/sessions/infrastructure/browser/local-session-draft-store"
@@ -41,6 +44,7 @@ const workoutUseCases = createWorkoutUseCases(firebaseWorkoutRepository)
 const workoutGenerationUseCases = createWorkoutGenerationUseCases()
 const progressUseCases = createProgressUseCases(
   createHttpProgressGateway({
+    completedSessionCount: loadCompletedSessionCount,
     listAssessments,
     createAssessment,
     updateAssessment,

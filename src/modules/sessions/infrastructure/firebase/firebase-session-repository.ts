@@ -105,6 +105,11 @@ export class FirebaseSessionRepository implements SessionRepository {
     await sessions(uid).doc(id).delete()
   }
 
+  async countCompleted(uid: string) {
+    const snapshot = await sessions(uid).where("status", "==", "completed").count().get()
+    return snapshot.data().count
+  }
+
   async listFinalized(uid: string) {
     const snapshot = await sessions(uid)
       .where("status", "in", ["completed", "cancelled"])

@@ -14,7 +14,7 @@ import { useFormContext, useWatch } from "react-hook-form"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
+import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   type EffortRating,
@@ -142,10 +142,17 @@ export function SessionExerciseForm({
   return (
     <section aria-label={exercise.exerciseSnapshot.name} className="min-w-0 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Button onClick={onBack} size="sm" type="button" variant="ghost">
-          <ArrowLeftIcon aria-hidden="true" />
+        <Button
+          className="p-0 m-0"
+          onClick={onBack}
+          size="sm"
+          type="button"
+          variant="ghost"
+        >
+          <ArrowLeftIcon />
           Todos os exercícios
         </Button>
+
         <span className="text-xs font-medium text-muted-foreground">
           Exercício {index + 1} de {totalExercises}
         </span>
@@ -242,11 +249,9 @@ export function SessionExerciseForm({
                     )
                   })}
                 </fieldset>
-                <FieldDescription>
-                  Escolha a percepção mais próxima do esforço ao terminar a série
-                </FieldDescription>
               </Field>
-              <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-start">
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start pt-3">
                 <Button
                   aria-pressed={selectedSet.completed}
                   className="sm:order-2 sm:ml-auto"
@@ -258,11 +263,6 @@ export function SessionExerciseForm({
                 >
                   {selectedSet.completed ? "Atualizar série" : "Concluir série"}
                 </Button>
-
-                <FieldDescription className="sm:order-1">
-                  A próxima meta considera a avaliação mais difícil entre as séries
-                  concluídas
-                </FieldDescription>
               </div>
             </div>
           ) : (

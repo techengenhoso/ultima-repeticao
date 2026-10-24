@@ -69,7 +69,7 @@ export function WorkoutCard({ onDelete, onDetails, onEdit, workout }: Props) {
         </p>
       </CardContent>
 
-      <CardFooter className="flex flex-wrap justify-end gap-2 border-t">
+      <CardFooter className="flex flex-wrap justify-end gap-2">
         <Button
           onClick={() => onDetails(workout)}
           size="sm"

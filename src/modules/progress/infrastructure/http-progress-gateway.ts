@@ -6,6 +6,7 @@ import type { ProgressGateway } from "@/modules/progress/application/ports/progr
 import type { WorkoutSession } from "@/modules/sessions/domain/session"
 
 interface HttpProgressDependencies {
+  completedSessionCount(): Promise<number>
   listAssessments(): Promise<BodyAssessment[]>
   createAssessment(input: BodyAssessmentInput): Promise<BodyAssessment>
   updateAssessment(id: string, input: BodyAssessmentInput): Promise<BodyAssessment>
@@ -17,6 +18,7 @@ export function createHttpProgressGateway(
   dependencies: HttpProgressDependencies
 ): ProgressGateway {
   return {
+    completedSessionCount: dependencies.completedSessionCount,
     listAssessments: dependencies.listAssessments,
     createAssessment: dependencies.createAssessment,
     updateAssessment: dependencies.updateAssessment,

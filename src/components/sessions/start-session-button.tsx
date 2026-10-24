@@ -1,6 +1,8 @@
 "use client"
 
+import { LoaderCircleIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
+import type { ComponentProps } from "react"
 import { useRef, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -8,7 +10,18 @@ import { useUser } from "@/contexts/user-context"
 import { useSessionDraftStore } from "@/modules/sessions/presentation/session-draft-store-context"
 import { useSessionGateway } from "@/modules/sessions/presentation/session-gateway-context"
 
-export function StartSessionButton({ planId, dayId }: { planId: string; dayId: string }) {
+type StartSessionButtonProps = {
+  dayId: string
+  planId: string
+} & Pick<ComponentProps<typeof Button>, "className" | "size" | "variant">
+
+export function StartSessionButton({
+  className,
+  dayId,
+  planId,
+  size,
+  variant,
+}: StartSessionButtonProps) {
   const gateway = useSessionGateway()
   const draftStore = useSessionDraftStore()
   const { user } = useUser()
@@ -54,22 +67,16 @@ export function StartSessionButton({ planId, dayId }: { planId: string; dayId: s
   }
 
   return (
-    <>
-      {pending ? (
-        <p className="text-sm text-muted-foreground">Preparando seu treino</p>
-      ) : (
-        <p className="text-sm text-muted-foreground">
-          Para iniciar este treino,{" "}
-          <Button
-            className="h-auto p-0 align-baseline"
-            onClick={() => void start()}
-            type="button"
-            variant="link"
-          >
-            clique aqui
-          </Button>
-        </p>
-      )}
-    </>
+    <Button
+      className={className}
+      disabled={pending}
+      onClick={() => void start()}
+      size={size}
+      type="button"
+      variant={variant}
+    >
+      {pending && <LoaderCircleIcon aria-hidden="true" className="animate-spin" />}
+      {pending ? "Preparando treino" : "Iniciar treino"}
+    </Button>
   )
 }

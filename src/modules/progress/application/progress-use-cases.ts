@@ -4,6 +4,11 @@ import type {
 } from "@/modules/body-assessments/domain/body-assessment"
 import { sortAssessments } from "@/modules/body-assessments/domain/calculations"
 import {
+  type DashboardSummary,
+  type DashboardWorkout,
+  dashboardSummary,
+} from "@/modules/progress/domain/dashboard-summary"
+import {
   exerciseOptions,
   latestExerciseProgressions,
   performanceForExercise,
@@ -13,6 +18,7 @@ import type { WorkoutSession } from "@/modules/sessions/domain/session"
 import type { ProgressGateway } from "./ports/progress-gateway"
 
 export interface ProgressUseCases {
+  completedSessionCount(): Promise<number>
   listAssessments(): Promise<BodyAssessment[]>
   saveAssessment(
     input: BodyAssessmentInput,
@@ -31,10 +37,17 @@ export interface ProgressUseCases {
     sessions: WorkoutSession[],
     key: string
   ): ReturnType<typeof performanceForExercise>
+  dashboardSummary(
+    sessions: WorkoutSession[],
+    workouts?: DashboardWorkout[],
+    completedSessions?: number,
+    now?: number
+  ): DashboardSummary
 }
 
 export function createProgressUseCases(gateway: ProgressGateway): ProgressUseCases {
   return {
+    completedSessionCount: () => gateway.completedSessionCount(),
     async listAssessments() {
       return sortAssessments(await gateway.listAssessments())
     },
@@ -51,5 +64,6 @@ export function createProgressUseCases(gateway: ProgressGateway): ProgressUseCas
     exerciseOptions,
     workoutPerformance,
     performanceForExercise,
+    dashboardSummary,
   }
 }

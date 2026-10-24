@@ -109,7 +109,17 @@ export function WorkoutDetails() {
 
                     <AccordionContent className="h-auto pt-4">
                       <div className="space-y-5">
-                        <StartSessionButton dayId={day.id} planId={workout.id} />
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <p className="text-sm text-muted-foreground">
+                            Inicie este dia quando estiver pronto
+                          </p>
+
+                          <StartSessionButton
+                            dayId={day.id}
+                            planId={workout.id}
+                            variant="secondary"
+                          />
+                        </div>
 
                         <ItemGroup>
                           <WorkoutDayDetail label="Grupos musculares">
