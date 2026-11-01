@@ -38,6 +38,7 @@ import {
   emptyWorkoutFilters,
   type WorkoutFilters,
 } from "@/modules/workouts/domain/workout-library"
+import { workoutDurationOptions } from "@/modules/workouts/presentation/workout-duration-options"
 
 interface WorkoutFilterFieldsProps {
   exerciseOptions: readonly { label: string; value: string }[]
@@ -116,12 +117,7 @@ function WorkoutFilterFields({
             estimatedDuration: value as WorkoutFilters["estimatedDuration"],
           })
         }
-        options={[
-          { label: "Até 30 min", value: "up-to-30" },
-          { label: "31 a 45 min", value: "31-to-45" },
-          { label: "46 a 60 min", value: "46-to-60" },
-          { label: "Mais de 60 min", value: "over-60" },
-        ]}
+        options={workoutDurationOptions}
         value={filters.estimatedDuration}
       />
     </>

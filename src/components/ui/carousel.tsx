@@ -97,7 +97,8 @@ function Carousel({
     api.on("select", onSelect)
 
     return () => {
-      api?.off("select", onSelect)
+      api.off("select", onSelect)
+      api.off("reInit", onSelect)
     }
   }, [api, onSelect])
 
@@ -115,7 +116,7 @@ function Carousel({
       }}
     >
       <div
-        aria-roledescription="carousel"
+        aria-roledescription="carrossel"
         className={cn("relative", className)}
         data-slot="carousel"
         onKeyDownCapture={handleKeyDown}
@@ -165,7 +166,7 @@ function CarouselItem({ className, ...props }: React.ComponentProps<"div">) {
 
 function CarouselPrevious({
   className,
-  variant = "secondary",
+  variant = "outline",
   size = "icon-sm",
   ...props
 }: React.ComponentProps<typeof Button>) {
@@ -187,15 +188,15 @@ function CarouselPrevious({
       variant={variant}
       {...props}
     >
-      <ChevronLeftIcon />
-      <span className="sr-only">Previous slide</span>
+      <ChevronLeftIcon aria-hidden="true" />
+      <span className="sr-only">Anterior</span>
     </Button>
   )
 }
 
 function CarouselNext({
   className,
-  variant = "secondary",
+  variant = "outline",
   size = "icon-sm",
   ...props
 }: React.ComponentProps<typeof Button>) {
@@ -217,8 +218,8 @@ function CarouselNext({
       variant={variant}
       {...props}
     >
-      <ChevronRightIcon />
-      <span className="sr-only">Next slide</span>
+      <ChevronRightIcon aria-hidden="true" />
+      <span className="sr-only">Próximo</span>
     </Button>
   )
 }

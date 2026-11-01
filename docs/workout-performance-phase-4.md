@@ -8,7 +8,19 @@ Fluxo: **Fichas → detalhes da ficha → dia → Iniciar este treino**. A rota 
 
 O andamento é salvo automaticamente apenas neste dispositivo. O Firestore recebe a sessão somente ao **Concluir treino** ou **Cancelar**. Enquanto estiver em andamento, o treino pode ser retomado no mesmo navegador e perfil, mas não aparece no Histórico nem em outro dispositivo. O temporizador de descanso também preserva localmente seu horário de término e continua a contagem ao sair e retornar à sessão. **Histórico** lista as sessões encerradas, com paginação de sete registros, e permite excluí-las permanentemente após confirmação. **Evolução** dá acesso ao mesmo histórico e à análise por exercício. Ao concluir, o resumo preserva as séries incompletas e permite abrir **Evolução e sugestão** em cada exercício.
 
+No painel inicial, o card **Treino de hoje** distingue ausência de fichas de fichas cadastradas sem nenhuma ativa: neste último caso, orienta **Ative uma ficha** e oferece **Ir para treinos**, com destino a `/workouts`. Um treino em execução tem prioridade sobre esses estados e sobre a ficha ativa, mostrando os nomes preservados na sessão e **Retornar ao treino**, com destino a `/workouts/sessions/{id}`. A verificação prioriza o rascunho local do usuário autenticado e consulta a API quando não há rascunho válido; falhas são exibidas pelo estado de erro do painel.
+
 Nenhum teste, arquivo de teste, dependência de testes ou script de testes foi criado, conforme orientação expressa do usuário. Não houve commit, push ou publicação no Firebase.
+
+A visão geral da execução e a tela de cada exercício exibem a duração no cabeçalho, em um indicador compacto igual ao de exercícios concluídos. O formato é `MM:SS` até 59:59 e `H:MM:SS` a partir de uma hora, sem zero à esquerda nas horas. O contador usa o início já registrado na sessão, inclui os descansos e o tempo fora da tela e mantém a contagem ao navegar, recarregar ou retomar o rascunho. A duração é apenas uma exibição durante a execução, sem gravações adicionais.
+
+Concluir uma série abre o painel inferior de descanso. É possível aumentar ou diminuir o tempo restante em 15 segundos, sem alterar o descanso prescrito na ficha. O painel pode ser minimizado pelo botão, arrastando para baixo, pressionando Escape ou tocando fora dele; a contagem e o aviso de conclusão continuam ativos. O botão compacto de descanso no cabeçalho reabre o painel. Os ajustes preservam localmente o novo horário de término para retomada após recarregar; a retomada começa com o painel minimizado. Reduzir o tempo restante a zero encerra o descanso normalmente.
+
+A execução de exercícios usa o Carousel do shadcn para navegar por deslize horizontal ou pelas setas entre os exercícios ainda não finalizados, mantendo os índices originais da sessão e os valores do formulário. O gesto não é iniciado sobre campos, botões ou controles de avaliação. Exercícios concluídos continuam disponíveis pela lista para revisão; ao sair de um deles, o Carousel volta a navegar apenas pelos pendentes. Concluir todas as séries mantém o avanço automático para o próximo exercício pendente; ao terminar o último, a lista é exibida para encerrar o treino.
+
+O Carousel acompanha a altura do exercício aberto, sem reservar espaço para exercícios ocultos mais altos. Há margem interna para preservar as bordas e o foco dos controles. No celular, o cartão usa espaçamento compacto e carga/repetições lado a lado. A correção foi conferida em 320, 500 e 1024 px com `AppShell` e `SessionScreen` reais em prévia isolada, incluindo navegação inferior, exercícios de alturas diferentes e preservação dos valores ao deslizar.
+
+O exercício selecionado encaixa por inteiro após o gesto ou navegação pelas setas. O viewport usa recorte sem rolagem lateral nativa por foco. Um observador persistente recalcula o Carousel quando a largura disponível muda; durante essa medição, a largura da faixa de slides é estabilizada temporariamente para que a aparição ou remoção da barra de rolagem da página não gere posições antigas. A largura responsiva é restaurada em seguida. Foram conferidos o ciclo 320 → 500 → 1024 px no último exercício, arrastes curtos e completos, foco nos campos e retorno do painel de descanso, sem sobreposição dos cartões vizinhos na área visível em repouso.
 
 ## Modelo e persistência
 
@@ -84,7 +96,9 @@ A Fase 4 não precisa de chave de IA para executar sessões ou calcular progress
 - TypeScript e build de produção executados
 - Diff revisado, sem alterações deliberadas fora do escopo
 - Interface em cards, sem tabelas largas, campos em coluna no celular, labels e avisos acessíveis; barra inferior preservada
-- Conferência visual da execução completa em 320 px e gravações reais continuam pendentes da configuração de Admin, índice e sessão autenticada disponível
+- Duração compacta e painel de descanso conferidos em prévia isolada com os componentes e o controle de tempo reais, no desktop e em 320 px: ajustes de 15 segundos, minimização pelo botão e por arraste, reabertura, retomada após recarregar, passagem de uma hora e encerramento ao reduzir a zero com retorno do foco
+- Carousel conferido em prévia isolada com o editor real e dados fictícios, incluindo 320 px sem overflow horizontal: deslize e setas pulam concluídos, carga preservada ao retornar, setas do campo não navegam, avanço automático, último pendente retorna à lista e concluídos podem ser abertos para revisão
+- Conferência da execução autenticada completa e gravações reais continuam pendentes da configuração de Admin, índice e sessão autenticada disponível
 - O autosave local não é sincronizado entre navegadores ou dispositivos e depende de o armazenamento local estar disponível
 - O painel inicial mostra as fichas, o total de sessões concluídas e até 100 sessões finalizadas carregadas para desempenho. Os indicadores de período e as atividades recentes não substituem o Histórico paginado
 - A progressão é uma sugestão simples, não considera técnica, fadiga geral, idade do histórico, pausas prolongadas ou mudanças de equipamento

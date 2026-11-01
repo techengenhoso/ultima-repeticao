@@ -2,7 +2,13 @@ import type { MuscleGroup } from "@/modules/exercises/domain/exercise"
 import { estimateSessionMinutes } from "@/modules/workouts/domain/methodology/validation"
 import type { Workout } from "@/modules/workouts/domain/workout"
 
-export type WorkoutDuration = "" | "up-to-30" | "31-to-45" | "46-to-60" | "over-60"
+export type WorkoutDuration =
+  | ""
+  | "up-to-20"
+  | "21-to-40"
+  | "41-to-60"
+  | "61-to-90"
+  | "91-to-120"
 
 export interface WorkoutFilters {
   search: string
@@ -32,10 +38,11 @@ function normalizeText(value: string) {
 }
 
 function matchesEstimatedDuration(minutes: number, duration: WorkoutDuration) {
-  if (duration === "up-to-30") return minutes <= 30
-  if (duration === "31-to-45") return minutes >= 31 && minutes <= 45
-  if (duration === "46-to-60") return minutes >= 46 && minutes <= 60
-  return duration === "over-60" && minutes > 60
+  if (duration === "up-to-20") return minutes <= 20
+  if (duration === "21-to-40") return minutes > 20 && minutes <= 40
+  if (duration === "41-to-60") return minutes > 40 && minutes <= 60
+  if (duration === "61-to-90") return minutes > 60 && minutes <= 90
+  return duration === "91-to-120" && minutes > 90 && minutes <= 120
 }
 
 export function filterWorkouts(workouts: Workout[], filters: WorkoutFilters) {

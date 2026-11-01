@@ -19,6 +19,7 @@ import {
   safetyQuestions,
   type WorkoutGeneratorInput,
 } from "@/modules/workouts/application/workout-generation-schema"
+import { workoutGenerationDurationOptions } from "@/modules/workouts/presentation/workout-duration-options"
 
 function selectionError(error: unknown): { message: string } | undefined {
   if (!error || typeof error !== "object") return undefined
@@ -103,15 +104,21 @@ export function WorkoutGenerationBasics() {
         {...register("daysPerWeek", { valueAsNumber: true })}
       />
 
-      <TextField
-        error={errors.durationMinutes}
-        icon={<ClockIcon />}
-        id="generator-duration"
-        inputMode="numeric"
-        label="Tempo desejado por treino"
-        placeholder="Ex: 60"
-        type="number"
-        {...register("durationMinutes", { valueAsNumber: true })}
+      <Controller
+        control={control}
+        name="durationMinutes"
+        render={({ field }) => (
+          <ComboboxField
+            disabled={isSubmitting}
+            error={errors.durationMinutes}
+            icon={<ClockIcon aria-hidden="true" />}
+            id="generator-duration"
+            label="Tempo desejado por treino"
+            onChange={value => field.onChange(value === "" ? Number.NaN : Number(value))}
+            options={workoutGenerationDurationOptions}
+            value={Number.isFinite(field.value) ? String(field.value) : ""}
+          />
+        )}
       />
     </div>
   )

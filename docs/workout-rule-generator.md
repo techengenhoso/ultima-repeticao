@@ -27,6 +27,8 @@ As preferências orientam a seleção, mas não garantem a inclusão de todos os
 
 O botão agora é **Montar automaticamente**. Revisão, edição, regeneração, confirmação de avisos e salvamento permanecem disponíveis. O formato persistido não mudou.
 
+O tempo desejado por treino é escolhido nas mesmas faixas do filtro de fichas: até 20, 21–40, 41–60, 61–90 e 91–120 minutos. O assistente envia o teto da faixa selecionada (20, 40, 60, 90 ou 120 minutos) como limite de montagem. A entrada interna continua numérica, preservando os schemas e as fichas já salvas; a duração estimada pode ficar abaixo da faixa quando os demais limites impedirem completar o tempo disponível.
+
 A validação local não substitui controles de segurança no servidor. A pendência de validação profunda de `workoutPlans` registrada na Fase 1 continua existindo. As sessões da Fase 4 mantêm sua API validada com Firebase Admin.
 
 ## Alterações

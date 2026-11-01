@@ -262,7 +262,7 @@ function SessionHistoryContent({
 
   if (!sessions.length)
     return (
-      <Empty className="border">
+      <Empty className="bg-muted/50">
         <EmptyHeader>
           <EmptyTitle>Seu histórico está vazio</EmptyTitle>
           <EmptyDescription>Finalize um treino para poder acompanhar</EmptyDescription>

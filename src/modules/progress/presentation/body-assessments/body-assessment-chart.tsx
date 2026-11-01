@@ -233,7 +233,7 @@ export function BodyAssessmentChart({ assessments }: { assessments: BodyAssessme
             </p>
           </>
         ) : (
-          <Empty className="border">
+          <Empty className="bg-muted/50">
             <EmptyHeader>
               <EmptyTitle>
                 {selected ? "Nenhum resultado encontrado" : "Selecione uma métrica"}

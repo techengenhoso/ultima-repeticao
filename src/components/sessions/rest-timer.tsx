@@ -1,8 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { type RefObject, useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
+import { RestTimerDrawer } from "./rest-timer-drawer"
 
 const restCompletedNotification = {
   title: "Descanso concluído",
@@ -14,11 +14,19 @@ function supportsNotifications() {
 }
 
 export function RestTimer({
+  completionFocusRef,
   endsAt,
+  onAdjust,
   onCompleted,
+  onOpenChange,
+  open,
 }: {
+  completionFocusRef?: RefObject<HTMLElement | null>
   endsAt: number | null
+  onAdjust: (seconds: -15 | 15) => void
   onCompleted: () => void
+  onOpenChange: (open: boolean) => void
+  open: boolean
 }) {
   const [remaining, setRemaining] = useState(0)
   const [notificationPermission, setNotificationPermission] = useState<
@@ -36,10 +44,15 @@ export function RestTimer({
       description: restCompletedNotification.body,
     })
 
-    if (supportsNotifications() && Notification.permission === "granted")
-      new Notification(restCompletedNotification.title, {
-        body: restCompletedNotification.body,
-      })
+    if (supportsNotifications() && Notification.permission === "granted") {
+      try {
+        new Notification(restCompletedNotification.title, {
+          body: restCompletedNotification.body,
+        })
+      } catch {
+        toast.error("Não foi possível exibir o alerta do sistema")
+      }
+    }
   }, [])
 
   const requestNotificationPermission = useCallback(async () => {
@@ -72,37 +85,30 @@ export function RestTimer({
     }
     tick()
     const interval = setInterval(tick, 500)
-    return () => clearInterval(interval)
+    window.addEventListener("focus", tick)
+    document.addEventListener("visibilitychange", tick)
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener("focus", tick)
+      document.removeEventListener("visibilitychange", tick)
+    }
   }, [endsAt, notifyCompletion, onCompleted])
 
   if (!endsAt || remaining === 0) return null
 
-  const formattedRemaining = `${Math.floor(remaining / 60)}:${String(
+  const formattedRemaining = `${String(Math.floor(remaining / 60)).padStart(2, "0")}:${String(
     remaining % 60
   ).padStart(2, "0")}`
 
   return (
-    <div className="flex flex-wrap items-center justify-end gap-2">
-      <output
-        aria-live="polite"
-        className="flex w-fit items-center gap-2 rounded-3xl border border-primary/40 bg-primary/10 px-3 py-2 text-primary"
-      >
-        <span className="text-xs font-semibold tracking-[0.12em] uppercase">Descanso</span>
-
-        <span className="font-semibold tabular-nums" role="timer">
-          {formattedRemaining}
-        </span>
-      </output>
-
-      {notificationPermission === "default" && (
-        <Button
-          onClick={() => void requestNotificationPermission()}
-          size="lg"
-          type="button"
-        >
-          Ativar alertas
-        </Button>
-      )}
-    </div>
+    <RestTimerDrawer
+      completionFocusRef={completionFocusRef}
+      formattedRemaining={formattedRemaining}
+      notificationPermission={notificationPermission}
+      onAdjust={onAdjust}
+      onOpenChange={onOpenChange}
+      onRequestNotificationPermission={() => void requestNotificationPermission()}
+      open={open}
+    />
   )
 }

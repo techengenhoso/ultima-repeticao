@@ -87,7 +87,7 @@ export function PerformancePanel() {
           </Button>
         </div>
       ) : !options.length ? (
-        <Empty className="border">
+        <Empty className="bg-muted/50">
           <EmptyHeader>
             <EmptyTitle>Nenhum exercício registrado</EmptyTitle>
 
@@ -97,7 +97,7 @@ export function PerformancePanel() {
           </EmptyHeader>
         </Empty>
       ) : !selected ? (
-        <Empty className="border">
+        <Empty className="bg-muted/50">
           <EmptyHeader>
             <EmptyTitle>Selecione um exercício</EmptyTitle>
             <EmptyDescription>

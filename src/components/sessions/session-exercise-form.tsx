@@ -158,14 +158,14 @@ export function SessionExerciseForm({
         </span>
       </div>
 
-      <Card className="border-l-2 border-l-primary">
+      <Card className="border-l-2 border-l-primary [--card-spacing:--spacing(4)] sm:[--card-spacing:--spacing(6)]">
         <CardHeader>
           <CardTitle className="min-w-0 wrap-break-word text-lg">
             {exercise.exerciseSnapshot.name}
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="space-y-5 border-t border-border pt-(--card-spacing)">
+        <CardContent className="space-y-4 border-t border-border pt-(--card-spacing) sm:space-y-5">
           <WorkSetNavigator
             editingSetIndex={editingSetIndex}
             nextWorkSetIndex={nextWorkSetIndex}
@@ -176,7 +176,7 @@ export function SessionExerciseForm({
 
           {selectedSet ? (
             <div className="space-y-4" key={selectedSetIndex}>
-              <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+              <div className="grid min-w-0 grid-cols-2 gap-3">
                 <Field>
                   <FieldLabel htmlFor={`exercises.${index}.sets.${selectedSetIndex}-load`}>
                     Carga

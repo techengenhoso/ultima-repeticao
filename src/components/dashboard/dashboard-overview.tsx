@@ -1,7 +1,6 @@
 "use client"
 
 import {
-  ArrowRightIcon,
   CalendarCheckIcon,
   CalendarClockIcon,
   CalendarDaysIcon,
@@ -9,12 +8,10 @@ import {
   ClipboardListIcon,
   DumbbellIcon,
   FlameIcon,
-  ScaleIcon,
 } from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { PageHeader } from "@/components/page-header"
-import { StartSessionButton } from "@/components/sessions/start-session-button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -26,14 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty"
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import {
   Item,
   ItemContent,
@@ -46,10 +36,15 @@ import { useUser } from "@/contexts/user-context"
 import { muscleGroupLabel } from "@/modules/exercises/domain/exercise"
 import type { DashboardSummary } from "@/modules/progress/domain/dashboard-summary"
 import { useProgressUseCases } from "@/modules/progress/presentation/progress-use-cases-context"
+import type { WorkoutSession } from "@/modules/sessions/domain/session"
+import { useSessionDraftStore } from "@/modules/sessions/presentation/session-draft-store-context"
+import { useSessionGateway } from "@/modules/sessions/presentation/session-gateway-context"
 import type { Workout } from "@/modules/workouts/domain/workout"
 import { useWorkoutUseCases } from "@/modules/workouts/presentation/workout-use-cases-context"
+import { NextWorkout } from "./next-workout"
 
 type DashboardData = {
+  ongoingSession: WorkoutSession | null
   summary: DashboardSummary
   workouts: Workout[]
 }
@@ -89,7 +84,7 @@ function DashboardLoading() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {["plans", "workouts", "completed", "month", "week", "streak"].map(item => (
           <Card key={item}>
             <CardContent className="space-y-3">
@@ -101,80 +96,6 @@ function DashboardLoading() {
         ))}
       </div>
     </output>
-  )
-}
-
-function NextWorkout({ workouts }: { workouts: Workout[] }) {
-  const activeWorkout = workouts.find(workout => workout.isActive)
-  const nextDay = activeWorkout?.days.toSorted(
-    (left, right) => left.order - right.order
-  )[0]
-  const muscleGroups = nextDay?.muscleGroups.map(group => muscleGroupLabel[group]) ?? []
-
-  if (!activeWorkout || !nextDay)
-    return (
-      <Card>
-        <CardContent className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-4">
-            <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <ClipboardListIcon aria-hidden="true" className="size-7" />
-            </span>
-
-            <div className="min-w-0">
-              <p className="text-xs font-semibold tracking-[0.16em] text-primary uppercase">
-                Treino de hoje
-              </p>
-              <h2 className="mt-1 text-xl font-bold">Crie sua primeira ficha</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Organize seus dias e exercícios para começar a registrar sua rotina
-              </p>
-            </div>
-          </div>
-
-          <Button asChild className="w-full sm:w-auto" size="lg">
-            <Link href="/workouts">
-              Criar ficha
-              <ArrowRightIcon aria-hidden="true" />
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
-    )
-
-  return (
-    <Card>
-      <CardContent className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-center gap-4">
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-            <DumbbellIcon aria-hidden="true" className="size-7" />
-          </span>
-
-          <div className="min-w-0">
-            <p className="text-xs font-semibold tracking-[0.16em] text-primary uppercase">
-              Treino de hoje
-            </p>
-            <div className="mt-1 flex min-w-0 items-baseline gap-2">
-              <h2 className="truncate text-xl font-bold">{nextDay.name}</h2>
-              <span className="shrink-0 text-sm font-medium text-muted-foreground">
-                {nextDay.exercises.length}{" "}
-                {nextDay.exercises.length === 1 ? "exercício" : "exercícios"}
-              </span>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {activeWorkout.name}
-              {muscleGroups.length ? ` · ${muscleGroups.join(", ")}` : ""}
-            </p>
-          </div>
-        </div>
-
-        <StartSessionButton
-          className="w-full sm:w-auto"
-          dayId={nextDay.id}
-          planId={activeWorkout.id}
-          size="lg"
-        />
-      </CardContent>
-    </Card>
   )
 }
 
@@ -220,12 +141,12 @@ function SummaryCards({ summary }: { summary: DashboardSummary }) {
         Resumo dos treinos
       </h2>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map(({ icon: Icon, label, value }) => (
-          <Card key={label}>
-            <CardHeader>
+          <Card className="min-w-0" key={label}>
+            <CardHeader className="flex-1 has-data-[slot=card-description]:grid-rows-[1fr_auto]">
               <CardDescription>{label}</CardDescription>
-              <CardTitle className="text-2xl font-bold tracking-tight sm:text-3xl">
+              <CardTitle className="min-w-0 text-2xl font-bold tracking-tight wrap-break-word sm:text-3xl">
                 {value}
               </CardTitle>
               <CardAction className="self-center">
@@ -284,21 +205,13 @@ function RecentActivities({ summary }: { summary: DashboardSummary }) {
               })}
             </ItemGroup>
           ) : (
-            <Empty className="border-0 py-8">
-              <EmptyMedia variant="icon">
-                <ScaleIcon aria-hidden="true" />
-              </EmptyMedia>
+            <Empty className="bg-muted/50">
               <EmptyHeader>
                 <EmptyTitle>Nenhuma atividade registrada</EmptyTitle>
                 <EmptyDescription>
                   Quando você concluir um treino, ele será exibido nesta área
                 </EmptyDescription>
               </EmptyHeader>
-              <EmptyContent>
-                <Button asChild variant="secondary">
-                  <Link href="/workouts">Ver fichas</Link>
-                </Button>
-              </EmptyContent>
             </Empty>
           )}
         </CardContent>
@@ -311,6 +224,8 @@ export function DashboardOverview() {
   const { user } = useUser()
   const progressUseCases = useProgressUseCases()
   const workoutUseCases = useWorkoutUseCases()
+  const sessionGateway = useSessionGateway()
+  const draftStore = useSessionDraftStore()
   const [data, setData] = useState<DashboardData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
@@ -320,11 +235,22 @@ export function DashboardOverview() {
     setHasError(false)
 
     try {
-      const [sessions, workouts] = await Promise.all([
+      const draft = draftStore.current(user.uid)?.session
+      const [sessions, workouts, ongoingSession] = await Promise.all([
         progressUseCases.listPerformanceSessions(),
         workoutUseCases.list(user.uid),
+        draft?.userId === user.uid && draft.status === "inProgress"
+          ? draft
+          : sessionGateway.findInProgress(),
       ])
+      if (
+        ongoingSession &&
+        (ongoingSession.userId !== user.uid || ongoingSession.status !== "inProgress")
+      )
+        throw new Error("Treino em andamento indisponível")
+
       setData({
+        ongoingSession,
         summary: progressUseCases.dashboardSummary(sessions, workouts),
         workouts,
       })
@@ -333,7 +259,7 @@ export function DashboardOverview() {
     } finally {
       setIsLoading(false)
     }
-  }, [progressUseCases, user.uid, workoutUseCases])
+  }, [draftStore, progressUseCases, sessionGateway, user.uid, workoutUseCases])
 
   useEffect(() => {
     void loadDashboard()
@@ -366,7 +292,7 @@ export function DashboardOverview() {
 
       {!isLoading && !hasError && data && (
         <>
-          <NextWorkout workouts={data.workouts} />
+          <NextWorkout ongoingSession={data.ongoingSession} workouts={data.workouts} />
           <SummaryCards summary={data.summary} />
           <RecentActivities summary={data.summary} />
         </>

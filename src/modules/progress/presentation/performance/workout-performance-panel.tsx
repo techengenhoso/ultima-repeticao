@@ -55,7 +55,7 @@ export function WorkoutPerformancePanel() {
           </Button>
         </div>
       ) : !sessions.length ? (
-        <Empty className="border">
+        <Empty className="bg-muted/50">
           <EmptyHeader>
             <EmptyTitle>Nenhum treino registrado</EmptyTitle>
             <EmptyDescription>
@@ -68,7 +68,7 @@ export function WorkoutPerformancePanel() {
           {data.sessions > 0 ? (
             <WorkoutPerformanceOverview data={data} />
           ) : (
-            <Empty className="border">
+            <Empty className="bg-muted/50">
               <EmptyHeader>
                 <EmptyTitle>Nenhum treino concluído</EmptyTitle>
                 <EmptyDescription>

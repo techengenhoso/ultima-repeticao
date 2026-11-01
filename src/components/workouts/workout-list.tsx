@@ -29,7 +29,7 @@ export function WorkoutList() {
 
   if (loadingError)
     return (
-      <Empty className="border">
+      <Empty className="bg-muted/50">
         <EmptyHeader>
           <EmptyTitle>Não foi possível carregar suas fichas</EmptyTitle>
           <EmptyDescription>Verifique sua conexão e tente novamente</EmptyDescription>
@@ -45,7 +45,7 @@ export function WorkoutList() {
 
   if (workouts.length === 0)
     return (
-      <Empty className="border">
+      <Empty className="bg-muted/50">
         <EmptyHeader>
           <EmptyTitle>Nenhuma ficha cadastrada</EmptyTitle>
           <EmptyDescription>
@@ -57,7 +57,7 @@ export function WorkoutList() {
 
   if (filteredWorkouts.length === 0)
     return (
-      <Empty className="border">
+      <Empty className="bg-muted/50">
         <EmptyHeader>
           <EmptyTitle>Nenhum resultado encontrado</EmptyTitle>
           <EmptyDescription>Tente mudar ou limpar os filtros</EmptyDescription>

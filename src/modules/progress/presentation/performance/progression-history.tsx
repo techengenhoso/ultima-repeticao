@@ -86,7 +86,7 @@ export function ProgressionHistory({
 
         <CardContent>
           {!progressions.length ? (
-            <Empty className="border">
+            <Empty className="bg-muted/50">
               <EmptyHeader>
                 <EmptyTitle>Nenhuma evolução registrada</EmptyTitle>
                 <EmptyDescription>

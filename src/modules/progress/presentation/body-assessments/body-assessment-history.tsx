@@ -64,7 +64,7 @@ export function BodyAssessmentHistory({
 
       <CardContent>
         {!items.length ? (
-          <Empty className="border">
+          <Empty className="bg-muted/50">
             <EmptyHeader>
               <EmptyTitle>Nenhuma avaliação encontrada</EmptyTitle>
               <EmptyDescription>Crie uma avaliação para acompanhamento</EmptyDescription>

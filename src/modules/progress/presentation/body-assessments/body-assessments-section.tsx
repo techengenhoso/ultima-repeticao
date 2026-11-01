@@ -187,7 +187,7 @@ export function BodyAssessmentsSection() {
           </Button>
         </div>
       ) : items.length === 0 ? (
-        <Empty className="border">
+        <Empty className="bg-muted/50">
           <EmptyHeader>
             <EmptyTitle>Nenhuma avaliação registrado</EmptyTitle>
             <EmptyDescription>Crie uma avaliação para acompanhamento</EmptyDescription>

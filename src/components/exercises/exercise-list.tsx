@@ -144,7 +144,7 @@ export function ExerciseList() {
 
         <CardContent>
           {filteredExercises.length === 0 ? (
-            <Empty className="border">
+            <Empty className="bg-muted/50">
               <EmptyHeader>
                 <EmptyTitle>Nenhum resultado encontrado</EmptyTitle>
 
